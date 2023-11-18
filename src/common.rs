@@ -2,7 +2,7 @@ use crate::OSS_BASE_URL;
 use crate::{utls::hmac_sha1, DEFAULT_REGION};
 use http::uri::Scheme;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::fmt::{Display, self};
 
 /// *OSS HttpMethod描述*
 #[derive(Debug)]
@@ -235,12 +235,34 @@ impl Display for Signature {
     }
 }
 
-#[derive(Debug, Default)]
+/*
+  <Code>AccessDenied</Code>
+  <Message>Anonymous access is forbidden for this operation.</Message>
+  <RequestId>65589C1147C61735372BA1F5</RequestId>
+  <HostId>aliyuncs.com</HostId>
+  <EC>0003-00001201</EC>
+  <RecommendDoc>https://api.aliyun.com/troubleshoot?q=0003-00001201</RecommendDoc>
+*/
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct OssError {
+    #[serde(rename(deserialize = "Code"))]
     pub code: String,
-    pub messahe: String,
+    #[serde(rename(deserialize = "Message"))]
+    pub message: String,
+    #[serde(rename(deserialize = "RequestId"))]
     pub request_id: String,
+    #[serde(rename(deserialize = "HostId"))]
     pub host_id: String,
+    #[serde(rename(deserialize = "EC"))]
+    pub ec: String,
+    #[serde(rename(deserialize = "RecommendDoc"))]
+    pub recommend_doc: String,
+}
+
+impl fmt::Display for OssError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+     write!(f,"Sorry, something is wrong! Please Try Again!")
+    }
 }
 
 #[cfg(test)]

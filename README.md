@@ -1,3 +1,3 @@
-# xuetube-oss
+# xt-oss
 
 oss client

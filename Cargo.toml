@@ -1,5 +1,5 @@
 [package]
-name = "xt_oss"
+name = "xt-oss"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.73"
@@ -10,7 +10,7 @@ homepage = "https://www.xuetube.com/res/xuetiube-oss"
 keywords = ["oss", "aliyun"]
 categories = ["filesystem"]
 # publish = false
-default-run = "oss"
+default-run = "xt-oss"
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -26,7 +26,7 @@ chrono = "0.4.31"
 dotenv = "0.15.0"
 hmac-sha1 = "0.2.1"
 http = "0.2.10"
-reqwest = "0.11.22"
+reqwest = { version = "0.11.22", features = ["json", "blocking","gzip","cookies","stream"]}
 rust-crypto = "0.2.36"
 serde = { version = "1.0.192", features = ["serde_derive"] }
 serde-xml-rs = "0.6.0"
