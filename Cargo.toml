@@ -20,6 +20,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 anyhow = "1.0.75"
+async-trait = "0.1.74"
 base64 = "0.21.5"
 base64-url = "2.0.0"
 chrono = "0.4.31"

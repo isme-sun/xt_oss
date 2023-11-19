@@ -2,7 +2,37 @@ use crate::OSS_BASE_URL;
 use crate::{utls::hmac_sha1, DEFAULT_REGION};
 use http::uri::Scheme;
 use serde::{Deserialize, Serialize};
+use std::any::Any;
 use std::fmt::{Display, self};
+use async_trait::async_trait;
+use std::pin::Pin;
+use std::future::Future;
+use anyhow::Result as AnyResult;
+
+
+/// OSS 返回结果
+pub type OssResult = Result<(), Box<dyn std::error::Error> >;
+/// OSS api 请求参数
+pub struct OssParams {}
+
+#[async_trait]
+pub trait OssApiService {
+    #[allow(non_snake_case)]
+    async fn ListBuckets(&self, params: OssParams);
+}
+#[async_trait]
+pub trait OssApiRegion {
+    #[allow(non_snake_case)]
+    async fn DescribeRegions(&self, params: OssParams) -> AnyResult<()>;
+}
+#[async_trait]
+pub trait OssApiBucketRegion {}
+#[async_trait]
+pub trait OssApiObject {}
+#[async_trait]
+pub trait OssApiLiveChannel {}
+
+////////////////////////////////////////////////////////////////////////////////////
 
 /// *OSS HttpMethod描述*
 #[derive(Debug)]
@@ -116,18 +146,7 @@ impl Endpoint {
 }
 
 /**
-
 # node sdk 返回例子
-
-```ignore
-{
-    name: 'k12tube',
-    region: 'oss-cn-shanghai',
-    creationDate: '2021-07-29T04:23:59.000Z',
-    StorageClass: 'Standard',
-    tag: { undefined: undefined }
-}
-```
 *OSS Bucket描述*
 */
 #[derive(Debug)]
