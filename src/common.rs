@@ -1,17 +1,16 @@
 use crate::OSS_BASE_URL;
 use crate::{utls::hmac_sha1, DEFAULT_REGION};
+use anyhow::Result as AnyResult;
+use async_trait::async_trait;
 use http::uri::Scheme;
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::fmt::{Display, self};
-use async_trait::async_trait;
-use std::pin::Pin;
+use std::fmt::{self, Display};
 use std::future::Future;
-use anyhow::Result as AnyResult;
-
+use std::pin::Pin;
 
 /// OSS 返回结果
-pub type OssResult = Result<(), Box<dyn std::error::Error> >;
+pub type OssResult = Result<(), Box<dyn std::error::Error>>;
 /// OSS api 请求参数
 pub struct OssParams {}
 
@@ -31,8 +30,6 @@ pub trait OssApiBucketRegion {}
 pub trait OssApiObject {}
 #[async_trait]
 pub trait OssApiLiveChannel {}
-
-////////////////////////////////////////////////////////////////////////////////////
 
 /// *OSS HttpMethod描述*
 #[derive(Debug)]
@@ -104,6 +101,10 @@ impl Default for OssOptions {
 
 #[allow(dead_code)]
 impl OssOptions {
+    fn from_env() -> Self {
+        Self::default()
+    }
+
     fn get_schema(&self) -> String {
         if self.secure == true {
             "https".to_string()
@@ -280,7 +281,7 @@ pub struct OssError {
 
 impl fmt::Display for OssError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-     write!(f,"Sorry, something is wrong! Please Try Again!")
+        write!(f, "Sorry, something is wrong! Please Try Again!")
     }
 }
 
@@ -321,8 +322,7 @@ mod tests {
     }
 
     #[test]
-    fn temp() {
-    }
+    fn temp() {}
 
     #[test]
     fn is_work() {
