@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     fn sha1_test() {
-        use crate::utls::sha1;
+        use crate::utils::sha1;
         let sha1_result = "87664ede859cdfe9d3fe93776a75089966067b66";
         let content = String::from("xuetube.com");
         let retval = sha1(&content);
@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn gmt_test() {
-        use crate::utls::get_gmt_date;
+        use crate::utils::get_gmt_date;
         use chrono::DateTime;
         use chrono::{TimeZone, Utc};
 
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn md5_test() {
-        use crate::utls::md5;
+        use crate::utils::md5;
 
         let the_str = "xuetube.com".to_string();
         let the_md5_str = "1e836e01950a931cf446df1be70bb2f4".to_string();
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn hmac_sha1_test() {
-        use crate::utls::hmac_sha1;
+        use crate::utils::hmac_sha1;
         let content = BODY_CONTENT.to_string();
         let key = KEY.to_string();
         let sha1_str = hmac_sha1(&content, &key);

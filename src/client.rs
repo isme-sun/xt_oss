@@ -1,53 +1,178 @@
-use http::header::{self, HOST};
-// use std::time::Duration;
+// use http::Uri;
 
+use base64::{engine::general_purpose, Engine as _};
+use chrono::{DateTime, Utc};
+use std::fmt::Display;
+
+use crate::{
+    params::Regions,
+    utils::{get_gmt_date, hmac_sha1},
+};
 #[allow(unused_imports)]
 use crate::{
     types::{RegionInfo, RegionInfoList},
     OssError, OssOptions,
 };
 
+struct AuthParams {
+    verb: http::Method,
+    date: DateTime<Utc>,
+    object_key: Option<String>,
+}
+
+/**
+ Signature = base64(hmac-sha1(AccessKeySecret,
+           VERB + "\n"
+           + Content-MD5 + "\n"
+           + Content-Type + "\n"
+           + Date + "\n"
+           + CanonicalizedOSSHeaders
+           + CanonicalizedResource))
+*/
+
+#[allow(dead_code)]
+#[derive(Debug, Default)]
+struct Signature {
+    access_key_secret: String,
+    verb: http::Method,
+    // content_md5: Option<String>,
+    // content_type:Option<String>,
+    date: DateTime<Utc>,
+    // canonicalized_oss_headers: Option<String>,
+    canonicalized_resource: CanonicalizedResource,
+}
+
+#[allow(dead_code)]
+impl Signature {
+    fn to_string(&self) -> String {
+        let value = format!(
+            "{VERB}\n{Date}\n{cr}",
+            VERB = &self.verb.to_string(),
+            Date = get_gmt_date(&self.date),
+            cr = &self.canonicalized_resource.to_string()
+        );
+        let value = hmac_sha1(&self.access_key_secret, &value);
+        let encoded: String = general_purpose::STANDARD_NO_PAD.encode(value);
+        encoded
+    }
+}
+
+///
+/// # 构建CanonicalizedResource的方法
+///
+/// - 发送请求中希望访问的OSS目标资源被称为CanonicalizedResource，构建方法如下：
+/// - 如果既有BucketName也有ObjectName，则CanonicalizedResource格式为/BucketName/ObjectName
+/// - 如果仅有BucketName而没有ObjectName，则CanonicalizedResource格式为/BucketName/。
+/// - 如果既没有BucketName也没有ObjectName，则CanonicalizedResource为正斜线（/）。
+/// - 如果请求的资源包括子资源（SubResource），则所有的子资源需按照字典序升序排列，并以&为分隔符生成子资源字符串。
+#[allow(dead_code)]
+#[derive(Debug, Default)]
+struct CanonicalizedResource {
+    bucket: Option<String>,
+    object_key: Option<String>,
+    res: Option<String>,
+}
+
+impl Display for CanonicalizedResource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let res_path = match (&self.bucket, &self.object_key) {
+            (Some(bucket), Some(object_key)) => {
+                format!("/{}/{}", bucket, object_key)
+            }
+            (Some(bucket), None) => {
+                format!("/{}", bucket)
+            }
+            (None, None) => "/".to_string(),
+            (None, Some(_)) => {
+                panic!("params error")
+            }
+        };
+        write!(f, "{}", res_path)
+    }
+}
+
 #[derive(Debug)]
 pub struct OssClient {
     pub options: OssOptions,
-    inner: reqwest::Client,
+    _client: reqwest::Client,
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// 初始化，私有方法
 impl OssClient {
     #[allow(dead_code)]
     pub fn builder(options: OssOptions) -> Self {
-        let client = reqwest::Client::builder().build().unwrap();
+        let client = reqwest::Client::builder().default_headers(options.get_common_headers());
         OssClient {
             options,
-            inner: client,
+            _client: client.build().unwrap(),
         }
     }
+
+    // verb date object_key, query
+    fn authorization(&self, params: AuthParams) -> String {
+        let AuthParams {
+            verb,
+            date,
+            object_key,
+        } = params;
+
+        let cr = CanonicalizedResource {
+            bucket: Some(self.options.bucket.to_string()),
+            object_key,
+            res: None,
+        };
+        let sign = Signature {
+            access_key_secret: self.options.access_key_secret.to_string(),
+            verb,
+            date,
+            canonicalized_resource: cr,
+        };
+
+        format!(
+            "OSS{}:{}",
+            self.options.access_key_id.to_string(),
+            sign.to_string()
+        )
+    }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// 关于Service操作
 impl OssClient {
     /// 调用`ListBuckets（GetService）`接口列举请求者拥有的所有存储空间`（Bucket）`。您还可以通过设置
     /// `prefix`、`marker`或者`max-keys`参数列举满足指定条件的存储空间。
-    #[allow(non_snake_case)]
-    pub async fn DescribeRegions(&self) -> Result<RegionInfoList, OssError> {
-        let oss_base_url = "aliyuncs.com";
-        let default_region = "oss-cn-hangzhou";
+    #[allow(non_snake_case, unused)]
+    pub async fn DescribeRegions(&self, region: Regions) -> Result<RegionInfoList, OssError> {
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = region.to_string();
+            format!("{base_url}?{query_str}")
+        };
+        let dt = Utc::now();
+        let method = http::Method::GET;
 
-        let url = format!("https://{}.{}/", default_region, oss_base_url);
+        let params = AuthParams {
+            verb: method.clone(),
+            date: dt.clone(),
+            object_key: None,
+        };
+        let auth = self.authorization(params);
 
-        let mut default_headers = header::HeaderMap::new();
-        default_headers.insert(HOST, oss_base_url.parse().unwrap());
-
-        let client = self.inner.request(http::Method::GET, url);
-        let response = client.send().await.unwrap();
+        let response = self._client
+            .request(method, &url)
+            .header(http::header::DATE, get_gmt_date(&dt))
+            .header(http::header::AUTHORIZATION, auth.to_string())
+            .send()
+            .await
+            .unwrap();
 
         let content = response.text().await.unwrap();
+        // println!("{}", content);
         let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
         Err(oss_error)
+        // Err(OssError::default())
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// 关于Region操作
 impl OssClient {
     /// 调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）。
@@ -57,7 +182,7 @@ impl OssClient {
         todo!()
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// OSS Bucket Stand
 impl OssClient {
     /// 调用PutBucket接口创建存储空间（Bucket）。
@@ -104,7 +229,7 @@ impl OssClient {
         todo!()
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// OSS Buckek Worm
 impl OssClient {
     /// 调用InitiateBucketWorm接口新建一条合规保留策略。
@@ -137,7 +262,7 @@ impl OssClient {
         todo!()
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// OSS Bucket ACL
 impl OssClient {
     /// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）
@@ -152,7 +277,7 @@ impl OssClient {
         todo!()
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *-----------------------------------------------------------------------------------
 /// OSS Bucket Lifecycle
 impl OssClient {
     /// 调用PutBucketLifecycle接口为存储空间（Bucket）设置生命周期规则。生命周期规则开启后，OSS将按照规则中指
@@ -176,7 +301,7 @@ impl OssClient {
         todo!()
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 /// 传输加速（TransferAcceleration）
 impl OssClient {
     /// # PutBucketTransferAcceleration
@@ -193,12 +318,14 @@ impl OssClient {
         todo!()
     }
 }
-// *-----------------------------------------------------------------------------------------------
+// *----------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
     use std::env;
 
-    use crate::{OssClient, OssOptions};
+    use crate::{params::Regions, OssClient, OssOptions};
+
+    use super::CanonicalizedResource;
 
     // sts_token: env::var("OSS_STS_TOKEN").unwrap_or_default(),
     // internal: env::var("OSS_INTERNAL").unwrap_or_default().parse(),
@@ -218,24 +345,59 @@ mod tests {
         }
     }
 
+    #[test]
+    fn temp() {
+        println!("ok");
+    }
+
     #[allow(unused)]
     fn get_client() -> OssClient {
         OssClient::builder(get_options())
+    }
+
+    #[test]
+    fn canonicalized_resource() {
+        let options = get_options();
+        let rs1 = CanonicalizedResource {
+            bucket: Some(options.bucket.to_string()),
+            object_key: None,
+            res: None,
+        };
+        let rs2 = CanonicalizedResource {
+            bucket: Some(options.bucket.to_string()),
+            object_key: Some("static/admin/app.js".to_string()),
+            res: None,
+        };
+        let rs3 = CanonicalizedResource {
+            bucket: None,
+            object_key: None,
+            res: None,
+        };
+
+        let result = (
+            "/xuetube-dev".to_string(),
+            "/xuetube-dev/static/admin/app.js".to_string(),
+            "/".to_string(),
+        );
+
+        assert_eq!(result, (rs1.to_string(), rs2.to_string(), rs3.to_string()))
     }
 
     #[tokio::test]
     async fn describe_regions() {
         println!("{}\n", "-".repeat(80));
         let client = get_client();
-        match client.DescribeRegions().await {
-            Ok(regions) => {
-                println!("{:?}", regions);
-            }
-            Err(error) => {
-                println!("{:#?}", error);
-            }
-        };
-        println!("\n{}", "-".repeat(80));
+        let resp = client.DescribeRegions(Regions::ALL).await;
+        println!("{:?}", resp);
+        // match client.DescribeRegions().await {
+        //     Ok(regions) => {
+        //         println!("{:?}", regions);
+        //     }
+        //     Err(error) => {
+        //         println!("{:#?}", error);
+        //     }
+        // };
+        // println!("\n{}", "-".repeat(80));
         assert_eq!(1, 1);
     }
 

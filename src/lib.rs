@@ -11,7 +11,8 @@ pub mod client;
 #[allow(unused_imports)]
 pub mod common;
 pub mod types;
-pub mod utls;
+pub mod utils;
+pub mod params;
 
 pub use self::client::OssClient;
 pub use self::common::Endpoint;

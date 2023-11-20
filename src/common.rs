@@ -1,8 +1,10 @@
 use crate::OSS_BASE_URL;
-use crate::{utls::hmac_sha1, DEFAULT_REGION};
+use crate::utils::get_gmt_date;
+use crate::{utils::hmac_sha1, DEFAULT_REGION};
 use anyhow::Result as AnyResult;
 use async_trait::async_trait;
-use http::uri::Scheme;
+use chrono::{DateTime, Utc};
+use http::header;
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::fmt::{self, Display};
@@ -11,6 +13,7 @@ use std::pin::Pin;
 
 /// OSS 返回结果
 pub type OssResult = Result<(), Box<dyn std::error::Error>>;
+
 /// OSS api 请求参数
 pub struct OssParams {}
 
@@ -101,8 +104,17 @@ impl Default for OssOptions {
 
 #[allow(dead_code)]
 impl OssOptions {
-    fn from_env() -> Self {
-        Self::default()
+
+    pub fn get_common_headers(&self) -> http::HeaderMap {
+        let mut headers = header::HeaderMap::new();
+
+        let host = self.get_host().parse().unwrap();
+        headers.insert(http::header::HOST, host);
+        let now = get_gmt_date(&Utc::now()).parse().unwrap();
+        headers.insert(http::header::DATE, now);
+        let authorization = "abc".to_string().parse().unwrap();
+        headers.insert(http::header::AUTHORIZATION, authorization);
+        return headers;
     }
 
     fn get_schema(&self) -> String {
@@ -113,7 +125,7 @@ impl OssOptions {
         }
     }
 
-    pub fn host_url(&self) -> String {
+    fn get_host(&self) -> String {
         if self.internal == true {
             format!("{}-internal.{}", self.region, self.endpoint)
         } else {
@@ -121,17 +133,10 @@ impl OssOptions {
         }
     }
 
-    pub fn bucket_url(&self) -> String {
-        let scheme = self.get_schema();
-        let host_url = self.host_url();
-        format!("{}://{}.{}", scheme, self.bucket, host_url)
+    pub fn get_base_url(&self) -> String {
+        format!("{}://{}.{}", self.get_schema(), self.bucket, self.get_host()).to_string()
     }
 
-    #[allow(unused)]
-    pub fn object_key_url(&self, object_key: String) -> String {
-        let bucket_url = self.bucket_url();
-        format!("{}/{}", bucket_url, object_key)
-    }
 }
 
 /// *OSS Endpoint描述*
@@ -327,28 +332,8 @@ mod tests {
     #[test]
     fn is_work() {
         let options = get_options();
-        let json_string = serde_json::to_string_pretty(&options).unwrap();
-        println!("{}", json_string);
-        println!("{}", options.bucket_url());
-        println!("{}", options.host_url());
+        println!("{:?}", options.get_common_headers());
         assert_eq!(1, 1);
     }
 
-    #[tokio::test]
-    async fn is_work_async() {
-        let res = reqwest::get("http://httpbin.org/get").await;
-
-        if let Ok(response) = res {
-            println!("Status: {}", response.status());
-            println!("Headers:\n{:#?}", response.headers());
-            let body = response.text().await;
-            if let Ok(content) = body {
-                println!("Body:\n{}", content);
-            } else {
-                println!("error")
-            }
-        } else {
-            println!("error");
-        }
-    }
 }

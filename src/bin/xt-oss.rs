@@ -6,7 +6,15 @@ use http::{
     Method,
 };
 use reqwest;
+use serde::{Serialize, Deserialize};
 use xt_oss::OssError;
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize)]
+struct Regions {
+    regions: Option<String>
+}
+// regions=oss-cn-hangzhou
 
 #[allow(dead_code)]
 #[allow(unused_variables)]
