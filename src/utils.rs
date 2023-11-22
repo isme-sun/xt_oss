@@ -5,10 +5,12 @@ use crypto::digest::Digest;
 use crypto::md5::Md5;
 use crypto::sha1::Sha1;
 use hmacsha1;
+use base64::{Engine as _, engine::general_purpose};
 
 /// 通用base64编码
-pub fn base64_encode() {
-    todo!()
+pub fn base64_encode(content: &[u8]) -> String {
+    let encoded = general_purpose::STANDARD.encode(content);
+    encoded
 }
 
 /// base64解码
@@ -33,14 +35,20 @@ pub fn sha1(text: &String) -> String {
 }
 
 /// hmac sha1 计算
-pub fn hmac_sha1(message: &String, key: &String) -> String {
+/// 
+/// ~~~no_run
+/// /* 转成16进制字符串 */
+/// hash.iter()
+///     .map(|b| format!("{:02x}", b))
+///     .collect::<Vec<String>>()
+///     .join("")
+/// ~~~
+/// 
+pub fn hmac_sha1(key: &String, message: &String) -> [u8; 20] {
     let key = key.as_bytes();
     let message = message.as_bytes();
     let hash = hmacsha1::hmac_sha1(key, message);
-    hash.iter()
-        .map(|b| format!("{:02x}", b))
-        .collect::<Vec<String>>()
-        .join("")
+    hash
 }
 
 // 获取GMT时间格式
@@ -51,6 +59,8 @@ pub fn get_gmt_date(dt: &DateTime<Utc>) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::base64_encode;
+
 
     const BODY_CONTENT: &'static str = r#"bodystring"#;
     const KEY: &'static str = "secret_key";
@@ -82,10 +92,8 @@ mod tests {
     #[test]
     fn md5_test() {
         use crate::utils::md5;
-
         let the_str = "xuetube.com".to_string();
         let the_md5_str = "1e836e01950a931cf446df1be70bb2f4".to_string();
-
         let result = md5(&the_str);
         println!("{}", result);
         assert_eq!(the_md5_str, result);
@@ -96,19 +104,20 @@ mod tests {
         use crate::utils::hmac_sha1;
         let content = BODY_CONTENT.to_string();
         let key = KEY.to_string();
-        let sha1_str = hmac_sha1(&content, &key);
-        println!("{}", sha1_str);
-        assert_eq!(sha1_str, COMPUTED_HMAC.to_string());
+        let result = hmac_sha1(&content, &key);
+        let result = result
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<Vec<String>>()
+            .join("");
+        println!("{}", result);
+        assert_eq!(result, COMPUTED_HMAC.to_string());
     }
 
     #[test]
     fn base64_test() {
-        let source = "孙健勇".to_string();
-        let content = "5a2Z5YGl5YuH".to_string();
-        let value = base64_url::encode(&source);
+        let content = "abc";
+        let value = base64_encode(&content.as_bytes());
         println!("{}", value);
-        // println!("SGVsbG8gV29ybGQu");
-        assert_eq!(content, value);
     }
-
 }

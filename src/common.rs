@@ -1,49 +1,24 @@
 use crate::OSS_BASE_URL;
-use crate::utils::get_gmt_date;
 use crate::{utils::hmac_sha1, DEFAULT_REGION};
-use anyhow::Result as AnyResult;
-use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use http::header;
+use http::{header, HeaderValue};
 use serde::{Deserialize, Serialize};
-use std::any::Any;
+use std::env;
 use std::fmt::{self, Display};
-use std::future::Future;
-use std::pin::Pin;
+
+// <RegionInfo>
+// <AccelerateEndpoint>oss-accelerate.aliyuncs.com</AccelerateEndpoint>
+// <InternalEndpoint>oss-eu-west-1-internal.aliyuncs.com</InternalEndpoint>
+// <InternetEndpoint>oss-eu-west-1.aliyuncs.com</InternetEndpoint>
+// <Region>oss-eu-west-1</Region>
+// </RegionInfo>
+
+
 
 /// OSS 返回结果
 pub type OssResult = Result<(), Box<dyn std::error::Error>>;
 
 /// OSS api 请求参数
 pub struct OssParams {}
-
-#[async_trait]
-pub trait OssApiService {
-    #[allow(non_snake_case)]
-    async fn ListBuckets(&self, params: OssParams);
-}
-#[async_trait]
-pub trait OssApiRegion {
-    #[allow(non_snake_case)]
-    async fn DescribeRegions(&self, params: OssParams) -> AnyResult<()>;
-}
-#[async_trait]
-pub trait OssApiBucketRegion {}
-#[async_trait]
-pub trait OssApiObject {}
-#[async_trait]
-pub trait OssApiLiveChannel {}
-
-/// *OSS HttpMethod描述*
-#[derive(Debug)]
-pub enum HttpMethod {
-    PUT,
-    GET,
-    POST,
-    HEAD,
-    DELETE,
-    OPTIONS,
-}
 
 /// OSS 存储类型
 #[derive(Debug)]
@@ -104,16 +79,42 @@ impl Default for OssOptions {
 
 #[allow(dead_code)]
 impl OssOptions {
+    pub fn from_env() -> Self {
+        let mut options = OssOptions::default();
 
-    pub fn get_common_headers(&self) -> http::HeaderMap {
+        options.access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap_or_default();
+        options.access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap_or_default();
+        options.sts_token = env::var("OSS_STS_TOKEN").unwrap_or_default();
+        options.bucket = env::var("OSS_BUCKET").unwrap_or_default();
+        options.region = env::var("OSS_REGION").unwrap_or_default();
+        if let Ok(value) = env::var("OSS_INTERNAL") {
+            options.internal = value.parse::<bool>().unwrap_or(false);
+        }
+        if let Ok(value) = env::var("OSS_CNAME") {
+            options.cname = value.parse::<bool>().unwrap_or(false);
+        }
+        if let Ok(value) = env::var("OSS_IS_REQUEST_PAY") {
+            options.is_request_pay = value.parse::<bool>().unwrap_or(false);
+        }
+        if let Ok(value) = env::var("OSS_SECURE") {
+            options.secure = value.parse::<bool>().unwrap_or(false);
+        }
+        if let Ok(value) = env::var("OSS_TIMEOUT") {
+            options.timeout = value.parse::<i32>().unwrap_or(60);
+        }
+        options
+    }
+
+    pub fn common_headers(&self) -> http::HeaderMap {
         let mut headers = header::HeaderMap::new();
 
         let host = self.get_host().parse().unwrap();
-        headers.insert(http::header::HOST, host);
-        let now = get_gmt_date(&Utc::now()).parse().unwrap();
-        headers.insert(http::header::DATE, now);
-        let authorization = "abc".to_string().parse().unwrap();
-        headers.insert(http::header::AUTHORIZATION, authorization);
+        headers.insert(header::HOST, host);
+        headers.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/octet-stream"),
+        );
+
         return headers;
     }
 
@@ -133,10 +134,19 @@ impl OssOptions {
         }
     }
 
-    pub fn get_base_url(&self) -> String {
-        format!("{}://{}.{}", self.get_schema(), self.bucket, self.get_host()).to_string()
+    pub fn get_root_url(&self) -> String {
+        format!("{}://{}", self.get_schema(), self.get_host()).to_string()
     }
 
+    pub fn get_base_url(&self) -> String {
+        format!(
+            "{}://{}.{}",
+            self.get_schema(),
+            self.bucket,
+            self.get_host()
+        )
+        .to_string()
+    }
 }
 
 /// *OSS Endpoint描述*
@@ -186,27 +196,6 @@ impl Display for Authorization {
     }
 }
 
-impl Default for HttpMethod {
-    fn default() -> Self {
-        Self::GET
-    }
-}
-
-impl Display for HttpMethod {
-    #[allow(unused)]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let value = match self {
-            HttpMethod::GET => "GET",
-            HttpMethod::OPTIONS => "OPTIONS",
-            HttpMethod::DELETE => "DELETE",
-            HttpMethod::HEAD => "HEAD",
-            HttpMethod::POST => "POST",
-            HttpMethod::PUT => "PUT",
-        };
-        write!(f, "{}", value)
-    }
-}
-
 ///
 /// # 签章数据结构
 ///
@@ -223,7 +212,7 @@ impl Display for HttpMethod {
 #[derive(Debug, Default)]
 pub struct Signature {
     pub access_key_secret: String,
-    pub verb: HttpMethod,
+    pub verb: http::Method,
     pub content_md5: String,
     pub content_type: String,
     pub date: String,
@@ -240,7 +229,7 @@ impl Signature {
     }
 
     // 计算签章
-    pub fn compute(&self) -> String {
+    pub fn compute(&self) -> [u8; 20] {
         let content = format!(
             "{}\n{}\n{}\n{}\n{}{}",
             self.verb,
@@ -293,9 +282,7 @@ impl fmt::Display for OssError {
 #[cfg(test)]
 mod tests {
     use dotenv::dotenv;
-    use reqwest::{self, Response};
-    use serde_json;
-    use std::{env, error::Error};
+    use std::env;
 
     use crate::OssOptions;
 
@@ -332,8 +319,7 @@ mod tests {
     #[test]
     fn is_work() {
         let options = get_options();
-        println!("{:?}", options.get_common_headers());
+        println!("{:?}", options.common_headers());
         assert_eq!(1, 1);
     }
-
 }

@@ -5,12 +5,11 @@
 
 /// *阿里云OSS服务地址*
 const OSS_BASE_URL: &'static str = "aliyuncs.com";
+
 const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
 
 pub mod client;
-#[allow(unused_imports)]
 pub mod common;
-pub mod types;
 pub mod utils;
 pub mod params;
 

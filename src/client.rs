@@ -1,44 +1,45 @@
 // use http::Uri;
 
-use base64::{engine::general_purpose, Engine as _};
+use crate::{params::DescribeRegionsQuery, utils::base64_encode};
 use chrono::{DateTime, Utc};
+use http::{header, HeaderValue};
 use std::fmt::Display;
 
 use crate::{
-    params::Regions,
+    params::ListBucketsQuery,
     utils::{get_gmt_date, hmac_sha1},
 };
 #[allow(unused_imports)]
 use crate::{
-    types::{RegionInfo, RegionInfoList},
+    params::{RegionInfo, RegionInfoList},
     OssError, OssOptions,
 };
 
+#[derive(Debug)]
 struct AuthParams {
     verb: http::Method,
     date: DateTime<Utc>,
     object_key: Option<String>,
+    bucket: Option<String>,
 }
 
-/**
- Signature = base64(hmac-sha1(AccessKeySecret,
-           VERB + "\n"
-           + Content-MD5 + "\n"
-           + Content-Type + "\n"
-           + Date + "\n"
-           + CanonicalizedOSSHeaders
-           + CanonicalizedResource))
-*/
-
+/// #### 签章计算
+///
+///~~~
+/// Signature = base64(hmac-sha1(AccessKeySecret,
+/// VERB + "\n"
+///  Content-MD5 + "\n"
+///  Content-Type + "\n"
+///  Date + "\n"
+///  CanonicalizedOSSHeaders
+///  CanonicalizedResource))
+/// ~~~
 #[allow(dead_code)]
 #[derive(Debug, Default)]
 struct Signature {
     access_key_secret: String,
     verb: http::Method,
-    // content_md5: Option<String>,
-    // content_type:Option<String>,
     date: DateTime<Utc>,
-    // canonicalized_oss_headers: Option<String>,
     canonicalized_resource: CanonicalizedResource,
 }
 
@@ -46,13 +47,13 @@ struct Signature {
 impl Signature {
     fn to_string(&self) -> String {
         let value = format!(
-            "{VERB}\n{Date}\n{cr}",
+            "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
             VERB = &self.verb.to_string(),
             Date = get_gmt_date(&self.date),
             cr = &self.canonicalized_resource.to_string()
         );
-        let value = hmac_sha1(&self.access_key_secret, &value);
-        let encoded: String = general_purpose::STANDARD_NO_PAD.encode(value);
+        let value = hmac_sha1(&self.access_key_secret.to_string(), &value.to_string());
+        let encoded: String = base64_encode(value.as_slice());
         encoded
     }
 }
@@ -101,7 +102,7 @@ pub struct OssClient {
 impl OssClient {
     #[allow(dead_code)]
     pub fn builder(options: OssOptions) -> Self {
-        let client = reqwest::Client::builder().default_headers(options.get_common_headers());
+        let client = reqwest::Client::builder().default_headers(options.common_headers());
         OssClient {
             options,
             _client: client.build().unwrap(),
@@ -114,13 +115,15 @@ impl OssClient {
             verb,
             date,
             object_key,
+            bucket,
         } = params;
 
         let cr = CanonicalizedResource {
-            bucket: Some(self.options.bucket.to_string()),
+            bucket,
             object_key,
             res: None,
         };
+
         let sign = Signature {
             access_key_secret: self.options.access_key_secret.to_string(),
             verb,
@@ -128,11 +131,13 @@ impl OssClient {
             canonicalized_resource: cr,
         };
 
-        format!(
-            "OSS{}:{}",
+        let auth = format!(
+            "OSS {}:{}",
             self.options.access_key_id.to_string(),
             sign.to_string()
-        )
+        );
+
+        auth
     }
 }
 // *----------------------------------------------------------------------------------
@@ -141,12 +146,18 @@ impl OssClient {
     /// 调用`ListBuckets（GetService）`接口列举请求者拥有的所有存储空间`（Bucket）`。您还可以通过设置
     /// `prefix`、`marker`或者`max-keys`参数列举满足指定条件的存储空间。
     #[allow(non_snake_case, unused)]
-    pub async fn DescribeRegions(&self, region: Regions) -> Result<RegionInfoList, OssError> {
+    pub async fn DescribeRegions(
+        &self,
+        region: DescribeRegionsQuery,
+    ) -> Result<RegionInfoList, OssError> {
         let url = {
-            let base_url = self.options.get_base_url();
-            let query_str = region.to_string();
+            let base_url = self.options.get_root_url();
+            let query_str = region.to_query();
             format!("{base_url}?{query_str}")
         };
+        println!("=====");
+        println!("{}", url);
+        println!("=====");
         let dt = Utc::now();
         let method = http::Method::GET;
 
@@ -154,22 +165,26 @@ impl OssClient {
             verb: method.clone(),
             date: dt.clone(),
             object_key: None,
+            bucket: None,
         };
         let auth = self.authorization(params);
 
-        let response = self._client
+        let response = self
+            ._client
             .request(method, &url)
-            .header(http::header::DATE, get_gmt_date(&dt))
-            .header(http::header::AUTHORIZATION, auth.to_string())
+            .header(header::DATE, get_gmt_date(&dt))
+            .header(header::AUTHORIZATION, auth.to_string())
             .send()
             .await
             .unwrap();
 
         let content = response.text().await.unwrap();
-        // println!("{}", content);
-        let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-        Err(oss_error)
-        // Err(OssError::default())
+
+        println!("{}", content);
+
+        // let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+        Err(OssError::default())
+        // Ok(_);
     }
 }
 // *----------------------------------------------------------------------------------
@@ -178,8 +193,48 @@ impl OssClient {
     /// 调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）。
     /// 您还可以通过设置prefix、marker或者max-keys参数列举满足指定条件的存储空间。
     #[allow(non_snake_case)]
-    pub fn ListBuckets(&self) {
-        todo!()
+    pub async fn ListBuckets(
+        &self,
+        query: ListBucketsQuery,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // 生成uri地址
+        let url = {
+            let base_url = self.options.get_root_url();
+            format!("{}?{}", base_url, serde_qs::to_string(&query).unwrap())
+        };
+        // 当前时间 时间
+        let dt = Utc::now();
+        // 方法
+        let method = http::Method::GET;
+        // auth 计算所需参数
+        let params = AuthParams {
+            verb: method.clone(),
+            date: dt.clone(),
+            object_key: None,
+            bucket: None,
+        };
+
+        let auth = self.authorization(params);
+
+        let response = self
+            ._client
+            .request(method, &url)
+            .header(header::DATE, get_gmt_date(&dt))
+            .header(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("application/octet-stream"),
+            )
+            .header(header::AUTHORIZATION, auth.to_string())
+            .send()
+            .await
+            .unwrap();
+
+        println!("{:#?}", response.status());
+        println!("{:#?}", response.headers());
+        let _content = response.text().await.unwrap();
+        println!("{}", _content);
+        // let _qs = serde_qs::to_string(&query).unwrap();
+        Ok(())
     }
 }
 // *----------------------------------------------------------------------------------
@@ -321,91 +376,101 @@ impl OssClient {
 // *----------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use std::env;
 
-    use crate::{params::Regions, OssClient, OssOptions};
+    use dotenv::dotenv;
+
+    use crate::{
+        params::{ListBucketsQuery, DescribeRegionsQuery},
+        utils::{base64_encode, hmac_sha1},
+        OssClient, OssOptions,
+    };
 
     use super::CanonicalizedResource;
 
-    // sts_token: env::var("OSS_STS_TOKEN").unwrap_or_default(),
-    // internal: env::var("OSS_INTERNAL").unwrap_or_default().parse(),
-    // cname: env::var("OSS_CNAME").unwrap_or_default(),
-    // is_request_pay: env::var("OSS_IS_REQUEST_PAY").unwrap_or_default(),
-    // secure: env::var("OSS_SECURE").unwrap_or_default(),
-    // timeout: env::var("OSS_TIMEOUT").unwrap_or_default()
-    #[allow(unused)]
-    fn get_options() -> OssOptions {
-        dotenv::dotenv().expect("error: .env not exist");
-        OssOptions {
-            access_key_id: env::var("OSS_ACCESS_KEY_ID").unwrap_or_default(),
-            access_key_secret: env::var("OSS_ACCESS_KEY_SECRET").unwrap_or_default(),
-            bucket: env::var("OSS_BUCKET").unwrap_or_default(),
-            region: env::var("OSS_REGION").unwrap_or_default(),
-            ..OssOptions::default()
-        }
-    }
-
-    #[test]
-    fn temp() {
-        println!("ok");
+    fn env_init() {
+        dotenv().ok();
     }
 
     #[allow(unused)]
     fn get_client() -> OssClient {
-        OssClient::builder(get_options())
+        env_init();
+        let options = OssOptions::from_env();
+        OssClient::builder(options)
+    }
+
+    #[test]
+    /// Authorization 测试
+    fn authorization_compute() {
+        assert_eq!(1, 0)
+    }
+
+    #[test]
+    /// 签章计算过程结果测试
+    fn signature_compute() {
+        let sign = "GET\n\napplication/octet-stream\nWed, 22 Nov 2023 07:12:18 GMT\n/";
+        let access_key = "k0JAQGp6NURoVSDuxR7BORorlejGmj";
+        let base64_value1 = "JUsvX74gVUBt18ve6LPyZol1HsE=";
+
+        let hash_value = hmac_sha1(&access_key.to_string(), &sign.to_string());
+        let hash_value = hash_value.as_slice();
+        let base64_value2 = base64_encode(hash_value);
+
+        assert_eq!(base64_value1, base64_value2);
     }
 
     #[test]
     fn canonicalized_resource() {
-        let options = get_options();
-        let rs1 = CanonicalizedResource {
+        env_init();
+        let options = OssOptions::from_env();
+        println!("{:#?}", options);
+        let cr1 = CanonicalizedResource {
             bucket: Some(options.bucket.to_string()),
             object_key: None,
             res: None,
         };
-        let rs2 = CanonicalizedResource {
+        let cr2 = CanonicalizedResource {
             bucket: Some(options.bucket.to_string()),
             object_key: Some("static/admin/app.js".to_string()),
             res: None,
         };
-        let rs3 = CanonicalizedResource {
+        let cr3 = CanonicalizedResource {
             bucket: None,
             object_key: None,
             res: None,
         };
 
-        let result = (
+        let left = (
             "/xuetube-dev".to_string(),
             "/xuetube-dev/static/admin/app.js".to_string(),
             "/".to_string(),
         );
 
-        assert_eq!(result, (rs1.to_string(), rs2.to_string(), rs3.to_string()))
+        let right = (cr1.to_string(), cr2.to_string(), cr3.to_string());
+
+        assert_eq!(left, right);
     }
 
     #[tokio::test]
     async fn describe_regions() {
-        println!("{}\n", "-".repeat(80));
         let client = get_client();
-        let resp = client.DescribeRegions(Regions::ALL).await;
-        println!("{:?}", resp);
-        // match client.DescribeRegions().await {
-        //     Ok(regions) => {
-        //         println!("{:?}", regions);
-        //     }
-        //     Err(error) => {
-        //         println!("{:#?}", error);
-        //     }
-        // };
-        // println!("\n{}", "-".repeat(80));
+        let region = DescribeRegionsQuery::default();
+        let _ = client.DescribeRegions(region).await;
         assert_eq!(1, 1);
     }
 
     #[tokio::test]
     async fn list_buckets() {
-        println!("{}\n", "-".repeat(80));
         let client = get_client();
-        client.ListBuckets();
+        println!("{}\n", "-".repeat(80));
+
+        // let query = ListBucketsQuery {
+        //     prefix: Some("xu".to_string()),
+        //     marker: Some("xue".to_string()),
+        //     max_keys: Some(2)
+        // };
+        let query = ListBucketsQuery::default();
+        let _ = client.ListBuckets(query).await;
+
         println!("\n{}", "-".repeat(80));
         assert_eq!(1, 1);
     }
