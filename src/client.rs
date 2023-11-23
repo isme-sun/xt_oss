@@ -1,8 +1,13 @@
 // use http::Uri;
 
-use crate::{params::DescribeRegionsQuery, utils::base64_encode};
+use crate::{
+    common::{BucketStat, OssData, OssResult, RegionInfo},
+    params::{DescribeRegionsQuery, ListObject2Query},
+    utils::base64_encode,
+};
 use chrono::{DateTime, Utc};
 use http::{header, HeaderValue};
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 use crate::{
@@ -10,10 +15,7 @@ use crate::{
     utils::{get_gmt_date, hmac_sha1},
 };
 #[allow(unused_imports)]
-use crate::{
-    params::{RegionInfo, RegionInfoList},
-    OssError, OssOptions,
-};
+use crate::{OssError, OssOptions};
 
 #[derive(Debug)]
 struct AuthParams {
@@ -21,6 +23,14 @@ struct AuthParams {
     date: DateTime<Utc>,
     object_key: Option<String>,
     bucket: Option<String>,
+    sub_res: Option<String>,
+}
+// AccelerateEndpoint
+#[allow(non_snake_case)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct PrivateRegionInfoResult {
+    #[serde(rename = "$value")]
+    RegionInfoList: Vec<RegionInfo>,
 }
 
 /// #### 签章计算
@@ -52,8 +62,10 @@ impl Signature {
             Date = get_gmt_date(&self.date),
             cr = &self.canonicalized_resource.to_string()
         );
+        // println!("{:?}", value);
         let value = hmac_sha1(&self.access_key_secret.to_string(), &value.to_string());
         let encoded: String = base64_encode(value.as_slice());
+        // println!("{}", encoded);
         encoded
     }
 }
@@ -81,17 +93,22 @@ impl Display for CanonicalizedResource {
                 format!("/{}/{}", bucket, object_key)
             }
             (Some(bucket), None) => {
-                format!("/{}", bucket)
+                format!("/{}/", bucket)
             }
             (None, None) => "/".to_string(),
             (None, Some(_)) => {
                 panic!("params error")
             }
         };
-        write!(f, "{}", res_path)
+        if let Some(res) = &self.res {
+            write!(f, "{}?{}", res_path, res)
+        } else {
+            write!(f, "{}", res_path)
+        }
     }
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug)]
 pub struct OssClient {
     pub options: OssOptions,
@@ -116,12 +133,13 @@ impl OssClient {
             date,
             object_key,
             bucket,
+            sub_res,
         } = params;
 
         let cr = CanonicalizedResource {
             bucket,
             object_key,
-            res: None,
+            res: sub_res,
         };
 
         let sign = Signature {
@@ -149,15 +167,13 @@ impl OssClient {
     pub async fn DescribeRegions(
         &self,
         region: DescribeRegionsQuery,
-    ) -> Result<RegionInfoList, OssError> {
+        // ) -> Result<RegionInfoResult, OssError> {
+    ) -> OssResult<Vec<RegionInfo>> {
         let url = {
             let base_url = self.options.get_root_url();
             let query_str = region.to_query();
             format!("{base_url}?{query_str}")
         };
-        println!("=====");
-        println!("{}", url);
-        println!("=====");
         let dt = Utc::now();
         let method = http::Method::GET;
 
@@ -166,25 +182,38 @@ impl OssClient {
             date: dt.clone(),
             object_key: None,
             bucket: None,
+            sub_res: None,
         };
         let auth = self.authorization(params);
 
-        let response = self
+        let client = self
             ._client
             .request(method, &url)
             .header(header::DATE, get_gmt_date(&dt))
-            .header(header::AUTHORIZATION, auth.to_string())
-            .send()
-            .await
-            .unwrap();
+            .header(header::AUTHORIZATION, auth.to_string());
 
+        let req = client.try_clone().unwrap().build().unwrap();
+        // println!("{:#?}", req);
+
+        let response = client.send().await.unwrap();
+
+        // println!("{:#?}", response);
+
+        let headers = response.headers().clone();
         let content = response.text().await.unwrap();
-
-        println!("{}", content);
-
-        // let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-        Err(OssError::default())
-        // Ok(_);
+        if true {
+            let regoins: PrivateRegionInfoResult = serde_xml_rs::from_str(&content).unwrap();
+            let result = regoins.RegionInfoList;
+            let result = OssData {
+                request: req,
+                // response: resp,
+                data: result,
+            };
+            Ok(result)
+        } else {
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        }
     }
 }
 // *----------------------------------------------------------------------------------
@@ -212,6 +241,7 @@ impl OssClient {
             date: dt.clone(),
             object_key: None,
             bucket: None,
+            sub_res: None,
         };
 
         let auth = self.authorization(params);
@@ -262,7 +292,52 @@ impl OssClient {
 
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
     #[allow(non_snake_case)]
-    pub fn ListObjectsV2(&self) {
+    pub async fn ListObjectsV2(&self, qurey: ListObject2Query) {
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = serde_qs::to_string(&qurey).unwrap();
+            format!("{base_url}?{query_str}")
+        };
+        // println!("{}", url);
+        let dt = Utc::now();
+        let method = http::Method::GET;
+
+        let params = AuthParams {
+            verb: method.clone(),
+            date: dt.clone(),
+            object_key: None,
+            bucket: Some(self.options.bucket.to_string()),
+            sub_res: None,
+        };
+
+        // println!("{:#?}", params);
+
+        let auth = self.authorization(params);
+
+        let client = self
+            ._client
+            .request(method, &url)
+            .header(header::DATE, get_gmt_date(&dt))
+            .header(header::AUTHORIZATION, auth.to_string());
+
+        let _req = client.try_clone().unwrap().build().unwrap();
+
+        let response = client.send().await.unwrap();
+
+        let _headers = response.headers().clone();
+        let content = response.text().await.unwrap();
+        println!("{}", content);
+        if true {
+            // let regoins:Vec<> = serde_xml_rs::from_str(&content).unwrap();
+            // let data = OssData {
+            //     request :req,
+            //     data:result
+            // };
+            // Ok(())
+        } else {
+            // let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            // Err(oss_error)
+        }
         todo!()
     }
 
@@ -280,8 +355,55 @@ impl OssClient {
     }
 
     #[allow(non_snake_case)]
-    pub fn GetBucketStat(&self) {
-        todo!()
+    pub async fn GetBucketStat(&self) -> OssResult<BucketStat> {
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = "stat";
+            format!("{base_url}?{query_str}")
+        };
+
+        let dt = Utc::now();
+        let method = http::Method::GET;
+
+        let params = AuthParams {
+            verb: method.clone(),
+            date: dt.clone(),
+            object_key: None,
+            bucket: Some(self.options.bucket.to_string()),
+            sub_res: Some("stat".to_string()),
+        };
+        let auth = self.authorization(params);
+
+        let client = self
+            ._client
+            .request(method, &url)
+            .header(header::DATE, get_gmt_date(&dt))
+            .header(header::AUTHORIZATION, auth.to_string());
+
+        let req = client.try_clone().unwrap().build().unwrap();
+        // println!("{:#?}", req);
+
+        let response = client.send().await.unwrap();
+
+        // println!("{:#?}", response);
+
+        // let headers = response.headers().clone();
+        let content = response.text().await.unwrap();
+        // println!("{}", content);
+        if true {
+            let stat = serde_xml_rs::from_str::<BucketStat>(&content).unwrap();
+            // println!("{:#?}", stat);
+            let result = OssData {
+                request: req,
+                // response: resp,
+                data: stat,
+            };
+            Ok(result)
+        } else {
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        }
+        // todo!()
     }
 }
 // *----------------------------------------------------------------------------------
@@ -380,7 +502,7 @@ mod tests {
     use dotenv::dotenv;
 
     use crate::{
-        params::{ListBucketsQuery, DescribeRegionsQuery},
+        params::{DescribeRegionsQuery, ListBucketsQuery},
         utils::{base64_encode, hmac_sha1},
         OssClient, OssOptions,
     };
@@ -407,9 +529,10 @@ mod tests {
     #[test]
     /// 签章计算过程结果测试
     fn signature_compute() {
-        let sign = "GET\n\napplication/octet-stream\nWed, 22 Nov 2023 07:12:18 GMT\n/";
+        let sign = "GET\n\napplication/octet-stream\nThu, 23 Nov 2023 03:44:36 GMT\n/xuetube-dev/";
         let access_key = "k0JAQGp6NURoVSDuxR7BORorlejGmj";
-        let base64_value1 = "JUsvX74gVUBt18ve6LPyZol1HsE=";
+        // let base64_value1 = "JUsvX74gVUBt18ve6LPyZol1HsE=";
+        let base64_value1 = "lCeU9ruGeiBRYXDs5ch8lxsxIJA=";
 
         let hash_value = hmac_sha1(&access_key.to_string(), &sign.to_string());
         let hash_value = hash_value.as_slice();
@@ -505,9 +628,9 @@ mod tests {
     #[tokio::test]
     async fn list_objects_v2() {
         println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.ListObjectsV2();
-        println!("\n{}", "-".repeat(80));
+        // let client = get_client();
+        // client.ListObjectsV2();
+        // println!("\n{}", "-".repeat(80));
         assert_eq!(1, 1);
     }
 

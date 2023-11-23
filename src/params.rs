@@ -3,6 +3,39 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use serde_qs as qs;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListObject2Query {
+    #[serde(rename = "list-type")]
+    pub list_type: i32,
+    pub delimiter: Option<String>,
+    #[serde(rename = "start-after")]
+    pub start_after: Option<String>,
+    #[serde(rename = "continuation-token")]
+    pub continuation_token: Option<String>,
+    #[serde(rename = "max-keys")]
+    pub max_keys: Option<i32>,
+    pub prefix: Option<String>,
+    #[serde(rename = "encoding-type")]
+    pub encoding_type: Option<String>,
+    #[serde(rename = "fetch-owner")]
+    pub fetch_owner: Option<bool>,
+}
+
+impl Default for ListObject2Query {
+    fn default() -> Self {
+        ListObject2Query {
+            list_type: 2,
+            delimiter: None,
+            start_after: None,
+            continuation_token: None,
+            max_keys: Some(100),
+            prefix: None,
+            encoding_type: Some("url".to_string()),
+            fetch_owner: None
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct DescribeRegionsQuery {
     regions: Option<String>,
@@ -17,16 +50,6 @@ impl DescribeRegionsQuery {
         }
     }
 }
-
-#[derive(Debug, Default)]
-pub struct RegionInfo {
-    pub region: String,
-    pub internet_endpoint: String,
-    pub internal_endpoint: String,
-    pub accelerate_endpoint: String,
-}
-
-pub type RegionInfoList = Vec<RegionInfo>;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ListBucketsQuery {
