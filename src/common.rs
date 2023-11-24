@@ -8,8 +8,6 @@ use serde_xml_rs;
 use std::env;
 use std::fmt::{self, Display};
 
-
-
 /*
   <Code>AccessDenied</Code>
   <Message>Anonymous access is forbidden for this operation.</Message>
@@ -42,98 +40,85 @@ impl fmt::Display for OssError {
 
 #[derive(Debug)]
 pub struct OssData<T> {
-    pub request:  Request,
+    pub request: Request,
     // pub response: Response,
-    pub data: T
+    pub data: T,
 }
 
 /// OSS 返回结果
 // pub type OssResult = Result<(), Box<dyn std::error::Error>>;
 pub type OssResult<T> = Result<OssData<T>, OssError>;
 
-// {
-//     "server": "AliyunOSS",
-//     "date": "Wed, 22 Nov 2023 14:21:30 GMT",
-//     "content-type": "application/xml",
-//     "content-length": "8502",
-//     "connection": "keep-alive",
-//     "x-oss-request-id": "655E0E6A6D612F3735A8B674",
-//     "x-oss-server-time": "12",
-// }
-
-// #[derive(Debug, Serialize, Deserialize, Default)]
-// pub struct Headers {
-//     server: String,
-//     date: String,
-//     #[serde(rename = "content-type")]
-//     content_type: String,
-//     #[serde(rename = "content_length")]
-//     content_length: i32,
-//     connection: String,
-//     #[serde(rename = "x-oss-request-id")]
-//     x_oss_request_id: String,
-//     #[serde(rename = "x-oss-server-time")]
-//     x_oss_server_time: i32,
-// }
-
-/*
-<BucketStat>
-  <Storage>1600</Storage>
-  <ObjectCount>230</ObjectCount>
-  <MultipartUploadCount>40</MultipartUploadCount>
-  <LiveChannelCount>4</LiveChannelCount>
-  <LastModifiedTime>1643341269</LastModifiedTime>
-  <StandardStorage>430</StandardStorage>
-  <StandardObjectCount>66</StandardObjectCount>
-  <InfrequentAccessStorage>2359296</InfrequentAccessStorage>
-  <InfrequentAccessRealStorage>360</InfrequentAccessRealStorage>
-  <InfrequentAccessObjectCount>54</InfrequentAccessObjectCount>
-  <ArchiveStorage>2949120</ArchiveStorage>
-  <ArchiveRealStorage>450</ArchiveRealStorage>
-  <ArchiveObjectCount>74</ArchiveObjectCount>
-  <ColdArchiveStorage>2359296</ColdArchiveStorage>
-  <ColdArchiveRealStorage>360</ColdArchiveRealStorage>
-  <ColdArchiveObjectCount>36</ColdArchiveObjectCount>
-</BucketStat>
-
-*/
-
-#[derive(Debug,Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct BucketStat {
-  /// Bucket的总存储量，单位字节。
-  #[serde(rename(deserialize = "Storage"))]
-  pub storage: String,
-  /// Bucket中总的Object数量
-  #[serde(rename(deserialize = "ObjectCount"))]
-  pub object_count: String,
-  #[serde(rename(deserialize = "MultipartUploadCount"))]
-  pub multipart_upload_count: String,
-  #[serde(rename(deserialize = "LiveChannelCount"))]
-  pub live_channel_count: String,
-  #[serde(rename(deserialize = "LastModifiedTime"))]
-  pub last_modified_time:String,
-  #[serde(rename(deserialize = "StandardStorage"))]
-  pub standard_storage:String,
-  #[serde(rename(deserialize = "StandardObjectCount"))]
-  pub standard_object_count:String,
-  #[serde(rename(deserialize = "InfrequentAccessStorage"))]
-  pub infrequent_access_storage:String,
-  #[serde(rename(deserialize = "InfrequentAccessRealStorage"))]
-  pub infrequent_access_real_storage:String,
-  #[serde(rename(deserialize = "InfrequentAccessObjectCount"))]
-  pub infrequent_access_object_count:String,
-  #[serde(rename(deserialize = "ArchiveStorage"))]
-  pub archive_storage:String,
-  #[serde(rename(deserialize = "ArchiveRealStorage"))]
-  pub archive_real_storage:String,
-  #[serde(rename(deserialize = "ArchiveObjectCount"))]
-  pub archive_object_count:String,
-  #[serde(rename(deserialize = "ColdArchiveStorage"))]
-  pub cold_archive_storage:String,
-  #[serde(rename(deserialize = "ColdArchiveRealStorage"))]
-  pub cold_archive_real_storage:String,
-  #[serde(rename(deserialize = "ColdArchiveObjectCount"))]
-  pub cold_archive_object_count:String
+    /// Bucket的总存储量，单位字节。
+    #[serde(rename(deserialize = "Storage"))]
+    pub storage: String,
+    /// Bucket中总的Object数量
+    #[serde(rename(deserialize = "ObjectCount"))]
+    pub object_count: String,
+    #[serde(rename(deserialize = "MultipartUploadCount"))]
+    pub multipart_upload_count: String,
+    #[serde(rename(deserialize = "LiveChannelCount"))]
+    pub live_channel_count: String,
+    #[serde(rename(deserialize = "LastModifiedTime"))]
+    pub last_modified_time: String,
+    #[serde(rename(deserialize = "StandardStorage"))]
+    pub standard_storage: String,
+    #[serde(rename(deserialize = "StandardObjectCount"))]
+    pub standard_object_count: String,
+    #[serde(rename(deserialize = "InfrequentAccessStorage"))]
+    pub infrequent_access_storage: String,
+    #[serde(rename(deserialize = "InfrequentAccessRealStorage"))]
+    pub infrequent_access_real_storage: String,
+    #[serde(rename(deserialize = "InfrequentAccessObjectCount"))]
+    pub infrequent_access_object_count: String,
+    #[serde(rename(deserialize = "ArchiveStorage"))]
+    pub archive_storage: String,
+    #[serde(rename(deserialize = "ArchiveRealStorage"))]
+    pub archive_real_storage: String,
+    #[serde(rename(deserialize = "ArchiveObjectCount"))]
+    pub archive_object_count: String,
+    #[serde(rename(deserialize = "ColdArchiveStorage"))]
+    pub cold_archive_storage: String,
+    #[serde(rename(deserialize = "ColdArchiveRealStorage"))]
+    pub cold_archive_real_storage: String,
+    #[serde(rename(deserialize = "ColdArchiveObjectCount"))]
+    pub cold_archive_object_count: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OSSObject {
+    #[serde(rename(deserialize = "Key"))]
+    pub key: String,
+    #[serde(rename(deserialize = "LastModified"))]
+    pub last_modified: String,
+    #[serde(rename(deserialize = "ETag"))]
+    pub etag: String,
+    #[serde(rename(deserialize = "Size"))]
+    pub size: i32,
+    #[serde(rename(deserialize = "StorageClass"))]
+    pub storage_class: String,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListBucketResult {
+    #[serde(rename(deserialize = "Name"))]
+    pub name: String,
+    #[serde(rename(deserialize = "Prefix"))]
+    pub prefix: String,
+    #[serde(rename(deserialize = "MaxKeys"))]
+    pub max_keys: i32,
+    #[serde(rename(deserialize = "EncodingType"))]
+    pub encoding_type: String,
+    #[serde(rename(deserialize = "IsTruncated"))]
+    pub is_truncated: bool,
+    #[serde(rename(deserialize = "KeyCount"))]
+    pub key_count: i32,
+    // #[serde(rename = "$value")]
+    #[serde(rename(deserialize = "Contents"))]
+    pub contents: Vec<OSSObject>,
 }
 
 /// OSS 区域信息
@@ -156,7 +141,6 @@ pub struct RegionInfoResult {
 }
 
 // pub type RegionInfoList = Vec<RegionInfo>;
-
 
 /// OSS api 请求参数
 pub struct OssParams {}
@@ -389,7 +373,6 @@ impl Display for Signature {
         write!(f, "This Is Signature")
     }
 }
-
 
 #[cfg(test)]
 mod tests {

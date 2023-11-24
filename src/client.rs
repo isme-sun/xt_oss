@@ -1,7 +1,7 @@
 // use http::Uri;
 
 use crate::{
-    common::{BucketStat, OssData, OssResult, RegionInfo},
+    common::{BucketStat, ListBucketResult, OssData, OssResult, RegionInfo},
     params::{DescribeRegionsQuery, ListObject2Query},
     utils::base64_encode,
 };
@@ -292,7 +292,7 @@ impl OssClient {
 
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
     #[allow(non_snake_case)]
-    pub async fn ListObjectsV2(&self, qurey: ListObject2Query) {
+    pub async fn ListObjectsV2(&self, qurey: ListObject2Query) -> OssResult<ListBucketResult> {
         let url = {
             let base_url = self.options.get_base_url();
             let query_str = serde_qs::to_string(&qurey).unwrap();
@@ -310,8 +310,6 @@ impl OssClient {
             sub_res: None,
         };
 
-        // println!("{:#?}", params);
-
         let auth = self.authorization(params);
 
         let client = self
@@ -326,19 +324,17 @@ impl OssClient {
 
         let _headers = response.headers().clone();
         let content = response.text().await.unwrap();
-        println!("{}", content);
         if true {
-            // let regoins:Vec<> = serde_xml_rs::from_str(&content).unwrap();
-            // let data = OssData {
-            //     request :req,
-            //     data:result
-            // };
-            // Ok(())
+            let result: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
+            let data = OssData {
+                request: _req,
+                data: result,
+            };
+            Ok(data)
         } else {
-            // let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            // Err(oss_error)
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
         }
-        todo!()
     }
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。

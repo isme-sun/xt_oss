@@ -1,4 +1,5 @@
 use dotenv::dotenv;
+use urlencoding;
 use xt_oss::common::OssOptions;
 #[allow(unused_imports)]
 use xt_oss::params::{DescribeRegionsQuery, ListBucketsQuery, ListObject2Query};
@@ -14,12 +15,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // println!("{}", serde_json::to_string(&stat.data).unwrap());
     // ------------
     let mut query = ListObject2Query::default();
-    query.max_keys = Some(5);
-    let _ = client
+    query.prefix = Some("course/video".to_string());
+    query.max_keys = Some(20);
+    let result = client
         .ListObjectsV2(query)
-        .await;
-        // .unwrap();
-    // println!("{:?}", oss_data);
+        .await
+        .unwrap();
+    for object in &result.data.contents {
+        println!("{} {}", object.size, urlencoding::decode(&object.key).unwrap());
+    }
+    // println!("{}", serde_json::to_string(&result.data).unwrap());
     // ------------
     // let retval = client
     //     .DescribeRegions(DescribeRegionsQuery::default())
