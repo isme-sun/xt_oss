@@ -1,6 +1,6 @@
 use crate::DEFAULT_REGION;
 use crate::OSS_BASE_URL;
-use http::{header, HeaderMap, HeaderValue};
+use http::{header, HeaderValue};
 use reqwest::Request;
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
@@ -8,38 +8,60 @@ use serde_xml_rs;
 use std::env;
 use std::fmt::{self, Display};
 
-#[derive(Debug, Default, Deserialize, Serialize)]
-pub struct OssError {
-    #[serde(rename(deserialize = "Code"))]
-    pub code: String,
-    #[serde(rename(deserialize = "Message"))]
-    pub message: String,
-    #[serde(rename(deserialize = "RequestId"))]
-    pub request_id: String,
-    #[serde(rename(deserialize = "HostId"))]
-    pub host_id: String,
-    #[serde(rename(deserialize = "EC"))]
-    pub ec: String,
-    #[serde(rename(deserialize = "RecommendDoc"))]
-    pub recommend_doc: String,
+/// OSS 存储类型
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub enum StorageClass {
+    /// 标准存储
+    #[serde(rename(deserialize = "Standard"))]
+    #[default]
+    Standard,
+    /// 低频访问存储
+    #[serde(rename(deserialize = "IA"))]
+    IA,
+    /// 归档存储
+    #[serde(rename(deserialize = "Archive"))]
+    Archive,
 }
 
-impl Display for OssError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Sorry, something is wrong! Please Try Again!")
-    }
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct ListCnameResult {
+    #[serde(rename(deserialize = "Bucket"))]
+    pub bucket: String,
+    #[serde(rename(deserialize = "Owner"))]
+    pub owner: String,
+    #[serde(rename(deserialize = "Cname"))]
+    pub cname: Cname,
 }
 
-#[derive(Debug)]
-pub struct OssData<T> {
-    pub request: Request,
-    // pub response: Response,
-    pub data: T,
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Certificate {
+    #[serde(rename(deserialize = "Type"))]
+    pub r#type: String,
+    #[serde(rename(deserialize = "CertId"))]
+    pub cert_id: String,
+    #[serde(rename(deserialize = "Status"))]
+    pub status: String,
+    #[serde(rename(deserialize = "CreationDate"))]
+    pub creation_date: String,
+    #[serde(rename(deserialize = "Fingerprint"))]
+    pub fingerprint: String,
+    #[serde(rename(deserialize = "ValidStartDate"))]
+    pub valid_start_date: String,
+    #[serde(rename(deserialize = "ValidEndDate"))]
+    pub valid_end_date: String,
 }
 
-/// OSS 返回结果
-// pub type OssResult = Result<(), Box<dyn std::error::Error>>;
-pub type OssResult<T> = Result<OssData<T>, OssError>;
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Cname {
+    #[serde(rename(deserialize = "Domain"))]
+    pub domain: String,
+    #[serde(rename(deserialize = "LastModified"))]
+    pub last_modified: String,
+    #[serde(rename(deserialize = "Status"))]
+    pub status: String,
+    #[serde(rename(deserialize = "Certificate"))]
+    pub certificate: Option<Certificate>,
+}
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct BucketStat {
@@ -174,7 +196,7 @@ pub struct BucketInfo {
 }
 
 /// OSS 区域信息
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RegionInfo {
     #[serde(rename(serialize = "AccelerateEndpoint", deserialize = "AccelerateEndpoint"))]
     pub accelerate_endpoint: String,
@@ -186,34 +208,13 @@ pub struct RegionInfo {
     pub region: String,
 }
 
-// AccelerateEndpoint
-pub struct RegionInfoResult {
-    pub headers: HeaderMap,
-    pub region_info_list: Vec<RegionInfo>,
-}
-
-// pub type RegionInfoList = Vec<RegionInfo>;
-
-/// OSS api 请求参数
-pub struct OssParams {}
-
-/// OSS 存储类型
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub enum StorageClass {
-    /// 标准存储
-    #[serde(rename(deserialize = "Standard"))]
-    #[default]
-    Standard,
-    /// 低频访问存储
-    #[serde(rename(deserialize = "IA"))]
-    IA,
-    /// 归档存储
-    #[serde(rename(deserialize = "Archive"))]
-    Archive,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RegionInfoList {
+    #[serde(rename(serialize = "RegionInfo", deserialize = "RegionInfo"))]
+    pub region_info: Vec<RegionInfo>,
 }
 
 /// 客户端配置
-///
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OssOptions {
     /// 通过阿里云控制台创建的AccessKey ID
@@ -262,7 +263,6 @@ impl Default for OssOptions {
 impl OssOptions {
     pub fn from_env() -> Self {
         let mut options = OssOptions::default();
-
         options.access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap_or_default();
         options.access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap_or_default();
         options.sts_token = env::var("OSS_STS_TOKEN").unwrap_or_default();
@@ -288,14 +288,18 @@ impl OssOptions {
 
     pub fn common_headers(&self) -> http::HeaderMap {
         let mut headers = header::HeaderMap::new();
-
+        // host
         // let host = self.get_host().parse().unwrap();
         // headers.insert(header::HOST, host);
         headers.insert(
             header::CONTENT_TYPE,
             HeaderValue::from_static("application/octet-stream"),
         );
-
+        // user_agent
+        // headers.insert(
+        //     header::USER_AGENT,
+        //     HeaderValue::from_static("xt oss"),
+        // );
         return headers;
     }
 
@@ -330,59 +334,38 @@ impl OssOptions {
     }
 }
 
-/// *OSS Endpoint描述*
-#[derive(Debug)]
-pub struct Endpoint {
-    pub region: String,
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct OssError {
+    #[serde(rename(deserialize = "Code"))]
+    pub code: String,
+    #[serde(rename(deserialize = "Message"))]
+    pub message: String,
+    #[serde(rename(deserialize = "RequestId"))]
+    pub request_id: String,
+    #[serde(rename(deserialize = "HostId"))]
+    pub host_id: String,
+    #[serde(rename(deserialize = "EC"))]
+    pub ec: String,
+    #[serde(rename(deserialize = "RecommendDoc"))]
+    pub recommend_doc: String,
 }
 
-impl Endpoint {
-    pub fn new(region: String) -> Endpoint {
-        Endpoint { region }
+impl Display for OssError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Sorry, something is wrong! Please Try Again!")
     }
 }
+
+#[derive(Debug)]
+pub struct OssData<T> {
+    pub request: Request,
+    // pub response: Response,
+    pub data: T,
+}
+
+/// OSS 返回结果
+// pub type OssResult = Result<(), Box<dyn std::error::Error>>;
+pub type OssResult<T> = Result<OssData<T>, OssError>;
 
 #[cfg(test)]
-mod tests {
-    use dotenv::dotenv;
-    use std::env;
-
-    use crate::OssOptions;
-
-    fn get_options() -> OssOptions {
-        dotenv().ok();
-        let mut options = OssOptions::default();
-
-        options.access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap_or_default();
-        options.access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap_or_default();
-        options.sts_token = env::var("OSS_STS_TOKEN").unwrap_or_default();
-        options.bucket = env::var("OSS_BUCKET").unwrap_or_default();
-        options.region = env::var("OSS_REGION").unwrap_or_default();
-        if let Ok(value) = env::var("OSS_INTERNAL") {
-            options.internal = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_CNAME") {
-            options.cname = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_IS_REQUEST_PAY") {
-            options.is_request_pay = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_SECURE") {
-            options.secure = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_TIMEOUT") {
-            options.timeout = value.parse::<i32>().unwrap_or(60);
-        }
-        options
-    }
-
-    #[test]
-    fn temp() {}
-
-    #[test]
-    fn is_work() {
-        let options = get_options();
-        println!("{:?}", options.common_headers());
-        assert_eq!(1, 1);
-    }
-}
+mod tests {}

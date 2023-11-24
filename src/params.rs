@@ -38,7 +38,7 @@ impl Default for ListObject2Query {
 
 #[derive(Debug, Default)]
 pub struct DescribeRegionsQuery {
-    regions: Option<String>,
+    pub regions: Option<String>,
 }
 
 impl DescribeRegionsQuery {

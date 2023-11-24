@@ -1,9 +1,9 @@
-// use http::Uri;
 mod inner {
-    use crate::common::RegionInfo;
     use crate::utils::{base64_encode, get_gmt_date, hmac_sha1};
+    // use base64::Engine;
     use chrono::{DateTime, Utc};
-    use serde::{Deserialize, Serialize};
+    use http::{self};
+    // use serde::{Deserialize, Serialize};
     use std::fmt::Display;
     pub(super) struct AuthParams {
         pub(super) verb: http::Method,
@@ -13,12 +13,12 @@ mod inner {
         pub(super) sub_res: Option<String>,
     }
     // AccelerateEndpoint
-    #[allow(non_snake_case)]
-    #[derive(Debug, Serialize, Deserialize, PartialEq)]
-    pub(super) struct PrivateRegionInfoResult {
-        #[serde(rename = "$value")]
-        pub(super) RegionInfoList: Vec<RegionInfo>,
-    }
+    // #[allow(non_snake_case)]
+    // #[derive(Debug, Serialize, Deserialize, PartialEq)]
+    // pub(super) struct PrivateRegionInfoResult {
+    //     #[serde(rename = "$value")]
+    //     pub(super) RegionInfoList: Vec<RegionInfo>,
+    // }
 
     /// #### 签章计算
     ///
@@ -40,9 +40,8 @@ mod inner {
         pub(super) canonicalized_resource: CanonicalizedResource,
     }
 
-    #[allow(dead_code)]
-    impl Signature {
-        pub(super) fn to_string(&self) -> String {
+    impl Display for Signature {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             let value = format!(
                 "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
                 VERB = &self.verb.to_string(),
@@ -52,8 +51,8 @@ mod inner {
             // println!("{:?}", value);
             let value = hmac_sha1(&self.access_key_secret.to_string(), &value.to_string());
             let encoded: String = base64_encode(value.as_slice());
-            // println!("{}", encoded);
-            encoded
+            // encoded
+            write!(f, "{}", encoded)
         }
     }
 
@@ -94,19 +93,89 @@ mod inner {
             }
         }
     }
+
+    #[allow(unused)]
+    #[derive(Debug)]
+    pub(crate) struct Authorization {
+        verb: http::Method,
+        date: DateTime<Utc>,
+        object_key: Option<String>,
+        bucket: Option<String>,
+        // ! 命名
+        sub_res: Option<String>,
+    }
+
+    impl Default for Authorization {
+        fn default() -> Self {
+            Self {
+                // 请求方法
+                verb: http::Method::GET,
+                // 请求时间
+                date: Utc::now(),
+                // 请求文件对象
+                object_key: None,
+                // 当前bucket
+                bucket: None,
+                // 资源符
+                sub_res: None,
+            }
+        }
+    }
+
+    #[allow(unused)]
+    impl Authorization {
+        pub(super) fn canonicalized_resource(&self) -> String {
+            let res_path = match (&self.bucket, &self.object_key) {
+                (Some(bucket), Some(object_key)) => {
+                    format!("/{}/{}", bucket, object_key)
+                }
+                (Some(bucket), None) => {
+                    format!("/{}/", bucket)
+                }
+                (None, None) => "/".to_string(),
+                (None, Some(_)) => {
+                    panic!("params error")
+                }
+            };
+            if let Some(res) = &self.sub_res {
+                format!("{}?{}", res_path, res)
+            } else {
+                format!("{}", res_path)
+            }
+        }
+
+        pub(super) fn signature(&self, key_secret: &str) -> String {
+            let value = format!(
+                "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
+                VERB = &self.verb.to_string(),
+                Date = get_gmt_date(&self.date),
+                cr = &self.canonicalized_resource()
+            );
+            let value = hmac_sha1(&key_secret.to_string(), &value.to_string());
+            base64_encode(value.as_slice())
+        }
+
+        fn to_value(&self, access_key_id: &str, key_secret: &str) -> String {
+            format!("OSS {}:{}", access_key_id, self.signature(key_secret))
+        }
+    }
 }
 
 use crate::{
-    common::{BucketInfo, BucketStat, ListBucketResult, OssData, OssResult, RegionInfo},
+    common::{
+        BucketInfo, BucketStat, ListBucketResult, ListCnameResult, OssData, OssResult,
+        RegionInfoList, RegionInfo,
+    },
     params::{DescribeRegionsQuery, ListObject2Query},
 };
+
 use chrono::Utc;
 use http::{header, HeaderValue};
 
 use crate::{params::ListBucketsQuery, utils::get_gmt_date};
 use crate::{OssError, OssOptions};
 
-use self::inner::{AuthParams, CanonicalizedResource, PrivateRegionInfoResult, Signature};
+use self::inner::{AuthParams, CanonicalizedResource, Signature};
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
@@ -125,6 +194,8 @@ impl OssClient {
             _client: client.build().unwrap(),
         }
     }
+
+    // fn common_request() {}
 
     // verb date object_key, query
     fn authorization(&self, params: AuthParams) -> String {
@@ -167,7 +238,6 @@ impl OssClient {
     pub async fn DescribeRegions(
         &self,
         region: DescribeRegionsQuery,
-        // ) -> Result<RegionInfoResult, OssError> {
     ) -> OssResult<Vec<RegionInfo>> {
         let url = {
             let base_url = self.options.get_root_url();
@@ -193,21 +263,17 @@ impl OssClient {
             .header(header::AUTHORIZATION, auth.to_string());
 
         let req = client.try_clone().unwrap().build().unwrap();
-        // println!("{:#?}", req);
 
         let response = client.send().await.unwrap();
-
-        // println!("{:#?}", response);
 
         let headers = response.headers().clone();
         let content = response.text().await.unwrap();
         if true {
-            let regoins: PrivateRegionInfoResult = serde_xml_rs::from_str(&content).unwrap();
-            let result = regoins.RegionInfoList;
+            let regoins: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
             let result = OssData {
                 request: req,
                 // response: resp,
-                data: result,
+                data: regoins.region_info,
             };
             Ok(result)
         } else {
@@ -532,6 +598,76 @@ impl OssClient {
     }
 }
 // *----------------------------------------------------------------------------------
+
+/// Bucket 自定义域名（CNAME）
+#[allow(non_snake_case)]
+impl OssClient {
+    /// 调用CreateCnameToken接口创建域名所有权验证所需的CnameToken
+    pub fn CreateCnameToken() {
+        todo!()
+    }
+
+    /// 调用GetCnameToken接口获取已创建的CnameToken
+    pub fn GetCnameToken() {
+        todo!()
+    }
+
+    /// 调用PutCname接口为某个存储空间（Bucket）绑定自定义域名
+    pub fn PutCname() {
+        todo!()
+    }
+
+    /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
+    pub async fn ListCname(&self) -> OssResult<ListCnameResult> {
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = "cname";
+            format!("{base_url}?{query_str}")
+        };
+        // println!("{}", url);
+        let dt = Utc::now();
+        let method = http::Method::GET;
+
+        let params = AuthParams {
+            verb: method.clone(),
+            date: dt.clone(),
+            object_key: None,
+            bucket: Some(self.options.bucket.to_string()),
+            sub_res: Some("cname".to_string()),
+        };
+
+        let auth = self.authorization(params);
+
+        let client = self
+            ._client
+            .request(method, &url)
+            .header(header::DATE, get_gmt_date(&dt))
+            .header(header::AUTHORIZATION, auth.to_string());
+
+        let _req = client.try_clone().unwrap().build().unwrap();
+
+        let response = client.send().await.unwrap();
+
+        let _headers = response.headers().clone();
+        let content = response.text().await.unwrap();
+        if true {
+            let result: ListCnameResult = serde_xml_rs::from_str(&content).unwrap();
+            let data = OssData {
+                request: _req,
+                data: result,
+            };
+            Ok(data)
+        } else {
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        }
+    }
+
+    /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
+    pub fn DeleteCname() {
+        todo!()
+    }
+}
 #[cfg(test)]
 mod tests {
 

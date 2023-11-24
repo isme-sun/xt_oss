@@ -33,8 +33,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // // }
     // println!("{}", serde_json::to_string(&result.data).unwrap());
     // ***********************************************************************
-    let query = DescribeRegionsQuery::default();
-    let retval = client.DescribeRegions(query).await.unwrap();
+    // let mut query = DescribeRegionsQuery::default();
+    // query.regions = Some("oss-cn-hangzhou".to_string());
+    // let retval = client.DescribeRegions(query).await.unwrap();
+    // let json_str = serde_json::to_string(&retval.data).unwrap();
+    // print!("{}", json_str);
+    // ***********************************************************************
+    let retval = client.ListCname().await.unwrap();
     let json_str = serde_json::to_string(&retval.data).unwrap();
     print!("{}", json_str);
     Ok(())
