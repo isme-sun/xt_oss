@@ -17,4 +17,3 @@ pub use self::client::OssClient;
 pub use self::common::Endpoint;
 pub use self::common::OssError;
 pub use self::common::OssOptions;
-pub use self::common::Signature;

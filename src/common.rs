@@ -1,5 +1,5 @@
+use crate::DEFAULT_REGION;
 use crate::OSS_BASE_URL;
-use crate::{utils::hmac_sha1, DEFAULT_REGION};
 use http::{header, HeaderMap, HeaderValue};
 use reqwest::Request;
 use serde::{Deserialize, Serialize};
@@ -8,14 +8,6 @@ use serde_xml_rs;
 use std::env;
 use std::fmt::{self, Display};
 
-/*
-  <Code>AccessDenied</Code>
-  <Message>Anonymous access is forbidden for this operation.</Message>
-  <RequestId>65589C1147C61735372BA1F5</RequestId>
-  <HostId>aliyuncs.com</HostId>
-  <EC>0003-00001201</EC>
-  <RecommendDoc>https://api.aliyun.com/troubleshoot?q=0003-00001201</RecommendDoc>
-*/
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct OssError {
     #[serde(rename(deserialize = "Code"))]
@@ -32,7 +24,7 @@ pub struct OssError {
     pub recommend_doc: String,
 }
 
-impl fmt::Display for OssError {
+impl Display for OssError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Sorry, something is wrong! Please Try Again!")
     }
@@ -126,7 +118,7 @@ pub struct Owner {
     #[serde(rename(deserialize = "DisplayName"))]
     pub display_name: String,
     #[serde(rename(deserialize = "ID"))]
-    pub id:u64
+    pub id: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -134,56 +126,27 @@ pub struct BucketPolicy {
     #[serde(rename(deserialize = "LogBucket"))]
     pub log_bucket: String,
     #[serde(rename(deserialize = "LogPrefix"))]
-    pub log_prefix: String
+    pub log_prefix: String,
 }
 
-#[derive(Debug, Serialize, Deserialize,Default)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct AccessControlList {
     #[serde(rename(deserialize = "Grant"))]
-    pub grant: Vec<String>
+    pub grant: Vec<String>,
 }
-
-/*
-<BucketInfo>
-  <Bucket>
-    <AccessMonitor>Enabled</AccessMonitor>
-    <CreationDate>2013-07-31T10:56:21.000Z</CreationDate>
-    <ExtranetEndpoint>oss-cn-hangzhou.aliyuncs.com</ExtranetEndpoint>
-    <IntranetEndpoint>oss-cn-hangzhou-internal.aliyuncs.com</IntranetEndpoint>
-    <Location>oss-cn-hangzhou</Location>
-    <StorageClass>Standard</StorageClass>
-    <TransferAcceleration>Disabled</TransferAcceleration>
-    <CrossRegionReplication>Disabled</CrossRegionReplication>
-    <Name>oss-example</Name>
-    <ResourceGroupId>rg-aek27tc********</ResourceGroupId>
-    <Owner>
-      <DisplayName>username</DisplayName>
-      <ID>27183473914****</ID>
-    </Owner>
-    <AccessControlList>
-      <Grant>private</Grant>
-    </AccessControlList>  
-    <Comment>test</Comment>
-    <BucketPolicy>
-      <LogBucket>examplebucket</LogBucket>
-      <LogPrefix>log/</LogPrefix>
-    </BucketPolicy>
-  </Bucket>
-</BucketInfo>
-*/
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Bucket {
     #[serde(rename(deserialize = "AccessMonitor"))]
-    pub access_monitor:String,
+    pub access_monitor: String,
     #[serde(rename(deserialize = "CreationDate"))]
     pub creation_date: String,
     #[serde(rename(deserialize = "ExtranetEndpoint"))]
-    pub extranet_endpoint:String,
+    pub extranet_endpoint: String,
     #[serde(rename(deserialize = "IntranetEndpoint"))]
-    pub intranet_endpoint:String,
+    pub intranet_endpoint: String,
     #[serde(rename(deserialize = "Location"))]
-    pub location:String,
+    pub location: String,
     #[serde(rename(deserialize = "StorageClass"))]
     pub storage_class: StorageClass,
     #[serde(rename(deserialize = "TransferAcceleration"))]
@@ -197,18 +160,17 @@ pub struct Bucket {
     #[serde(rename(deserialize = "Owner"))]
     pub owner: Owner,
     #[serde(rename(deserialize = "AccessControlList"))]
-    pub access_control_list:AccessControlList,
+    pub access_control_list: AccessControlList,
     #[serde(rename(deserialize = "Comment"))]
-    pub comment:String,
+    pub comment: String,
     #[serde(rename(deserialize = "BucketPolicy"))]
-    pub bucket_policy: BucketPolicy
+    pub bucket_policy: BucketPolicy,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct BucketInfo {
     #[serde(rename(deserialize = "Bucket"))]
-    pub bucket: Bucket
+    pub bucket: Bucket,
 }
 
 /// OSS 区域信息
@@ -377,86 +339,6 @@ pub struct Endpoint {
 impl Endpoint {
     pub fn new(region: String) -> Endpoint {
         Endpoint { region }
-    }
-}
-
-/**
-# node sdk 返回例子
-*OSS Bucket描述*
-*/
-
-/**
-OSS Authorization 描述
-*/
-#[derive(Default, Debug)]
-pub struct Authorization {
-    pub access_key_id: String,
-    pub signature: Signature,
-}
-
-// Authorization = "OSS " + AccessKeyId + ":" + Signature
-
-impl Display for Authorization {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "OSS{}:{}",
-            &self.access_key_id,
-            &self.signature.to_string()
-        )
-    }
-}
-
-///
-/// # 签章数据结构
-///
-/// ```ignore
-/// Signature = base64(hmac-sha1(AccessKeySecret,
-///             VERB + "\n"
-///             + Content-MD5 + "\n"
-///             + Content-Type + "\n"
-///             + Date + "\n"
-///             + CanonicalizedOSSHeaders
-///             + CanonicalizedResource))
-/// ```
-///
-#[derive(Debug, Default)]
-pub struct Signature {
-    pub access_key_secret: String,
-    pub verb: http::Method,
-    pub content_md5: String,
-    pub content_type: String,
-    pub date: String,
-    pub canonicalized_oss_headers: String,
-    pub canonicalized_resource: String,
-}
-
-impl Signature {
-    pub fn new(access_key_secret: String) -> Self {
-        Self {
-            access_key_secret,
-            ..Self::default()
-        }
-    }
-
-    // 计算签章
-    pub fn compute(&self) -> [u8; 20] {
-        let content = format!(
-            "{}\n{}\n{}\n{}\n{}{}",
-            self.verb,
-            self.content_md5,
-            self.content_type,
-            self.date,
-            self.canonicalized_oss_headers,
-            self.canonicalized_resource
-        );
-        hmac_sha1(&content, &self.access_key_secret)
-    }
-}
-
-impl Display for Signature {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "This Is Signature")
     }
 }
 

@@ -1,115 +1,115 @@
 // use http::Uri;
-
-use crate::{
-    common::{BucketStat, ListBucketResult, OssData, OssResult, RegionInfo, BucketInfo},
-    params::{DescribeRegionsQuery, ListObject2Query},
-    utils::base64_encode,
-};
-use chrono::{DateTime, Utc};
-use http::{header, HeaderValue};
-use serde::{Deserialize, Serialize};
-use std::fmt::Display;
-
-use crate::{
-    params::ListBucketsQuery,
-    utils::{get_gmt_date, hmac_sha1},
-};
-#[allow(unused_imports)]
-use crate::{OssError, OssOptions};
-
-#[derive(Debug)]
-struct AuthParams {
-    verb: http::Method,
-    date: DateTime<Utc>,
-    object_key: Option<String>,
-    bucket: Option<String>,
-    sub_res: Option<String>,
-}
-// AccelerateEndpoint
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-struct PrivateRegionInfoResult {
-    #[serde(rename = "$value")]
-    RegionInfoList: Vec<RegionInfo>,
-}
-
-/// #### 签章计算
-///
-///~~~
-/// Signature = base64(hmac-sha1(AccessKeySecret,
-/// VERB + "\n"
-///  Content-MD5 + "\n"
-///  Content-Type + "\n"
-///  Date + "\n"
-///  CanonicalizedOSSHeaders
-///  CanonicalizedResource))
-/// ~~~
-#[allow(dead_code)]
-#[derive(Debug, Default)]
-struct Signature {
-    access_key_secret: String,
-    verb: http::Method,
-    date: DateTime<Utc>,
-    canonicalized_resource: CanonicalizedResource,
-}
-
-#[allow(dead_code)]
-impl Signature {
-    fn to_string(&self) -> String {
-        let value = format!(
-            "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
-            VERB = &self.verb.to_string(),
-            Date = get_gmt_date(&self.date),
-            cr = &self.canonicalized_resource.to_string()
-        );
-        // println!("{:?}", value);
-        let value = hmac_sha1(&self.access_key_secret.to_string(), &value.to_string());
-        let encoded: String = base64_encode(value.as_slice());
-        // println!("{}", encoded);
-        encoded
+mod inner {
+    use crate::common::RegionInfo;
+    use crate::utils::{base64_encode, get_gmt_date, hmac_sha1};
+    use chrono::{DateTime, Utc};
+    use serde::{Deserialize, Serialize};
+    use std::fmt::Display;
+    pub(super) struct AuthParams {
+        pub(super) verb: http::Method,
+        pub(super) date: DateTime<Utc>,
+        pub(super) object_key: Option<String>,
+        pub(super) bucket: Option<String>,
+        pub(super) sub_res: Option<String>,
     }
-}
+    // AccelerateEndpoint
+    #[allow(non_snake_case)]
+    #[derive(Debug, Serialize, Deserialize, PartialEq)]
+    pub(super) struct PrivateRegionInfoResult {
+        #[serde(rename = "$value")]
+        pub(super) RegionInfoList: Vec<RegionInfo>,
+    }
 
-///
-/// # 构建CanonicalizedResource的方法
-///
-/// - 发送请求中希望访问的OSS目标资源被称为CanonicalizedResource，构建方法如下：
-/// - 如果既有BucketName也有ObjectName，则CanonicalizedResource格式为/BucketName/ObjectName
-/// - 如果仅有BucketName而没有ObjectName，则CanonicalizedResource格式为/BucketName/。
-/// - 如果既没有BucketName也没有ObjectName，则CanonicalizedResource为正斜线（/）。
-/// - 如果请求的资源包括子资源（SubResource），则所有的子资源需按照字典序升序排列，并以&为分隔符生成子资源字符串。
-#[allow(dead_code)]
-#[derive(Debug, Default)]
-struct CanonicalizedResource {
-    bucket: Option<String>,
-    object_key: Option<String>,
-    res: Option<String>,
-}
+    /// #### 签章计算
+    ///
+    ///~~~
+    /// Signature = base64(hmac-sha1(AccessKeySecret,
+    /// VERB + "\n"
+    ///  Content-MD5 + "\n"
+    ///  Content-Type + "\n"
+    ///  Date + "\n"
+    ///  CanonicalizedOSSHeaders
+    ///  CanonicalizedResource))
+    /// ~~~
+    #[allow(dead_code)]
+    #[derive(Debug, Default)]
+    pub(super) struct Signature {
+        pub(super) access_key_secret: String,
+        pub(super) verb: http::Method,
+        pub(super) date: DateTime<Utc>,
+        pub(super) canonicalized_resource: CanonicalizedResource,
+    }
 
-impl Display for CanonicalizedResource {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let res_path = match (&self.bucket, &self.object_key) {
-            (Some(bucket), Some(object_key)) => {
-                format!("/{}/{}", bucket, object_key)
+    #[allow(dead_code)]
+    impl Signature {
+        pub(super) fn to_string(&self) -> String {
+            let value = format!(
+                "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
+                VERB = &self.verb.to_string(),
+                Date = get_gmt_date(&self.date),
+                cr = &self.canonicalized_resource.to_string()
+            );
+            // println!("{:?}", value);
+            let value = hmac_sha1(&self.access_key_secret.to_string(), &value.to_string());
+            let encoded: String = base64_encode(value.as_slice());
+            // println!("{}", encoded);
+            encoded
+        }
+    }
+
+    ///
+    /// # 构建CanonicalizedResource的方法
+    ///
+    /// - 发送请求中希望访问的OSS目标资源被称为CanonicalizedResource，构建方法如下：
+    /// - 如果既有BucketName也有ObjectName，则CanonicalizedResource格式为/BucketName/ObjectName
+    /// - 如果仅有BucketName而没有ObjectName，则CanonicalizedResource格式为/BucketName/。
+    /// - 如果既没有BucketName也没有ObjectName，则CanonicalizedResource为正斜线（/）。
+    /// - 如果请求的资源包括子资源（SubResource），则所有的子资源需按照字典序升序排列，并以&为分隔符生成子资源字符串。
+    #[allow(dead_code)]
+    #[derive(Debug, Default)]
+    pub(super) struct CanonicalizedResource {
+        pub(super) bucket: Option<String>,
+        pub(super) object_key: Option<String>,
+        pub(super) res: Option<String>,
+    }
+
+    impl Display for CanonicalizedResource {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            let res_path = match (&self.bucket, &self.object_key) {
+                (Some(bucket), Some(object_key)) => {
+                    format!("/{}/{}", bucket, object_key)
+                }
+                (Some(bucket), None) => {
+                    format!("/{}/", bucket)
+                }
+                (None, None) => "/".to_string(),
+                (None, Some(_)) => {
+                    panic!("params error")
+                }
+            };
+            if let Some(res) = &self.res {
+                write!(f, "{}?{}", res_path, res)
+            } else {
+                write!(f, "{}", res_path)
             }
-            (Some(bucket), None) => {
-                format!("/{}/", bucket)
-            }
-            (None, None) => "/".to_string(),
-            (None, Some(_)) => {
-                panic!("params error")
-            }
-        };
-        if let Some(res) = &self.res {
-            write!(f, "{}?{}", res_path, res)
-        } else {
-            write!(f, "{}", res_path)
         }
     }
 }
 
-#[allow(non_snake_case)]
+use crate::{
+    common::{BucketInfo, BucketStat, ListBucketResult, OssData, OssResult, RegionInfo},
+    params::{DescribeRegionsQuery, ListObject2Query},
+};
+use chrono::Utc;
+use http::{header, HeaderValue};
+
+use crate::{params::ListBucketsQuery, utils::get_gmt_date};
+use crate::{OssError, OssOptions};
+
+use self::inner::{AuthParams, CanonicalizedResource, PrivateRegionInfoResult, Signature};
+
 #[derive(Debug)]
+#[allow(non_snake_case)]
 pub struct OssClient {
     pub options: OssOptions,
     _client: reqwest::Client,
@@ -336,7 +336,6 @@ impl OssClient {
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
     pub async fn GetBucketInfo(&self) -> OssResult<BucketInfo> {
-
         // url root|base|object_key
         // query
         // body
@@ -356,7 +355,7 @@ impl OssClient {
             date: dt.clone(),
             object_key: None,
             bucket: Some(self.options.bucket.to_string()),
-            sub_res: Some("bucketInfo".to_string())
+            sub_res: Some("bucketInfo".to_string()),
         };
 
         let auth = self.authorization(params);
@@ -377,7 +376,7 @@ impl OssClient {
             let result: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
             let data = OssData {
                 request: _req,
-                data: result
+                data: result,
             };
             Ok(data)
         } else {

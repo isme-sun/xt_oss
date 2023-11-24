@@ -10,18 +10,16 @@ use xt_oss::OssClient;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let client = OssClient::builder(OssOptions::from_env());
-    let bucket_info = client.GetBucketInfo().await.unwrap();
-    let json_str = serde_json::to_string(&bucket_info.data).unwrap();
-    println!("{}", json_str);
-    // println!("{}", serde_json::to_string(&bucket_info).unwrap());
-
-
-
+    // ***********************************************************************
+    // let bucket_info = client.GetBucketInfo().await.unwrap();
+    // let json_str = serde_json::to_string(&bucket_info.data).unwrap();
+    // println!("{}", json_str);
+    // ***********************************************************************
     // let stat = client.GetBucketStat()
     //     .await
     //     .unwrap();
     // println!("{}", serde_json::to_string(&stat.data).unwrap());
-    // ------------
+    // ***********************************************************************
     // let mut query = ListObject2Query::default();
     // query.prefix = Some("course/video".to_string());
     // query.max_keys = Some(20);
@@ -29,15 +27,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     .ListObjectsV2(query)
     //     .await
     //     .unwrap();
-    // for object in &result.data.contents {
-    //     println!("{} {}", object.size, urlencoding::decode(&object.key).unwrap());
-    // }
+    
+    // //  for object in &result.data.contents {
+    // //     println!("{} {}", object.size, urlencoding::decode(&object.key).unwrap());
+    // // }
     // println!("{}", serde_json::to_string(&result.data).unwrap());
-    // ------------
-    // let retval = client
-    //     .DescribeRegions(DescribeRegionsQuery::default())
-    //     .await
-    //     .unwrap();
-    // println!("{:#?}", retval.data);
+    // ***********************************************************************
+    let query = DescribeRegionsQuery::default();
+    let retval = client.DescribeRegions(query).await.unwrap();
+    let json_str = serde_json::to_string(&retval.data).unwrap();
+    print!("{}", json_str);
     Ok(())
 }
