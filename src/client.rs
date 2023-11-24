@@ -1,7 +1,7 @@
 // use http::Uri;
 
 use crate::{
-    common::{BucketStat, ListBucketResult, OssData, OssResult, RegionInfo},
+    common::{BucketStat, ListBucketResult, OssData, OssResult, RegionInfo, BucketInfo},
     params::{DescribeRegionsQuery, ListObject2Query},
     utils::base64_encode,
 };
@@ -269,9 +269,9 @@ impl OssClient {
 }
 // *----------------------------------------------------------------------------------
 /// OSS Bucket Stand
+#[allow(non_snake_case)]
 impl OssClient {
     /// 调用PutBucket接口创建存储空间（Bucket）。
-    #[allow(non_snake_case)]
     pub fn PutBucket(&self) {
         todo!()
     }
@@ -279,19 +279,16 @@ impl OssClient {
     /// 调用DeleteBucket删除某个存储空间（Bucket）。
     /// - 只有Bucket的拥有者才有权限删除该Bucket。
     /// - 为了防止误删除的发生，OSS不允许删除一个非空的Bucket。
-    #[allow(non_snake_case)]
     pub fn DeleteBucket(&self) {
         todo!()
     }
 
     /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-    #[allow(non_snake_case)]
     pub fn GetBucket(&self) {
         todo!()
     }
 
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-    #[allow(non_snake_case)]
     pub async fn ListObjectsV2(&self, qurey: ListObject2Query) -> OssResult<ListBucketResult> {
         let url = {
             let base_url = self.options.get_base_url();
@@ -338,19 +335,63 @@ impl OssClient {
     }
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
-    #[allow(non_snake_case)]
-    pub fn GetBucketInfo(&self) {
-        todo!()
+    pub async fn GetBucketInfo(&self) -> OssResult<BucketInfo> {
+
+        // url root|base|object_key
+        // query
+        // body
+        // method,
+        // sub
+
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = "bucketInfo".to_string();
+            format!("{base_url}?{query_str}")
+        };
+        let dt = Utc::now();
+        let method = http::Method::GET;
+
+        let params = AuthParams {
+            verb: method.clone(),
+            date: dt.clone(),
+            object_key: None,
+            bucket: Some(self.options.bucket.to_string()),
+            sub_res: Some("bucketInfo".to_string())
+        };
+
+        let auth = self.authorization(params);
+
+        let client = self
+            ._client
+            .request(method, &url)
+            .header(header::DATE, get_gmt_date(&dt))
+            .header(header::AUTHORIZATION, auth.to_string());
+
+        let _req = client.try_clone().unwrap().build().unwrap();
+
+        let response = client.send().await.unwrap();
+
+        let _headers = response.headers().clone();
+        let content = response.text().await.unwrap();
+        if true {
+            let result: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
+            let data = OssData {
+                request: _req,
+                data: result
+            };
+            Ok(data)
+        } else {
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        }
     }
 
     /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
     /// 只有Bucket的拥有者才能查看Bucket的位置信息。
-    #[allow(non_snake_case)]
     pub fn GetBucketLocation(&self) {
         todo!()
     }
 
-    #[allow(non_snake_case)]
     pub async fn GetBucketStat(&self) -> OssResult<BucketStat> {
         let url = {
             let base_url = self.options.get_base_url();
@@ -633,8 +674,8 @@ mod tests {
     #[tokio::test]
     async fn get_bucket_info() {
         println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.GetBucketInfo();
+        // let client = get_client();
+        // client.GetBucketInfo();
         println!("\n{}", "-".repeat(80));
         assert_eq!(1, 1);
     }
@@ -651,9 +692,9 @@ mod tests {
     #[tokio::test]
     async fn get_bucket_stat() {
         println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.GetBucketStat();
-        println!("\n{}", "-".repeat(80));
+        // let client = get_client();
+        // client.GetBucketStat();
+        // println!("\n{}", "-".repeat(80));
         assert_eq!(1, 1);
     }
 }

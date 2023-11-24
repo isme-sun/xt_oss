@@ -121,6 +121,96 @@ pub struct ListBucketResult {
     pub contents: Vec<OSSObject>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Owner {
+    #[serde(rename(deserialize = "DisplayName"))]
+    pub display_name: String,
+    #[serde(rename(deserialize = "ID"))]
+    pub id:u64
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct BucketPolicy {
+    #[serde(rename(deserialize = "LogBucket"))]
+    pub log_bucket: String,
+    #[serde(rename(deserialize = "LogPrefix"))]
+    pub log_prefix: String
+}
+
+#[derive(Debug, Serialize, Deserialize,Default)]
+pub struct AccessControlList {
+    #[serde(rename(deserialize = "Grant"))]
+    pub grant: Vec<String>
+}
+
+/*
+<BucketInfo>
+  <Bucket>
+    <AccessMonitor>Enabled</AccessMonitor>
+    <CreationDate>2013-07-31T10:56:21.000Z</CreationDate>
+    <ExtranetEndpoint>oss-cn-hangzhou.aliyuncs.com</ExtranetEndpoint>
+    <IntranetEndpoint>oss-cn-hangzhou-internal.aliyuncs.com</IntranetEndpoint>
+    <Location>oss-cn-hangzhou</Location>
+    <StorageClass>Standard</StorageClass>
+    <TransferAcceleration>Disabled</TransferAcceleration>
+    <CrossRegionReplication>Disabled</CrossRegionReplication>
+    <Name>oss-example</Name>
+    <ResourceGroupId>rg-aek27tc********</ResourceGroupId>
+    <Owner>
+      <DisplayName>username</DisplayName>
+      <ID>27183473914****</ID>
+    </Owner>
+    <AccessControlList>
+      <Grant>private</Grant>
+    </AccessControlList>  
+    <Comment>test</Comment>
+    <BucketPolicy>
+      <LogBucket>examplebucket</LogBucket>
+      <LogPrefix>log/</LogPrefix>
+    </BucketPolicy>
+  </Bucket>
+</BucketInfo>
+*/
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Bucket {
+    #[serde(rename(deserialize = "AccessMonitor"))]
+    pub access_monitor:String,
+    #[serde(rename(deserialize = "CreationDate"))]
+    pub creation_date: String,
+    #[serde(rename(deserialize = "ExtranetEndpoint"))]
+    pub extranet_endpoint:String,
+    #[serde(rename(deserialize = "IntranetEndpoint"))]
+    pub intranet_endpoint:String,
+    #[serde(rename(deserialize = "Location"))]
+    pub location:String,
+    #[serde(rename(deserialize = "StorageClass"))]
+    pub storage_class: StorageClass,
+    #[serde(rename(deserialize = "TransferAcceleration"))]
+    pub transfer_acceleration: String,
+    #[serde(rename(deserialize = "CrossRegionReplication"))]
+    pub cross_region_replication: String,
+    #[serde(rename(deserialize = "Name"))]
+    pub name: String,
+    #[serde(rename(deserialize = "ResourceGroupId"))]
+    pub resource_group_id: String,
+    #[serde(rename(deserialize = "Owner"))]
+    pub owner: Owner,
+    #[serde(rename(deserialize = "AccessControlList"))]
+    pub access_control_list:AccessControlList,
+    #[serde(rename(deserialize = "Comment"))]
+    pub comment:String,
+    #[serde(rename(deserialize = "BucketPolicy"))]
+    pub bucket_policy: BucketPolicy
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct BucketInfo {
+    #[serde(rename(deserialize = "Bucket"))]
+    pub bucket: Bucket
+}
+
 /// OSS 区域信息
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct RegionInfo {
@@ -146,13 +236,17 @@ pub struct RegionInfoResult {
 pub struct OssParams {}
 
 /// OSS 存储类型
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub enum StorageClass {
     /// 标准存储
+    #[serde(rename(deserialize = "Standard"))]
+    #[default]
     Standard,
     /// 低频访问存储
+    #[serde(rename(deserialize = "IA"))]
     IA,
     /// 归档存储
+    #[serde(rename(deserialize = "Archive"))]
     Archive,
 }
 
@@ -290,14 +384,6 @@ impl Endpoint {
 # node sdk 返回例子
 *OSS Bucket描述*
 */
-#[derive(Debug)]
-pub struct Bucket {
-    pub name: String,
-    pub region: String,
-    pub creation_date: String,
-    pub storage_class: StorageClass,
-    pub tags: String,
-}
 
 /**
 OSS Authorization 描述
