@@ -12,13 +12,6 @@ mod inner {
         pub(super) bucket: Option<String>,
         pub(super) sub_res: Option<String>,
     }
-    // AccelerateEndpoint
-    // #[allow(non_snake_case)]
-    // #[derive(Debug, Serialize, Deserialize, PartialEq)]
-    // pub(super) struct PrivateRegionInfoResult {
-    //     #[serde(rename = "$value")]
-    //     pub(super) RegionInfoList: Vec<RegionInfo>,
-    // }
 
     /// #### 签章计算
     ///
@@ -96,13 +89,13 @@ mod inner {
 
     #[allow(unused)]
     #[derive(Debug)]
-    pub(crate) struct Authorization {
-        verb: http::Method,
-        date: DateTime<Utc>,
-        object_key: Option<String>,
-        bucket: Option<String>,
+    pub(super) struct Authorization {
+        pub(super) verb: http::Method,
+        pub(super) date: DateTime<Utc>,
+        pub(super) object_key: Option<String>,
+        pub(super) bucket: Option<String>,
         // ! 命名
-        sub_res: Option<String>,
+        pub(super) sub_res: Option<String>,
     }
 
     impl Default for Authorization {
@@ -155,27 +148,32 @@ mod inner {
             base64_encode(value.as_slice())
         }
 
-        fn to_value(&self, access_key_id: &str, key_secret: &str) -> String {
+        pub(crate) fn to_value(&self, access_key_id: &str, key_secret: &str) -> String {
             format!("OSS {}:{}", access_key_id, self.signature(key_secret))
         }
     }
 }
 
+#[allow(unused_imports)]
 use crate::{
     common::{
-        BucketInfo, BucketStat, ListBucketResult, ListCnameResult, OssData, OssResult,
-        RegionInfoList, RegionInfo,
+        BucketInfo, BucketStat, ListBucketResult, ListCnameResult, OssData, OssResult, RegionInfo,
+        RegionInfoList,
     },
     params::{DescribeRegionsQuery, ListObject2Query},
 };
 
 use chrono::Utc;
-use http::{header, HeaderValue};
+#[allow(unused_imports)]
+use http::HeaderMap;
+#[allow(unused_imports)]
+use http::{header, response, HeaderValue};
+use reqwest::RequestBuilder;
 
 use crate::{params::ListBucketsQuery, utils::get_gmt_date};
 use crate::{OssError, OssOptions};
 
-use self::inner::{AuthParams, CanonicalizedResource, Signature};
+use self::inner::{AuthParams, Authorization, CanonicalizedResource, Signature};
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
@@ -195,7 +193,15 @@ impl OssClient {
         }
     }
 
-    // fn common_request() {}
+    fn request(&self, url: String, auth: Authorization) -> RequestBuilder {
+        let value = auth
+            .to_value(&self.options.access_key_id, &self.options.access_key_secret)
+            .to_string();
+        self._client
+            .request(auth.verb, url)
+            .header(header::DATE, get_gmt_date(&auth.date))
+            .header(header::AUTHORIZATION, value)
+    }
 
     // verb date object_key, query
     fn authorization(&self, params: AuthParams) -> String {
@@ -244,35 +250,22 @@ impl OssClient {
             let query_str = region.to_query();
             format!("{base_url}?{query_str}")
         };
-        let dt = Utc::now();
-        let method = http::Method::GET;
 
-        let params = AuthParams {
-            verb: method.clone(),
-            date: dt.clone(),
-            object_key: None,
-            bucket: None,
-            sub_res: None,
-        };
-        let auth = self.authorization(params);
+        let auth = Authorization::default();
+        let request = self.request(url, auth);
 
-        let client = self
-            ._client
-            .request(method, &url)
-            .header(header::DATE, get_gmt_date(&dt))
-            .header(header::AUTHORIZATION, auth.to_string());
+        let response = request.send().await.unwrap_or_else(|err|{
+            panic!("Error: {}", err.to_string());
+        });
 
-        let req = client.try_clone().unwrap().build().unwrap();
-
-        let response = client.send().await.unwrap();
-
+        let status = response.status();
         let headers = response.headers().clone();
         let content = response.text().await.unwrap();
-        if true {
+
+        if status.is_success() {
             let regoins: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
             let result = OssData {
-                request: req,
-                // response: resp,
+                headers,
                 data: regoins.region_info,
             };
             Ok(result)
@@ -355,100 +348,95 @@ impl OssClient {
     }
 
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
+    #[allow(unused)]
     pub async fn ListObjectsV2(&self, qurey: ListObject2Query) -> OssResult<ListBucketResult> {
-        let url = {
-            let base_url = self.options.get_base_url();
-            let query_str = serde_qs::to_string(&qurey).unwrap();
-            format!("{base_url}?{query_str}")
-        };
-        // println!("{}", url);
-        let dt = Utc::now();
-        let method = http::Method::GET;
+        // let url = {
+        //     let base_url = self.options.get_base_url();
+        //     let query_str = serde_qs::to_string(&qurey).unwrap();
+        //     format!("{base_url}?{query_str}")
+        // };
+        // // println!("{}", url);
+        // let dt = Utc::now();
+        // let method = http::Method::GET;
 
-        let params = AuthParams {
-            verb: method.clone(),
-            date: dt.clone(),
-            object_key: None,
-            bucket: Some(self.options.bucket.to_string()),
-            sub_res: None,
-        };
+        // let params = AuthParams {
+        //     verb: method.clone(),
+        //     date: dt.clone(),
+        //     object_key: None,
+        //     bucket: Some(self.options.bucket.to_string()),
+        //     sub_res: None,
+        // };
 
-        let auth = self.authorization(params);
+        // let auth = self.authorization(params);
 
-        let client = self
-            ._client
-            .request(method, &url)
-            .header(header::DATE, get_gmt_date(&dt))
-            .header(header::AUTHORIZATION, auth.to_string());
+        // let client = self
+        //     ._client
+        //     .request(method, &url)
+        //     .header(header::DATE, get_gmt_date(&dt))
+        //     .header(header::AUTHORIZATION, auth.to_string());
 
-        let _req = client.try_clone().unwrap().build().unwrap();
+        // let _req = client.try_clone().unwrap().build().unwrap();
 
-        let response = client.send().await.unwrap();
+        // let response = client.send().await.unwrap();
 
-        let _headers = response.headers().clone();
-        let content = response.text().await.unwrap();
-        if true {
-            let result: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
-            let data = OssData {
-                request: _req,
-                data: result,
-            };
-            Ok(data)
-        } else {
-            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            Err(oss_error)
-        }
+        // let headers = response.headers().clone();
+        // let content = response.text().await.unwrap();
+        // if true {
+        //     let result: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
+        //     let data = OssData {
+        //         headers,
+        //         data: result,
+        //     };
+        //     Ok(data)
+        // } else {
+        //     let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+        //     Err(oss_error)
+        // }
+        todo!()
     }
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
     pub async fn GetBucketInfo(&self) -> OssResult<BucketInfo> {
-        // url root|base|object_key
-        // query
-        // body
-        // method,
-        // sub
+        // let url = {
+        //     let base_url = self.options.get_base_url();
+        //     let query_str = "bucketInfo".to_string();
+        //     format!("{base_url}?{query_str}")
+        // };
+        // let dt = Utc::now();
+        // let method = http::Method::GET;
 
-        let url = {
-            let base_url = self.options.get_base_url();
-            let query_str = "bucketInfo".to_string();
-            format!("{base_url}?{query_str}")
-        };
-        let dt = Utc::now();
-        let method = http::Method::GET;
+        // let params = AuthParams {
+        //     verb: method.clone(),
+        //     date: dt.clone(),
+        //     object_key: None,
+        //     bucket: Some(self.options.bucket.to_string()),
+        //     sub_res: Some("bucketInfo".to_string()),
+        // };
 
-        let params = AuthParams {
-            verb: method.clone(),
-            date: dt.clone(),
-            object_key: None,
-            bucket: Some(self.options.bucket.to_string()),
-            sub_res: Some("bucketInfo".to_string()),
-        };
+        // let auth = self.authorization(params);
 
-        let auth = self.authorization(params);
+        // let client = self
+        //     ._client
+        //     .request(method, &url)
+        //     .header(header::DATE, get_gmt_date(&dt))
+        //     .header(header::AUTHORIZATION, auth.to_string());
 
-        let client = self
-            ._client
-            .request(method, &url)
-            .header(header::DATE, get_gmt_date(&dt))
-            .header(header::AUTHORIZATION, auth.to_string());
+        // let response = client.send().await.unwrap();
 
-        let _req = client.try_clone().unwrap().build().unwrap();
-
-        let response = client.send().await.unwrap();
-
-        let _headers = response.headers().clone();
-        let content = response.text().await.unwrap();
-        if true {
-            let result: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
-            let data = OssData {
-                request: _req,
-                data: result,
-            };
-            Ok(data)
-        } else {
-            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            Err(oss_error)
-        }
+        // let headers = response.headers().clone();
+        // let content = response.text().await.unwrap();
+        // if true {
+        //     let result: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
+        //     let data = OssData {
+        //         headers,
+        //         data: result,
+        //     };
+        //     Ok(data)
+        // } else {
+        //     let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+        //     Err(oss_error)
+        // }
+        todo!()
     }
 
     /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
@@ -458,54 +446,48 @@ impl OssClient {
     }
 
     pub async fn GetBucketStat(&self) -> OssResult<BucketStat> {
-        let url = {
-            let base_url = self.options.get_base_url();
-            let query_str = "stat";
-            format!("{base_url}?{query_str}")
-        };
+        // let url = {
+        //     let base_url = self.options.get_base_url();
+        //     let query_str = "stat";
+        //     format!("{base_url}?{query_str}")
+        // };
 
-        let dt = Utc::now();
-        let method = http::Method::GET;
+        // let dt = Utc::now();
+        // let method = http::Method::GET;
 
-        let params = AuthParams {
-            verb: method.clone(),
-            date: dt.clone(),
-            object_key: None,
-            bucket: Some(self.options.bucket.to_string()),
-            sub_res: Some("stat".to_string()),
-        };
-        let auth = self.authorization(params);
+        // let params = AuthParams {
+        //     verb: method.clone(),
+        //     date: dt.clone(),
+        //     object_key: None,
+        //     bucket: Some(self.options.bucket.to_string()),
+        //     sub_res: Some("stat".to_string()),
+        // };
+        // let auth = self.authorization(params);
 
-        let client = self
-            ._client
-            .request(method, &url)
-            .header(header::DATE, get_gmt_date(&dt))
-            .header(header::AUTHORIZATION, auth.to_string());
+        // let client = self
+        //     ._client
+        //     .request(method, &url)
+        //     .header(header::DATE, get_gmt_date(&dt))
+        //     .header(header::AUTHORIZATION, auth.to_string());
 
-        let req = client.try_clone().unwrap().build().unwrap();
-        // println!("{:#?}", req);
-
-        let response = client.send().await.unwrap();
-
-        // println!("{:#?}", response);
+        // let response = client.send().await.unwrap();
 
         // let headers = response.headers().clone();
-        let content = response.text().await.unwrap();
-        // println!("{}", content);
-        if true {
-            let stat = serde_xml_rs::from_str::<BucketStat>(&content).unwrap();
-            // println!("{:#?}", stat);
-            let result = OssData {
-                request: req,
-                // response: resp,
-                data: stat,
-            };
-            Ok(result)
-        } else {
-            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            Err(oss_error)
-        }
-        // todo!()
+        // let content = response.text().await.unwrap();
+        // // println!("{}", content);
+        // if true {
+        //     let stat = serde_xml_rs::from_str::<BucketStat>(&content).unwrap();
+        //     // println!("{:#?}", stat);
+        //     let result = OssData {
+        //         headers,
+        //         data: stat,
+        //     };
+        //     Ok(result)
+        // } else {
+        //     let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+        //     Err(oss_error)
+        // }
+        todo!()
     }
 }
 // *----------------------------------------------------------------------------------
@@ -644,16 +626,13 @@ impl OssClient {
             .header(header::DATE, get_gmt_date(&dt))
             .header(header::AUTHORIZATION, auth.to_string());
 
-        let _req = client.try_clone().unwrap().build().unwrap();
-
         let response = client.send().await.unwrap();
-
-        let _headers = response.headers().clone();
+        let headers = response.headers().clone();
         let content = response.text().await.unwrap();
         if true {
             let result: ListCnameResult = serde_xml_rs::from_str(&content).unwrap();
             let data = OssData {
-                request: _req,
+                headers,
                 data: result,
             };
             Ok(data)

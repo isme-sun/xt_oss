@@ -1,7 +1,7 @@
 use crate::DEFAULT_REGION;
 use crate::OSS_BASE_URL;
+use http::HeaderMap;
 use http::{header, HeaderValue};
-use reqwest::Request;
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use serde_xml_rs;
@@ -196,7 +196,7 @@ pub struct BucketInfo {
 }
 
 /// OSS 区域信息
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RegionInfo {
     #[serde(rename(serialize = "AccelerateEndpoint", deserialize = "AccelerateEndpoint"))]
     pub accelerate_endpoint: String,
@@ -358,8 +358,9 @@ impl Display for OssError {
 
 #[derive(Debug)]
 pub struct OssData<T> {
-    pub request: Request,
+    // pub request: Request,
     // pub response: Response,
+    pub headers:HeaderMap,
     pub data: T,
 }
 
