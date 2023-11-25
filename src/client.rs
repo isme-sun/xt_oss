@@ -134,9 +134,7 @@ use http::StatusCode;
 #[allow(unused_imports)]
 use http::{header, response, HeaderValue};
 
-use crate::{
-    common::ListAllMyBucketsResult
-};
+use crate::common::ListAllMyBucketsResult;
 use crate::params::{ListBucketsQuery, OSSQuery};
 use crate::{OssError, OssOptions};
 

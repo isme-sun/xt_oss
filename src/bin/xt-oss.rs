@@ -7,6 +7,8 @@ use xt_oss::OssClient;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
+    
+
     let client = OssClient::builder(OssOptions::from_env());
     // ***********************************************************************
     let bucket_info = client.GetBucketInfo().await.unwrap();
