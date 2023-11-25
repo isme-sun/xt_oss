@@ -81,7 +81,6 @@ mod inner {
         }
     }
 
-    #[allow(unused)]
     impl Authorization {
         pub(super) fn canonicalized_resource(&self) -> String {
             let res_path = match (&self.bucket, &self.object_key) {
@@ -120,11 +119,13 @@ mod inner {
     }
 }
 
-#[allow(unused_imports)]
+use self::inner::{get_gmt_date, Authorization};
+use crate::common::ListAllMyBucketsResult;
+use crate::params::{ListBucketsQuery, OSSQuery};
 use crate::{
     common::{
-        BucketInfo, BucketStat, ListBucketResult, ListCnameResult, OssData, OssResult, RegionInfo,
-        RegionInfoList,
+        BucketInfo, BucketStat, ListBucketResult, ListCnameResult, OssData, OssError, OssOptions,
+        OssResult, RegionInfo, RegionInfoList,
     },
     params::{DescribeRegionsQuery, ListObject2Query},
 };
@@ -133,12 +134,6 @@ use http::HeaderMap;
 use http::StatusCode;
 #[allow(unused_imports)]
 use http::{header, response, HeaderValue};
-
-use crate::common::ListAllMyBucketsResult;
-use crate::params::{ListBucketsQuery, OSSQuery};
-use crate::{OssError, OssOptions};
-
-use self::inner::{get_gmt_date, Authorization};
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
@@ -477,7 +472,7 @@ mod tests {
     use crate::client::inner::*;
     use dotenv::dotenv;
 
-    use crate::{OssClient, OssOptions};
+    use crate::client::{OssClient, OssOptions};
 
     fn env_init() {
         dotenv().ok();

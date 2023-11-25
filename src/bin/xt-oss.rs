@@ -2,13 +2,11 @@ use dotenv::dotenv;
 use xt_oss::common::OssOptions;
 #[allow(unused_imports)]
 use xt_oss::params::{DescribeRegionsQuery, ListBucketsQuery, ListObject2Query};
-use xt_oss::OssClient;
+use xt_oss::client::OssClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    
-
     let client = OssClient::builder(OssOptions::from_env());
     // ***********************************************************************
     let bucket_info = client.GetBucketInfo().await.unwrap();
