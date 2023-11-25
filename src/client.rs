@@ -1,7 +1,58 @@
 mod inner {
-    use crate::utils::{base64_encode, get_gmt_date, hmac_sha1};
+    use base64::{engine::general_purpose, Engine as _};
     use chrono::{DateTime, Utc};
+    use crypto::digest::Digest;
+    use crypto::md5::Md5;
+    use crypto::sha1::Sha1;
+    use hmacsha1;
     use http::{self};
+
+    /// 通用base64编码
+    pub(super) fn base64_encode(content: &[u8]) -> String {
+        let encoded = general_purpose::STANDARD.encode(content);
+        encoded
+    }
+
+    /// 给出字符串的md5值
+    #[allow(unused)]
+    pub(super) fn md5(text: &String) -> String {
+        let mut hasher = Md5::new();
+        hasher.input_str(&text[..]);
+        let hex = hasher.result_str();
+        hex
+    }
+
+    // 计算给出字符串的sha1加密值
+    #[allow(unused)]
+    pub(super) fn sha1(text: &String) -> String {
+        let mut hasher = Sha1::new();
+        hasher.input_str(&text[..]);
+        let hex = hasher.result_str();
+        hex.to_string()
+    }
+
+    /// hmac sha1 计算
+    ///
+    /// ~~~no_run
+    /// /* 转成16进制字符串 */
+    /// hash.iter()
+    ///     .map(|b| format!("{:02x}", b))
+    ///     .collect::<Vec<String>>()
+    ///     .join("")
+    /// ~~~
+    ///
+    pub(super) fn hmac_sha1(key: &String, message: &String) -> [u8; 20] {
+        let key = key.as_bytes();
+        let message = message.as_bytes();
+        let hash = hmacsha1::hmac_sha1(key, message);
+        hash
+    }
+
+    // 获取GMT时间格式
+    pub(super) fn get_gmt_date(dt: &DateTime<Utc>) -> String {
+        let fmt = "%a, %d %b %Y %H:%M:%S GMT";
+        dt.format(fmt).to_string()
+    }
 
     #[derive(Debug)]
     pub(super) struct Authorization {
@@ -84,13 +135,12 @@ use http::StatusCode;
 use http::{header, response, HeaderValue};
 
 use crate::{
-    common::ListAllMyBucketsResult,
-    params::{ListBucketsQuery, OSSQuery},
-    utils::get_gmt_date,
+    common::ListAllMyBucketsResult
 };
+use crate::params::{ListBucketsQuery, OSSQuery};
 use crate::{OssError, OssOptions};
 
-use self::inner::Authorization;
+use self::inner::{get_gmt_date, Authorization};
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
@@ -426,12 +476,10 @@ impl OssClient {
 #[cfg(test)]
 mod tests {
 
+    use crate::client::inner::*;
     use dotenv::dotenv;
 
-    use crate::{
-        utils::{base64_encode, hmac_sha1},
-        OssClient, OssOptions,
-    };
+    use crate::{OssClient, OssOptions};
 
     fn env_init() {
         dotenv().ok();
