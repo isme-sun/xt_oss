@@ -1,93 +1,8 @@
 mod inner {
     use crate::utils::{base64_encode, get_gmt_date, hmac_sha1};
-    // use base64::Engine;
     use chrono::{DateTime, Utc};
     use http::{self};
-    // use serde::{Deserialize, Serialize};
-    use std::fmt::Display;
-    pub(super) struct AuthParams {
-        pub(super) verb: http::Method,
-        pub(super) date: DateTime<Utc>,
-        pub(super) object_key: Option<String>,
-        pub(super) bucket: Option<String>,
-        pub(super) sub_res: Option<String>,
-    }
 
-    /// #### 签章计算
-    ///
-    ///~~~
-    /// Signature = base64(hmac-sha1(AccessKeySecret,
-    /// VERB + "\n"
-    ///  Content-MD5 + "\n"
-    ///  Content-Type + "\n"
-    ///  Date + "\n"
-    ///  CanonicalizedOSSHeaders
-    ///  CanonicalizedResource))
-    /// ~~~
-    #[allow(dead_code)]
-    #[derive(Debug, Default)]
-    pub(super) struct Signature {
-        pub(super) access_key_secret: String,
-        pub(super) verb: http::Method,
-        pub(super) date: DateTime<Utc>,
-        pub(super) canonicalized_resource: CanonicalizedResource,
-    }
-
-    impl Display for Signature {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let value = format!(
-                "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
-                VERB = &self.verb.to_string(),
-                Date = get_gmt_date(&self.date),
-                cr = &self.canonicalized_resource.to_string()
-            );
-            // println!("{:?}", value);
-            let value = hmac_sha1(&self.access_key_secret.to_string(), &value.to_string());
-            let encoded: String = base64_encode(value.as_slice());
-            // encoded
-            write!(f, "{}", encoded)
-        }
-    }
-
-    ///
-    /// # 构建CanonicalizedResource的方法
-    ///
-    /// - 发送请求中希望访问的OSS目标资源被称为CanonicalizedResource，构建方法如下：
-    /// - 如果既有BucketName也有ObjectName，则CanonicalizedResource格式为/BucketName/ObjectName
-    /// - 如果仅有BucketName而没有ObjectName，则CanonicalizedResource格式为/BucketName/。
-    /// - 如果既没有BucketName也没有ObjectName，则CanonicalizedResource为正斜线（/）。
-    /// - 如果请求的资源包括子资源（SubResource），则所有的子资源需按照字典序升序排列，并以&为分隔符生成子资源字符串。
-    #[allow(dead_code)]
-    #[derive(Debug, Default)]
-    pub(super) struct CanonicalizedResource {
-        pub(super) bucket: Option<String>,
-        pub(super) object_key: Option<String>,
-        pub(super) res: Option<String>,
-    }
-
-    impl Display for CanonicalizedResource {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let res_path = match (&self.bucket, &self.object_key) {
-                (Some(bucket), Some(object_key)) => {
-                    format!("/{}/{}", bucket, object_key)
-                }
-                (Some(bucket), None) => {
-                    format!("/{}/", bucket)
-                }
-                (None, None) => "/".to_string(),
-                (None, Some(_)) => {
-                    panic!("params error")
-                }
-            };
-            if let Some(res) = &self.res {
-                write!(f, "{}?{}", res_path, res)
-            } else {
-                write!(f, "{}", res_path)
-            }
-        }
-    }
-
-    #[allow(unused)]
     #[derive(Debug)]
     pub(super) struct Authorization {
         pub(super) verb: http::Method,
@@ -163,17 +78,19 @@ use crate::{
     params::{DescribeRegionsQuery, ListObject2Query},
 };
 
-use chrono::Utc;
-#[allow(unused_imports)]
 use http::HeaderMap;
+use http::StatusCode;
 #[allow(unused_imports)]
 use http::{header, response, HeaderValue};
-use reqwest::RequestBuilder;
 
-use crate::{params::ListBucketsQuery, utils::get_gmt_date};
+use crate::{
+    common::ListAllMyBucketsResult,
+    params::{ListBucketsQuery, OSSQuery},
+    utils::get_gmt_date,
+};
 use crate::{OssError, OssOptions};
 
-use self::inner::{AuthParams, Authorization, CanonicalizedResource, Signature};
+use self::inner::Authorization;
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
@@ -193,46 +110,34 @@ impl OssClient {
         }
     }
 
-    fn request(&self, url: String, auth: Authorization) -> RequestBuilder {
+    async fn request(
+        &self,
+        url: String,
+        auth: Authorization,
+    ) -> Result<(StatusCode, HeaderMap, String), OssError> {
         let value = auth
             .to_value(&self.options.access_key_id, &self.options.access_key_secret)
             .to_string();
-        self._client
+        let request = self
+            ._client
             .request(auth.verb, url)
             .header(header::DATE, get_gmt_date(&auth.date))
-            .header(header::AUTHORIZATION, value)
-    }
+            .header(header::AUTHORIZATION, value);
 
-    // verb date object_key, query
-    fn authorization(&self, params: AuthParams) -> String {
-        let AuthParams {
-            verb,
-            date,
-            object_key,
-            bucket,
-            sub_res,
-        } = params;
+        let response = request.send().await.unwrap_or_else(|err| {
+            panic!("Error: {}", err.to_string());
+        });
 
-        let cr = CanonicalizedResource {
-            bucket,
-            object_key,
-            res: sub_res,
-        };
+        let status = response.status();
+        let headers = response.headers().clone();
+        let content = response.text().await.unwrap();
 
-        let sign = Signature {
-            access_key_secret: self.options.access_key_secret.to_string(),
-            verb,
-            date,
-            canonicalized_resource: cr,
-        };
-
-        let auth = format!(
-            "OSS {}:{}",
-            self.options.access_key_id.to_string(),
-            sign.to_string()
-        );
-
-        auth
+        if !status.is_success() {
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        } else {
+            Ok((status, headers, content))
+        }
     }
 }
 // *----------------------------------------------------------------------------------
@@ -240,7 +145,7 @@ impl OssClient {
 impl OssClient {
     /// 调用`ListBuckets（GetService）`接口列举请求者拥有的所有存储空间`（Bucket）`。您还可以通过设置
     /// `prefix`、`marker`或者`max-keys`参数列举满足指定条件的存储空间。
-    #[allow(non_snake_case, unused)]
+    #[allow(non_snake_case)]
     pub async fn DescribeRegions(
         &self,
         region: DescribeRegionsQuery,
@@ -252,27 +157,14 @@ impl OssClient {
         };
 
         let auth = Authorization::default();
-        let request = self.request(url, auth);
+        let (_status, headers, content) = self.request(url, auth).await?;
 
-        let response = request.send().await.unwrap_or_else(|err|{
-            panic!("Error: {}", err.to_string());
-        });
-
-        let status = response.status();
-        let headers = response.headers().clone();
-        let content = response.text().await.unwrap();
-
-        if status.is_success() {
-            let regoins: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
-            let result = OssData {
-                headers,
-                data: regoins.region_info,
-            };
-            Ok(result)
-        } else {
-            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            Err(oss_error)
-        }
+        let regoins: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
+        let result = OssData {
+            headers,
+            data: regoins.region_info,
+        };
+        Ok(result)
     }
 }
 // *----------------------------------------------------------------------------------
@@ -281,49 +173,22 @@ impl OssClient {
     /// 调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）。
     /// 您还可以通过设置prefix、marker或者max-keys参数列举满足指定条件的存储空间。
     #[allow(non_snake_case)]
-    pub async fn ListBuckets(
-        &self,
-        query: ListBucketsQuery,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn ListBuckets(&self, query: ListBucketsQuery) -> OssResult<ListAllMyBucketsResult> {
         // 生成uri地址
         let url = {
             let base_url = self.options.get_root_url();
-            format!("{}?{}", base_url, serde_qs::to_string(&query).unwrap())
+            format!("{}?{}", base_url, query.to_query())
         };
-        // 当前时间 时间
-        let dt = Utc::now();
-        // 方法
-        let method = http::Method::GET;
-        // auth 计算所需参数
-        let params = AuthParams {
-            verb: method.clone(),
-            date: dt.clone(),
-            object_key: None,
-            bucket: None,
-            sub_res: None,
+        let auth = Authorization::default();
+        let (_status, headers, content) = self.request(url, auth).await?;
+        // println!("{}", content);
+
+        let bucket: ListAllMyBucketsResult = serde_xml_rs::from_str(&content).unwrap();
+        let result = OssData {
+            headers,
+            data: bucket,
         };
-
-        let auth = self.authorization(params);
-
-        let response = self
-            ._client
-            .request(method, &url)
-            .header(header::DATE, get_gmt_date(&dt))
-            .header(
-                header::CONTENT_TYPE,
-                HeaderValue::from_static("application/octet-stream"),
-            )
-            .header(header::AUTHORIZATION, auth.to_string())
-            .send()
-            .await
-            .unwrap();
-
-        println!("{:#?}", response.status());
-        println!("{:#?}", response.headers());
-        let _content = response.text().await.unwrap();
-        println!("{}", _content);
-        // let _qs = serde_qs::to_string(&query).unwrap();
-        Ok(())
+        Ok(result)
     }
 }
 // *----------------------------------------------------------------------------------
@@ -350,93 +215,47 @@ impl OssClient {
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
     #[allow(unused)]
     pub async fn ListObjectsV2(&self, qurey: ListObject2Query) -> OssResult<ListBucketResult> {
-        // let url = {
-        //     let base_url = self.options.get_base_url();
-        //     let query_str = serde_qs::to_string(&qurey).unwrap();
-        //     format!("{base_url}?{query_str}")
-        // };
-        // // println!("{}", url);
-        // let dt = Utc::now();
-        // let method = http::Method::GET;
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = serde_qs::to_string(&qurey).unwrap();
+            format!("{base_url}?{query_str}")
+        };
+        let auth = Authorization {
+            bucket: Some(self.options.bucket.to_string()),
+            ..Authorization::default()
+        };
 
-        // let params = AuthParams {
-        //     verb: method.clone(),
-        //     date: dt.clone(),
-        //     object_key: None,
-        //     bucket: Some(self.options.bucket.to_string()),
-        //     sub_res: None,
-        // };
+        let (_status, headers, content) = self.request(url, auth).await?;
 
-        // let auth = self.authorization(params);
-
-        // let client = self
-        //     ._client
-        //     .request(method, &url)
-        //     .header(header::DATE, get_gmt_date(&dt))
-        //     .header(header::AUTHORIZATION, auth.to_string());
-
-        // let _req = client.try_clone().unwrap().build().unwrap();
-
-        // let response = client.send().await.unwrap();
-
-        // let headers = response.headers().clone();
-        // let content = response.text().await.unwrap();
-        // if true {
-        //     let result: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
-        //     let data = OssData {
-        //         headers,
-        //         data: result,
-        //     };
-        //     Ok(data)
-        // } else {
-        //     let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-        //     Err(oss_error)
-        // }
-        todo!()
+        let bucket: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
+        let result = OssData {
+            headers,
+            data: bucket,
+        };
+        Ok(result)
     }
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
     pub async fn GetBucketInfo(&self) -> OssResult<BucketInfo> {
-        // let url = {
-        //     let base_url = self.options.get_base_url();
-        //     let query_str = "bucketInfo".to_string();
-        //     format!("{base_url}?{query_str}")
-        // };
-        // let dt = Utc::now();
-        // let method = http::Method::GET;
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = "bucketInfo".to_string();
+            format!("{base_url}?{query_str}")
+        };
+        let auth = Authorization {
+            bucket: Some(self.options.bucket.to_string()),
+            sub_res: Some("bucketInfo".to_string()),
+            ..Authorization::default()
+        };
 
-        // let params = AuthParams {
-        //     verb: method.clone(),
-        //     date: dt.clone(),
-        //     object_key: None,
-        //     bucket: Some(self.options.bucket.to_string()),
-        //     sub_res: Some("bucketInfo".to_string()),
-        // };
+        let (_status, headers, content) = self.request(url, auth).await?;
 
-        // let auth = self.authorization(params);
-
-        // let client = self
-        //     ._client
-        //     .request(method, &url)
-        //     .header(header::DATE, get_gmt_date(&dt))
-        //     .header(header::AUTHORIZATION, auth.to_string());
-
-        // let response = client.send().await.unwrap();
-
-        // let headers = response.headers().clone();
-        // let content = response.text().await.unwrap();
-        // if true {
-        //     let result: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
-        //     let data = OssData {
-        //         headers,
-        //         data: result,
-        //     };
-        //     Ok(data)
-        // } else {
-        //     let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-        //     Err(oss_error)
-        // }
-        todo!()
+        let bucket: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
+        let result = OssData {
+            headers,
+            data: bucket,
+        };
+        Ok(result)
     }
 
     /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
@@ -446,48 +265,25 @@ impl OssClient {
     }
 
     pub async fn GetBucketStat(&self) -> OssResult<BucketStat> {
-        // let url = {
-        //     let base_url = self.options.get_base_url();
-        //     let query_str = "stat";
-        //     format!("{base_url}?{query_str}")
-        // };
+        let url = {
+            let base_url = self.options.get_base_url();
+            let query_str = "stat";
+            format!("{base_url}?{query_str}")
+        };
+        let auth = Authorization {
+            bucket: Some(self.options.bucket.to_string()),
+            sub_res: Some("stat".to_string()),
+            ..Authorization::default()
+        };
 
-        // let dt = Utc::now();
-        // let method = http::Method::GET;
+        let (_status, headers, content) = self.request(url, auth).await?;
 
-        // let params = AuthParams {
-        //     verb: method.clone(),
-        //     date: dt.clone(),
-        //     object_key: None,
-        //     bucket: Some(self.options.bucket.to_string()),
-        //     sub_res: Some("stat".to_string()),
-        // };
-        // let auth = self.authorization(params);
-
-        // let client = self
-        //     ._client
-        //     .request(method, &url)
-        //     .header(header::DATE, get_gmt_date(&dt))
-        //     .header(header::AUTHORIZATION, auth.to_string());
-
-        // let response = client.send().await.unwrap();
-
-        // let headers = response.headers().clone();
-        // let content = response.text().await.unwrap();
-        // // println!("{}", content);
-        // if true {
-        //     let stat = serde_xml_rs::from_str::<BucketStat>(&content).unwrap();
-        //     // println!("{:#?}", stat);
-        //     let result = OssData {
-        //         headers,
-        //         data: stat,
-        //     };
-        //     Ok(result)
-        // } else {
-        //     let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-        //     Err(oss_error)
-        // }
-        todo!()
+        let bucket: BucketStat = serde_xml_rs::from_str(&content).unwrap();
+        let result = OssData {
+            headers,
+            data: bucket,
+        };
+        Ok(result)
     }
 }
 // *----------------------------------------------------------------------------------
@@ -580,7 +376,6 @@ impl OssClient {
     }
 }
 // *----------------------------------------------------------------------------------
-
 /// Bucket 自定义域名（CNAME）
 #[allow(non_snake_case)]
 impl OssClient {
@@ -606,40 +401,20 @@ impl OssClient {
             let query_str = "cname";
             format!("{base_url}?{query_str}")
         };
-        // println!("{}", url);
-        let dt = Utc::now();
-        let method = http::Method::GET;
-
-        let params = AuthParams {
-            verb: method.clone(),
-            date: dt.clone(),
-            object_key: None,
+        let auth = Authorization {
             bucket: Some(self.options.bucket.to_string()),
             sub_res: Some("cname".to_string()),
+            ..Authorization::default()
         };
 
-        let auth = self.authorization(params);
+        let (_status, headers, content) = self.request(url, auth).await?;
 
-        let client = self
-            ._client
-            .request(method, &url)
-            .header(header::DATE, get_gmt_date(&dt))
-            .header(header::AUTHORIZATION, auth.to_string());
-
-        let response = client.send().await.unwrap();
-        let headers = response.headers().clone();
-        let content = response.text().await.unwrap();
-        if true {
-            let result: ListCnameResult = serde_xml_rs::from_str(&content).unwrap();
-            let data = OssData {
-                headers,
-                data: result,
-            };
-            Ok(data)
-        } else {
-            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            Err(oss_error)
-        }
+        let bucket: ListCnameResult = serde_xml_rs::from_str(&content).unwrap();
+        let result = OssData {
+            headers,
+            data: bucket,
+        };
+        Ok(result)
     }
 
     /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
@@ -647,18 +422,16 @@ impl OssClient {
         todo!()
     }
 }
+// *----------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
 
     use dotenv::dotenv;
 
     use crate::{
-        params::{DescribeRegionsQuery, ListBucketsQuery},
         utils::{base64_encode, hmac_sha1},
         OssClient, OssOptions,
     };
-
-    use super::CanonicalizedResource;
 
     fn env_init() {
         dotenv().ok();
@@ -690,125 +463,5 @@ mod tests {
         let base64_value2 = base64_encode(hash_value);
 
         assert_eq!(base64_value1, base64_value2);
-    }
-
-    #[test]
-    fn canonicalized_resource() {
-        env_init();
-        let options = OssOptions::from_env();
-        println!("{:#?}", options);
-        let cr1 = CanonicalizedResource {
-            bucket: Some(options.bucket.to_string()),
-            object_key: None,
-            res: None,
-        };
-        let cr2 = CanonicalizedResource {
-            bucket: Some(options.bucket.to_string()),
-            object_key: Some("static/admin/app.js".to_string()),
-            res: None,
-        };
-        let cr3 = CanonicalizedResource {
-            bucket: None,
-            object_key: None,
-            res: None,
-        };
-
-        let left = (
-            "/xuetube-dev".to_string(),
-            "/xuetube-dev/static/admin/app.js".to_string(),
-            "/".to_string(),
-        );
-
-        let right = (cr1.to_string(), cr2.to_string(), cr3.to_string());
-
-        assert_eq!(left, right);
-    }
-
-    #[tokio::test]
-    async fn describe_regions() {
-        let client = get_client();
-        let region = DescribeRegionsQuery::default();
-        let _ = client.DescribeRegions(region).await;
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn list_buckets() {
-        let client = get_client();
-        println!("{}\n", "-".repeat(80));
-
-        // let query = ListBucketsQuery {
-        //     prefix: Some("xu".to_string()),
-        //     marker: Some("xue".to_string()),
-        //     max_keys: Some(2)
-        // };
-        let query = ListBucketsQuery::default();
-        let _ = client.ListBuckets(query).await;
-
-        println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn put_bucket() {
-        println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.PutBucket();
-        println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn delete_bucket() {
-        println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.DeleteBucket();
-        println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn get_bucket() {
-        println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.GetBucket();
-        println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn list_objects_v2() {
-        println!("{}\n", "-".repeat(80));
-        // let client = get_client();
-        // client.ListObjectsV2();
-        // println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn get_bucket_info() {
-        println!("{}\n", "-".repeat(80));
-        // let client = get_client();
-        // client.GetBucketInfo();
-        println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn get_bucket_location() {
-        println!("{}\n", "-".repeat(80));
-        let client = get_client();
-        client.GetBucketLocation();
-        println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
-    }
-
-    #[tokio::test]
-    async fn get_bucket_stat() {
-        println!("{}\n", "-".repeat(80));
-        // let client = get_client();
-        // client.GetBucketStat();
-        // println!("\n{}", "-".repeat(80));
-        assert_eq!(1, 1);
     }
 }

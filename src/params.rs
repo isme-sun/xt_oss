@@ -3,6 +3,10 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use serde_qs as qs;
 
+pub trait OSSQuery {
+    fn to_query(&self) -> String;
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListObject2Query {
     #[serde(rename = "list-type")]
@@ -60,6 +64,12 @@ pub struct ListBucketsQuery {
     #[serde(rename = "max-keys")]
     /// 限定返回的Bucket名称必须以prefix作为前缀。如果不设定，则不过滤前缀信息。
     pub max_keys: Option<i32>,
+}
+
+impl OSSQuery for ListBucketsQuery {
+    fn to_query(&self) -> String {
+       serde_qs::to_string(&self).unwrap()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

@@ -24,6 +24,20 @@ pub enum StorageClass {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Buckets {
+    #[serde(rename(deserialize = "Bucket"))]
+    pub bucket: Vec<Bucket>
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct ListAllMyBucketsResult {
+    #[serde(rename(deserialize = "Owner"))]
+    pub owner: Owner,
+    #[serde(rename(deserialize = "Buckets"))]
+    pub buckets: Buckets
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ListCnameResult {
     #[serde(rename(deserialize = "Bucket"))]
     pub bucket: String,
@@ -160,7 +174,7 @@ pub struct AccessControlList {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Bucket {
     #[serde(rename(deserialize = "AccessMonitor"))]
-    pub access_monitor: String,
+    pub access_monitor: Option<String>,
     #[serde(rename(deserialize = "CreationDate"))]
     pub creation_date: String,
     #[serde(rename(deserialize = "ExtranetEndpoint"))]
@@ -172,21 +186,21 @@ pub struct Bucket {
     #[serde(rename(deserialize = "StorageClass"))]
     pub storage_class: StorageClass,
     #[serde(rename(deserialize = "TransferAcceleration"))]
-    pub transfer_acceleration: String,
+    pub transfer_acceleration: Option<String>,
     #[serde(rename(deserialize = "CrossRegionReplication"))]
-    pub cross_region_replication: String,
+    pub cross_region_replication:Option<String>,
     #[serde(rename(deserialize = "Name"))]
     pub name: String,
     #[serde(rename(deserialize = "ResourceGroupId"))]
-    pub resource_group_id: String,
+    pub resource_group_id: Option<String>,
     #[serde(rename(deserialize = "Owner"))]
-    pub owner: Owner,
+    pub owner: Option<Owner>,
     #[serde(rename(deserialize = "AccessControlList"))]
-    pub access_control_list: AccessControlList,
+    pub access_control_list: Option<AccessControlList>,
     #[serde(rename(deserialize = "Comment"))]
     pub comment: String,
     #[serde(rename(deserialize = "BucketPolicy"))]
-    pub bucket_policy: BucketPolicy,
+    pub bucket_policy: Option<BucketPolicy>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
