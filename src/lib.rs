@@ -2,10 +2,10 @@
 //! # 阿里云OSS SDK
 //! # 阿里云OSS OssClient
 //!
-pub(crate) mod api;
 pub mod arguments;
 pub mod entities;
 pub(crate) mod util;
+pub(crate) mod api;
 
 use bytes::Bytes;
 use reqwest::{
@@ -46,14 +46,12 @@ pub struct OssError {
 
 impl Display for OssError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Sorry, something is wrong! Please Try Again!")
+        write!(f, "[{}]: {}", self.code, self.message)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct OssData<T> {
-    // pub request: Request,
-    // pub response: Response,
     pub headers: HeaderMap,
     pub data: T,
 }
@@ -169,7 +167,7 @@ impl OssOptions {
         if let Ok(sts_token) = env::var("OSS_STS_TOKEN") {
             options.sts_token = sts_token;
         }
-        if let Ok(oss_bucket) = env::var("OSS_STS_TOKEN") {
+        if let Ok(oss_bucket) = env::var("OSS_BUCKET") {
             options.bucket = oss_bucket
         }
         if let Ok(oss_region) = env::var("OSS_REGION") {
@@ -272,6 +270,7 @@ impl OssClient {
 
         let status = response.status();
         let headers = response.headers().clone();
+
         let data = response.bytes().await.unwrap();
 
         if !status.is_success() {

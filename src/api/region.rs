@@ -10,7 +10,6 @@ use crate::{
 impl OssClient {
     /// 调用`ListBuckets（GetService）`接口列举请求者拥有的所有存储空间`（Bucket）`。您还可以通过设置
     /// `prefix`、`marker`或者`max-keys`参数列举满足指定条件的存储空间。
-    #[allow(non_snake_case)]
     pub async fn DescribeRegions(
         &self,
         region: DescribeRegionsQuery,

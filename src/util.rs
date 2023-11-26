@@ -97,6 +97,7 @@ impl Authorization {
             Date = get_gmt_date(&self.date),
             cr = &self.canonicalized_resource()
         );
+        // println!("{}",value);
         let value = hmac_sha1(&key_secret.to_string(), &value.to_string());
         base64_encode(value.as_slice())
     }

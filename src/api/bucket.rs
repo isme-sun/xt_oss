@@ -4,6 +4,10 @@ use crate::{
     util::Authorization,
     OssClient, OssData, OssResult,
 };
+
+
+
+
 #[allow(non_snake_case)]
 impl OssClient {
     /// 调用PutBucket接口创建存储空间（Bucket）。
@@ -90,7 +94,7 @@ impl OssClient {
 
         let (_status, headers, data) = self.request(url, auth).await?;
 
-				let content = String::from_utf8_lossy(&data);
+        let content = String::from_utf8_lossy(&data);
         let bucket: BucketStat = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,
