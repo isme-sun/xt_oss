@@ -1,7 +1,7 @@
 use crate::{
     arguments::ListObject2Query,
     entities::{BucketInfo, BucketStat, ListBucketResult, ListCnameResult},
-    inner::Authorization,
+    util::Authorization,
     OssClient, OssData, OssResult,
 };
 #[allow(non_snake_case)]
@@ -27,17 +27,17 @@ impl OssClient {
     #[allow(unused)]
     pub async fn ListObjectsV2(&self, qurey: ListObject2Query) -> OssResult<ListBucketResult> {
         let url = {
-            let base_url = self.options.get_base_url();
+            let base_url = self.options.base_url();
             let query_str = serde_qs::to_string(&qurey).unwrap();
             format!("{base_url}?{query_str}")
         };
         let auth = Authorization {
-            bucket: Some(self.options.bucket.to_string()),
+            bucket: Some(self.options.bucket.to_owned()),
             ..Authorization::default()
         };
 
-        let (_status, headers, content) = self.request(url, auth).await?;
-
+        let (_status, headers, data) = self.request(url, auth).await?;
+				let content = String::from_utf8_lossy(&data);
         let bucket: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,
@@ -49,18 +49,19 @@ impl OssClient {
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
     pub async fn GetBucketInfo(&self) -> OssResult<BucketInfo> {
         let url = {
-            let base_url = self.options.get_base_url();
+            let base_url = self.options.base_url();
             let query_str = "bucketInfo".to_string();
             format!("{base_url}?{query_str}")
         };
         let auth = Authorization {
-            bucket: Some(self.options.bucket.to_string()),
+            bucket: Some(self.options.bucket.to_owned()),
             sub_res: Some("bucketInfo".to_string()),
             ..Authorization::default()
         };
 
-        let (_status, headers, content) = self.request(url, auth).await?;
+        let (_status, headers, data) = self.request(url, auth).await?;
 
+        let content = String::from_utf8_lossy(&data);
         let bucket: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,
@@ -77,18 +78,19 @@ impl OssClient {
 
     pub async fn GetBucketStat(&self) -> OssResult<BucketStat> {
         let url = {
-            let base_url = self.options.get_base_url();
+            let base_url = self.options.base_url();
             let query_str = "stat";
             format!("{base_url}?{query_str}")
         };
         let auth = Authorization {
-            bucket: Some(self.options.bucket.to_string()),
+            bucket: Some(self.options.bucket.to_owned()),
             sub_res: Some("stat".to_string()),
             ..Authorization::default()
         };
 
-        let (_status, headers, content) = self.request(url, auth).await?;
+        let (_status, headers, data) = self.request(url, auth).await?;
 
+				let content = String::from_utf8_lossy(&data);
         let bucket: BucketStat = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,
@@ -191,18 +193,19 @@ impl OssClient {
     /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
     pub async fn ListCname(&self) -> OssResult<ListCnameResult> {
         let url = {
-            let base_url = self.options.get_base_url();
+            let base_url = self.options.base_url();
             let query_str = "cname";
             format!("{base_url}?{query_str}")
         };
         let auth = Authorization {
-            bucket: Some(self.options.bucket.to_string()),
+            bucket: Some(self.options.bucket.to_owned()),
             sub_res: Some("cname".to_string()),
             ..Authorization::default()
         };
 
-        let (_status, headers, content) = self.request(url, auth).await?;
+        let (_status, headers, data) = self.request(url, auth).await?;
 
+				let content = String::from_utf8_lossy(&data);
         let bucket: ListCnameResult = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,

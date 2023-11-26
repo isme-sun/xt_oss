@@ -1,7 +1,7 @@
 use crate::{
     arguments::{DescribeRegionsQuery, OSSQuery},
     entities::{RegionInfo, RegionInfoList},
-    inner::Authorization,
+    util::Authorization,
     OssClient, OssData, OssResult,
 };
 
@@ -16,14 +16,15 @@ impl OssClient {
         region: DescribeRegionsQuery,
     ) -> OssResult<Vec<RegionInfo>> {
         let url = {
-            let base_url = self.options.get_root_url();
+            let base_url = self.options.root_url();
             let query_str = region.to_query();
             format!("{base_url}?{query_str}")
         };
 
         let auth = Authorization::default();
-        let (_status, headers, content) = self.request(url, auth).await?;
+        let (_status, headers, data) = self.request(url, auth).await?;
 
+        let content = String::from_utf8_lossy(&data);
         let regoins: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,

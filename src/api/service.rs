@@ -1,4 +1,9 @@
-use crate::{OssClient, OssResult, entities::ListAllMyBucketsResult, arguments::{ListBucketsQuery, OSSQuery}, inner::Authorization, OssData};
+use crate::{
+    arguments::{ListBucketsQuery, OSSQuery},
+    entities::ListAllMyBucketsResult,
+    util::Authorization,
+    OssClient, OssData, OssResult,
+};
 
 #[allow(non_snake_case)]
 /// 关于Region操作
@@ -8,13 +13,14 @@ impl OssClient {
     pub async fn ListBuckets(&self, query: ListBucketsQuery) -> OssResult<ListAllMyBucketsResult> {
         // 生成uri地址
         let url = {
-            let base_url = self.options.get_root_url();
+            let base_url = self.options.root_url();
             format!("{}?{}", base_url, query.to_query())
         };
         let auth = Authorization::default();
-        let (_status, headers, content) = self.request(url, auth).await?;
+        let (_status, headers, data) = self.request(url, auth).await?;
         // println!("{}", content);
 
+        let content = String::from_utf8_lossy(&data);
         let bucket: ListAllMyBucketsResult = serde_xml_rs::from_str(&content).unwrap();
         let result = OssData {
             headers,
