@@ -1,12 +1,6 @@
-use crate::DEFAULT_REGION;
-use crate::OSS_BASE_URL;
-use reqwest::header::HeaderMap;
-use reqwest::{header, header::HeaderValue};
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use serde_xml_rs;
-use std::env;
-use std::fmt::{self, Display};
 
 /// OSS 存储类型
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -26,7 +20,7 @@ pub enum StorageClass {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Buckets {
     #[serde(rename(deserialize = "Bucket"))]
-    pub bucket: Vec<Bucket>
+    pub bucket: Vec<Bucket>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -34,7 +28,7 @@ pub struct ListAllMyBucketsResult {
     #[serde(rename(deserialize = "Owner"))]
     pub owner: Owner,
     #[serde(rename(deserialize = "Buckets"))]
-    pub buckets: Buckets
+    pub buckets: Buckets,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -188,7 +182,7 @@ pub struct Bucket {
     #[serde(rename(deserialize = "TransferAcceleration"))]
     pub transfer_acceleration: Option<String>,
     #[serde(rename(deserialize = "CrossRegionReplication"))]
-    pub cross_region_replication:Option<String>,
+    pub cross_region_replication: Option<String>,
     #[serde(rename(deserialize = "Name"))]
     pub name: String,
     #[serde(rename(deserialize = "ResourceGroupId"))]
@@ -227,160 +221,3 @@ pub struct RegionInfoList {
     #[serde(rename(serialize = "RegionInfo", deserialize = "RegionInfo"))]
     pub region_info: Vec<RegionInfo>,
 }
-
-/// 客户端配置
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct OssOptions {
-    /// 通过阿里云控制台创建的AccessKey ID
-    pub access_key_id: String,
-    /// 通过阿里云控制台创建的AccessKey Secret
-    pub access_key_secret: String,
-    /// 使用临时授权方式。更多信息，请参见 [使用STS进行临时授权](https://help.aliyun.com/zh/oss/developer-reference/authorized-access-3#section-zkq-3rq-dhb)。
-    pub sts_token: String,
-    /// 通过控制台或PutBucket创建的Bucket
-    pub bucket: String,
-    /// OSS访问域名。
-    pub endpoint: String,
-    /// Bucket所在的区域， 默认值为oss-cn-hangzhou
-    pub region: String,
-    /// 是否使用阿里云内网访问，默认值为false
-    pub internal: bool,
-    /// 是否支持上传自定义域名，默认值为false
-    pub cname: bool,
-    /// Bucket是否开启请求者付费模式，默认值为false
-    pub is_request_pay: bool,
-    /// 设置secure为true，则使用HTTPS；设置secure为false，则使用HTTP
-    pub secure: bool,
-    /// 超时时间，默认值为60000
-    pub timeout: i32,
-}
-
-impl Default for OssOptions {
-    fn default() -> Self {
-        Self {
-            access_key_id: Default::default(),
-            access_key_secret: Default::default(),
-            sts_token: Default::default(),
-            bucket: Default::default(),
-            endpoint: OSS_BASE_URL.to_string(),
-            region: DEFAULT_REGION.to_string(),
-            internal: false,
-            cname: false,
-            is_request_pay: false,
-            secure: true,
-            timeout: 60,
-        }
-    }
-}
-
-#[allow(dead_code)]
-impl OssOptions {
-    pub fn from_env() -> Self {
-        let mut options = OssOptions::default();
-        options.access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap_or_default();
-        options.access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap_or_default();
-        options.sts_token = env::var("OSS_STS_TOKEN").unwrap_or_default();
-        options.bucket = env::var("OSS_BUCKET").unwrap_or_default();
-        options.region = env::var("OSS_REGION").unwrap_or_default();
-        if let Ok(value) = env::var("OSS_INTERNAL") {
-            options.internal = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_CNAME") {
-            options.cname = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_IS_REQUEST_PAY") {
-            options.is_request_pay = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_SECURE") {
-            options.secure = value.parse::<bool>().unwrap_or(false);
-        }
-        if let Ok(value) = env::var("OSS_TIMEOUT") {
-            options.timeout = value.parse::<i32>().unwrap_or(60);
-        }
-        options
-    }
-
-    pub fn common_headers(&self) -> HeaderMap {
-        let mut headers = header::HeaderMap::new();
-        // host
-        // let host = self.get_host().parse().unwrap();
-        // headers.insert(header::HOST, host);
-        headers.insert(
-            header::CONTENT_TYPE,
-            HeaderValue::from_static("application/octet-stream"),
-        );
-        // user_agent
-        // headers.insert(
-        //     header::USER_AGENT,
-        //     HeaderValue::from_static("xt oss"),
-        // );
-        return headers;
-    }
-
-    fn get_schema(&self) -> String {
-        if self.secure == true {
-            "https".to_string()
-        } else {
-            "http".to_string()
-        }
-    }
-
-    fn get_host(&self) -> String {
-        if self.internal == true {
-            format!("{}-internal.{}", self.region, self.endpoint)
-        } else {
-            format!("{}.{}", self.region, self.endpoint)
-        }
-    }
-
-    pub fn get_root_url(&self) -> String {
-        format!("{}://{}", self.get_schema(), self.get_host()).to_string()
-    }
-
-    pub fn get_base_url(&self) -> String {
-        format!(
-            "{}://{}.{}",
-            self.get_schema(),
-            self.bucket,
-            self.get_host()
-        )
-        .to_string()
-    }
-}
-
-#[derive(Debug, Default, Deserialize, Serialize)]
-pub struct OssError {
-    #[serde(rename(deserialize = "Code"))]
-    pub code: String,
-    #[serde(rename(deserialize = "Message"))]
-    pub message: String,
-    #[serde(rename(deserialize = "RequestId"))]
-    pub request_id: String,
-    #[serde(rename(deserialize = "HostId"))]
-    pub host_id: String,
-    #[serde(rename(deserialize = "EC"))]
-    pub ec: String,
-    #[serde(rename(deserialize = "RecommendDoc"))]
-    pub recommend_doc: String,
-}
-
-impl Display for OssError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Sorry, something is wrong! Please Try Again!")
-    }
-}
-
-#[derive(Debug)]
-pub struct OssData<T> {
-    // pub request: Request,
-    // pub response: Response,
-    pub headers:HeaderMap,
-    pub data: T,
-}
-
-/// OSS 返回结果
-// pub type OssResult = Result<(), Box<dyn std::error::Error>>;
-pub type OssResult<T> = Result<OssData<T>, OssError>;
-
-#[cfg(test)]
-mod tests {}

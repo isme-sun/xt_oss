@@ -1,8 +1,8 @@
 use dotenv::dotenv;
-use xt_oss::common::OssOptions;
+use xt_oss::OssOptions;
 #[allow(unused_imports)]
-use xt_oss::params::{DescribeRegionsQuery, ListBucketsQuery, ListObject2Query};
-use xt_oss::client::OssClient;
+use xt_oss::arguments::{DescribeRegionsQuery, ListBucketsQuery, ListObject2Query};
+use xt_oss::OssClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
