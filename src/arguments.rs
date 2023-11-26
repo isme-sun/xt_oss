@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 // use serde_qs as qs;
 
 pub trait OSSQuery {
-   fn to_query(&self) -> String;
+    fn to_query(&self) -> String;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -33,7 +33,7 @@ impl Default for ListObject2Query {
             max_keys: Some(100),
             prefix: None,
             encoding_type: Some("url".to_string()),
-            fetch_owner: None
+            fetch_owner: None,
         }
     }
 }
@@ -66,31 +66,6 @@ pub struct ListBucketsQuery {
 
 impl OSSQuery for ListBucketsQuery {
     fn to_query(&self) -> String {
-       serde_qs::to_string(&self).unwrap()
+        serde_qs::to_string(&self).unwrap()
     }
-}
-
-// #[derive(Debug, Serialize, Deserialize, Default)]
-// pub struct RegionsQuery {
-//     pub regions: Option<String>,
-// }
-
-// impl RegionsQuery {
-//     pub const ALL: RegionsQuery = RegionsQuery { regions: None };
-// }
-
-// #[allow(dead_code)]
-// impl Display for RegionsQuery {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         let result = if let Some(_) = self.regions {
-//             qs::to_string(&self).unwrap()
-//         } else {
-//             "regions".to_string()
-//         };
-//         write!(f, "{}", result)
-//     }
-// }
-
-#[cfg(test)]
-mod tests {
 }

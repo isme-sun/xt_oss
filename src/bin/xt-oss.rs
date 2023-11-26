@@ -9,9 +9,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let client = OssClient::builder(OssOptions::from_env());
     // ***********************************************************************
-    let bucket_info = client.GetBucketInfo().await.unwrap();
-    let json_str = serde_json::to_string(&bucket_info.data).unwrap();
-    println!("{}", json_str);
+    // let bucket_info = client.GetBucketInfo().await.unwrap();
+    // let json_str = serde_json::to_string(&bucket_info.data).unwrap();
+    // println!("{}", json_str);
     // ***********************************************************************
     // let stat = client.GetBucketStat()
     //     .await
@@ -49,10 +49,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let json_str = serde_json::to_string(&retval.data).unwrap();
     // print!("{}", json_str);
     // ***********************************************************************
-    // let query = ListBucketsQuery::default();
-    // let retval = client.ListBuckets(query).await.unwrap();
-    // // println!("{:#?}",retval);
-    // let json_str = serde_json::to_string(&retval.data).unwrap();
-    // print!("{}", json_str);
+    let query = ListBucketsQuery::default();
+    let retval = client.ListBuckets(query).await.unwrap();
+    // println!("{:#?}",retval);
+    let json_str = serde_json::to_string(&retval.data).unwrap();
+    print!("{}", json_str);
     Ok(())
 }
