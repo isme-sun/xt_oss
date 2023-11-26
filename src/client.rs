@@ -5,7 +5,6 @@ mod inner {
     use crypto::md5::Md5;
     use crypto::sha1::Sha1;
     use hmacsha1;
-    use http::{self};
 
     /// 通用base64编码
     pub(super) fn base64_encode(content: &[u8]) -> String {
@@ -56,7 +55,7 @@ mod inner {
 
     #[derive(Debug)]
     pub(super) struct Authorization {
-        pub(super) verb: http::Method,
+        pub(super) verb: reqwest::Method,
         pub(super) date: DateTime<Utc>,
         pub(super) object_key: Option<String>,
         pub(super) bucket: Option<String>,
@@ -68,7 +67,7 @@ mod inner {
         fn default() -> Self {
             Self {
                 // 请求方法
-                verb: http::Method::GET,
+                verb: reqwest::Method::GET,
                 // 请求时间
                 date: Utc::now(),
                 // 请求文件对象
@@ -130,10 +129,12 @@ use crate::{
     params::{DescribeRegionsQuery, ListObject2Query},
 };
 
-use http::HeaderMap;
-use http::StatusCode;
+use reqwest::header;
+use reqwest::header::HeaderMap;
 #[allow(unused_imports)]
-use http::{header, response, HeaderValue};
+// use http::{header, response, HeaderValue};
+use reqwest::header::HeaderValue;
+use reqwest::StatusCode;
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
@@ -173,7 +174,7 @@ impl OssClient {
 
         let status = response.status();
         let headers = response.headers().clone();
-        let content = response.text().await.unwrap();
+        let content = response.text().await.unwrap().to_string();
 
         if !status.is_success() {
             let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();

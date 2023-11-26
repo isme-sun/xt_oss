@@ -1,7 +1,7 @@
 use crate::DEFAULT_REGION;
 use crate::OSS_BASE_URL;
-use http::HeaderMap;
-use http::{header, HeaderValue};
+use reqwest::header::HeaderMap;
+use reqwest::{header, header::HeaderValue};
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use serde_xml_rs;
@@ -300,7 +300,7 @@ impl OssOptions {
         options
     }
 
-    pub fn common_headers(&self) -> http::HeaderMap {
+    pub fn common_headers(&self) -> HeaderMap {
         let mut headers = header::HeaderMap::new();
         // host
         // let host = self.get_host().parse().unwrap();
