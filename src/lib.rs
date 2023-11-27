@@ -1,7 +1,38 @@
+//! # XT - Aliyun OSS SDK 参考官方其他SDK实现的阿里云OSS SDK
+//! 
+//! 概要说明 ...
 //!
-//! # 阿里云OSS SDK
-//! # 阿里云OSS OssClient
+//! ## 已经实现的API列表
 //!
+//! 概要说明
+//!
+//! ```
+//! fn main() {
+//!     println!("示例说明")
+//! }
+//!  // 
+//! ```
+//!
+//! ## 配置说明
+//!
+//! 概要说明 ...
+//! 
+//! ```
+//! fn main() {
+//!     println!("示例说明")
+//! }
+//! ```
+//!
+//! ## 参数与返回数据
+//!
+//! 概要说明 ...
+//!
+//! ```
+//! fn main() {
+//!     println!("示例说明")
+//! }
+//! ```
+
 pub mod arguments;
 pub mod entities;
 pub(crate) mod util;

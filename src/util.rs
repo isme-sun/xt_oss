@@ -4,6 +4,7 @@ use crypto::digest::Digest;
 use crypto::md5::Md5;
 use crypto::sha1::Sha1;
 use hmacsha1;
+// use reqwest::header::HeaderMap;
 
 /// 通用base64编码
 pub(crate) fn base64_encode(content: &[u8]) -> String {
@@ -48,23 +49,19 @@ pub(crate) struct Authorization {
     pub(super) date: DateTime<Utc>,
     pub(super) object_key: Option<String>,
     pub(super) bucket: Option<String>,
-    // ! 命名
     pub(super) sub_res: Option<String>,
+    // pub(super) headers: Option<HeaderMap>
 }
 
 impl Default for Authorization {
     fn default() -> Self {
         Self {
-            // 请求方法
             verb: reqwest::Method::GET,
-            // 请求时间
             date: Utc::now(),
-            // 请求文件对象
             object_key: None,
-            // 当前bucket
             bucket: None,
-            // 资源符
             sub_res: None,
+            // headers: None
         }
     }
 }
