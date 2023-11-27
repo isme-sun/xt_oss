@@ -36,7 +36,7 @@
 pub mod arguments;
 pub mod entities;
 pub(crate) mod util;
-pub(crate) mod api;
+pub mod api;
 
 use bytes::Bytes;
 use reqwest::{

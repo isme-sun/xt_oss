@@ -1,28 +1,29 @@
-use std::process;
+// use std::process;
 
 use dotenv::dotenv;
 #[allow(unused_imports)]
 use xt_oss::arguments::{DescribeRegionsQuery, ListBucketsQuery, ListObject2Query};
 use xt_oss::{OssClient, OssOptions};
-use std::io::Write;
+// use std::io::Write;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let option = OssOptions::from_env();
     let client = OssClient::builder(option);
-    let rs = client
-        .GetObject("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
-        .await
-        .unwrap_or_else(|err| {
-            println!("{}", err);
-            process::exit(-1);
-        });
+    // ***********************************************************************
+    // let rs = client
+    //     .GetObject("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
+    //     .await
+    //     .unwrap_or_else(|err| {
+    //         println!("{}", err);
+    //         process::exit(-1);
+    //     });
 
-    let data = rs.data;
-    let mut file = std::fs::File::create("data.jpg").expect("create failed");
-    let rs = file.write_all(&data).expect("write failed");
-    println!("{:#?}", rs);
+    // let data = rs.data;
+    // let mut file = std::fs::File::create("data.jpg").expect("create failed");
+    // let rs = file.write_all(&data).expect("write failed");
+    // println!("{:#?}", rs);
     // ***********************************************************************
     // let rs = client
     //     .HeadObject("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
@@ -97,10 +98,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let json_str = serde_json::to_string(&retval.data).unwrap();
     // print!("{}", json_str);
     // ***********************************************************************
-    // let query = ListBucketsQuery::default();
-    // let retval = client.ListBuckets(query).await.unwrap();
-    // // println!("{:#?}",retval);
-    // let json_str = serde_json::to_string(&retval.data).unwrap();
-    // print!("{}", json_str);
+    let query = ListBucketsQuery::default();
+    let retval = client.ListBuckets(query).await.unwrap();
+    // println!("{:#?}",retval);
+    let json_str = serde_json::to_string(&retval.data).unwrap();
+    print!("{}", json_str);
     Ok(())
 }
