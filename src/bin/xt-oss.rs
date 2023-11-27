@@ -4,27 +4,57 @@ use dotenv::dotenv;
 #[allow(unused_imports)]
 use xt_oss::arguments::{DescribeRegionsQuery, ListBucketsQuery, ListObject2Query};
 use xt_oss::{OssClient, OssOptions};
+use std::io::Write;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let option = OssOptions::from_env();
     let client = OssClient::builder(option);
-    // ***********************************************************************
     let rs = client
-        .GetObjectMeta("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
+        .GetObject("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
         .await
         .unwrap_or_else(|err| {
             println!("{}", err);
             process::exit(-1);
         });
 
-    let headers = rs.headers;
-    for key in headers.keys() {
-        let key_name = key.as_str();
-        let value = headers.get(key).unwrap().to_str().unwrap();
-        println!("{} : {}", key_name, value);
-    }
+    let data = rs.data;
+    let mut file = std::fs::File::create("data.jpg").expect("create failed");
+    let rs = file.write_all(&data).expect("write failed");
+    println!("{:#?}", rs);
+    // ***********************************************************************
+    // let rs = client
+    //     .HeadObject("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
+    //     .await
+    //     .unwrap_or_else(|err| {
+    //         println!("{}", err);
+    //         process::exit(-1);
+    //     });
+
+    // println!("{:#?}", rs);
+
+    // let headers = rs.headers;
+    // for key in headers.keys() {
+    //     let key_name = key.as_str();
+    //     let value = headers.get(key).unwrap().to_str().unwrap();
+    //     println!("{} : {}", key_name, value);
+    // }
+    // ***********************************************************************
+    // let rs = client
+    //     .GetObjectMeta("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg".to_string())
+    //     .await
+    //     .unwrap_or_else(|err| {
+    //         println!("{}", err);
+    //         process::exit(-1);
+    //     });
+
+    // let headers = rs.headers;
+    // for key in headers.keys() {
+    //     let key_name = key.as_str();
+    //     let value = headers.get(key).unwrap().to_str().unwrap();
+    //     println!("{} : {}", key_name, value);
+    // }
 
     // ***********************************************************************
     // let bucket_info = client.GetBucketInfo().await.unwrap();
