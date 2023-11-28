@@ -1,6 +1,3 @@
-pub mod args;
-pub mod models;
-
 use crate::{
     arguments::{ListBucketsQuery, OSSQuery},
     entities::ListAllMyBucketsResult,

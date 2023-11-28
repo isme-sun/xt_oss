@@ -1,42 +1,9 @@
-//! # XT - Aliyun OSS SDK 参考官方其他SDK实现的阿里云OSS SDK
-//! 
-//! 概要说明 ...
-//!
-//! ## 已经实现的API列表
-//!
-//! 概要说明
-//!
-//! ```
-//! fn main() {
-//!     println!("示例说明")
-//! }
-//!  // 
-//! ```
-//!
-//! ## 配置说明
-//!
-//! 概要说明 ...
-//! 
-//! ```
-//! fn main() {
-//!     println!("示例说明")
-//! }
-//! ```
-//!
-//! ## 参数与返回数据
-//!
-//! 概要说明 ...
-//!
-//! ```
-//! fn main() {
-//!     println!("示例说明")
-//! }
-//! ```
+#![doc = include_str! ("../README.md")]
 
+pub(crate) mod api;
 pub mod arguments;
 pub mod entities;
 pub(crate) mod util;
-pub mod api;
 
 use bytes::Bytes;
 use reqwest::{
@@ -311,5 +278,41 @@ impl OssClient {
         } else {
             Ok((status, headers, data))
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use crate::{arguments as args, util::Authorization};
+    use reqwest::header::{HeaderMap, HeaderValue};
+
+    #[test]
+    fn test_create_bucket_configuration() {
+        let cfg = args::CreateBucketConfiguration {
+            storage_class: args::StorageClass::Standard,
+            data_redundancy_type: args::DataRedundancyType::LRS,
+        };
+        let rs = serde_xml_rs::to_string(&cfg).unwrap();
+        println!("{}", "-".repeat(60));
+        println!("{}", rs);
+        println!("{}", "-".repeat(60));
+        assert!(true)
+    }
+
+    #[test]
+    fn test_http_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-oss-acl", "private".parse().unwrap());
+        headers.insert(
+            "x-oss-resource-group-id",
+            "rg-aek27tc********".parse().unwrap(),
+        );
+
+        let _auth = Authorization {
+            ..Default::default()
+        };
+
+        println!("{:#?}", headers);
     }
 }

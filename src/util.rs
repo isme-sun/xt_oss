@@ -4,6 +4,7 @@ use crypto::digest::Digest;
 use crypto::md5::Md5;
 use crypto::sha1::Sha1;
 use hmacsha1;
+use reqwest::header::HeaderMap;
 // use reqwest::header::HeaderMap;
 
 /// 通用base64编码
@@ -50,10 +51,10 @@ pub(crate) struct Authorization {
     pub(super) object_key: Option<String>,
     pub(super) bucket: Option<String>,
     pub(super) sub_res: Option<String>,
-    // pub(super) headers: Option<HeaderMap>
+    // pub(super) headers: Option<[(String, String)]>
 }
 
-impl Default for Authorization {
+impl<'a> Default for Authorization {
     fn default() -> Self {
         Self {
             verb: reqwest::Method::GET,
@@ -67,7 +68,13 @@ impl Default for Authorization {
 }
 
 impl Authorization {
-    pub(super) fn canonicalized_resource(&self) -> String {
+
+    pub(crate) fn to_headers() -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers
+    }
+
+    pub(crate) fn canonicalized_resource(&self) -> String {
         let res_path = match (&self.bucket, &self.object_key) {
             (Some(bucket), Some(object_key)) => {
                 format!("/{}/{}", bucket, object_key)
@@ -87,7 +94,7 @@ impl Authorization {
         }
     }
 
-    pub(super) fn signature(&self, key_secret: &str) -> String {
+    pub(crate) fn signature(&self, key_secret: &str) -> String {
         let value = format!(
             "{VERB}\n\napplication/octet-stream\n{Date}\n{cr}",
             VERB = &self.verb.to_string(),
