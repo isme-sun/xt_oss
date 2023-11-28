@@ -25,7 +25,6 @@ impl OssClient {
     }
 
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-    #[allow(unused)]
     pub async fn ListObjectsV2(&self, qurey: ListObject2Query) -> OssResult<ListBucketResult> {
         let url = {
             let base_url = self.options.base_url();

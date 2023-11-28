@@ -54,59 +54,6 @@ pub struct OssData<T> {
     pub data: T,
 }
 
-/**
-# 客户端配置
-
-<table width=100% >
-   <tbody>
-       <tr>
-        <th align="left"><code>access_key_id</code></th>
-        <td>通过阿里云控制台创建的</td>
-       </tr>
-       <tr>
-        <th align="left"><code>access_key_secret</code></th>
-        <td>通过阿里云控制台创建的AccessKey Secret</td>
-       </tr>
-       <tr>
-        <th align="left"><code>sts_token</code></th>
-        <td>使用临时授权方式。更多信息，请参见 <a href="https://help.aliyun.com/zh/oss/developer-reference/authorized-access-3#section-zkq-3rq-dhb">使用STS进行临时授权</a>
-        </td>
-        <tr>
-        <th align="left"><code>bucket</code></th>
-        <td>通过控制台或PutBucket创建的Bucket</td>
-       </tr>
-       <tr>
-        <th align="left"><code>endpoint</code></th>
-        <td>OSS访问域名</td>
-       </tr>
-       <tr>
-        <th align="left"><code>region</code></th>
-        <td>Bucket所在的区域， 默认值为oss-cn-hangzhou</td>
-       </tr>
-       <tr>
-        <th align="left"><code>internal</code></th>
-        <td>是否使用阿里云内网访问，默认值为false</td>
-       </tr>
-       <tr>
-        <th align="left"><code>cname</code></th>
-        <td>是否支持上传自定义域名，默认值为false</td>
-       </tr>
-       <tr>
-        <th align="left"><code>is_request_pay</code></th>
-        <td>Bucket是否开启请求者付费模式，默认值为false</td>
-       </tr>
-       <tr>
-        <th align="left"><code>secure</code></th>
-        <td>设置secure为true，则使用HTTPS；设置secure为false，则使用HTTP </td>
-       </tr>
-       <tr>
-        <th align="left"><code>timeout</code></th>
-        <td>超时时间，默认值为60000</td>
-       </tr>
-   </tbody>
-</table>
-
-*/
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OssOptions {
     /// 通过阿里云控制台创建的AccessKey ID ///
@@ -285,7 +232,7 @@ impl OssClient {
 mod test {
 
     use crate::{arguments as args, util::Authorization};
-    use reqwest::header::{HeaderMap, HeaderValue};
+    use reqwest::header::HeaderMap;
 
     #[test]
     fn test_create_bucket_configuration() {

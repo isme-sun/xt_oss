@@ -6,18 +6,18 @@
 
 ### 关于Service/Region操作
 
-- [ ] `ListBuckets（GetService）`
-- [ ] `DescribeRegions`
+- [X] `ListBuckets（GetService）`
+- [X] `DescribeRegions`
 
 ### Bucket - 基础操作
 
 - [ ] `PutBucket`
 - [ ] `DeleteBucket`
 - [ ] `ListObjects`
-- [ ] `ListObjectsV2`
-- [ ] `GetBucketInfo`
+- [X] `ListObjectsV2`
+- [X] `GetBucketInfo`
 - [ ] `GetBucketLocation`
-- [ ] `GetBucketStat`
+- [X] `GetBucketStat`
 
 ### Bucket 合规保留策略（WORM）
 
@@ -134,7 +134,7 @@
 - [ ] `CreateCnameToken`
 - [ ] `GetCnameToken`
 - [ ] `PutCname`
-- [ ] `ListCname`
+- [X] `ListCname`
 - [ ] `DeleteCname`
 
 ### Bucket 图片样式（Style）
@@ -188,8 +188,8 @@
 - [ ] `AppendObject`
 - [ ] `DeleteObject`
 - [ ] `DeleteMultipleObjects`
-- [ ] `HeadObject`
-- [ ] `GetObjectMeta`
+- [X] `HeadObject`
+- [X] `GetObjectMeta`
 - [ ] `PostObject`
 - [ ] `Callback`
 - [ ] `RestoreObject`

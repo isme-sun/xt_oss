@@ -4,7 +4,7 @@ use crypto::digest::Digest;
 use crypto::md5::Md5;
 use crypto::sha1::Sha1;
 use hmacsha1;
-use reqwest::header::HeaderMap;
+// use reqwest::header::HeaderMap;
 // use reqwest::header::HeaderMap;
 
 /// 通用base64编码
@@ -69,10 +69,10 @@ impl<'a> Default for Authorization {
 
 impl Authorization {
 
-    pub(crate) fn to_headers() -> HeaderMap {
-        let mut headers = HeaderMap::new();
-        headers
-    }
+    // pub(crate) fn to_headers() -> HeaderMap {
+    //     let mut headers = HeaderMap::new();
+    //     headers
+    // }
 
     pub(crate) fn canonicalized_resource(&self) -> String {
         let res_path = match (&self.bucket, &self.object_key) {
