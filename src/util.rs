@@ -4,6 +4,7 @@ use crypto::digest::Digest;
 use crypto::md5::Md5;
 use crypto::sha1::Sha1;
 use hmacsha1;
+use reqwest::header::HeaderMap;
 // use reqwest::header::HeaderMap;
 // use reqwest::header::HeaderMap;
 
@@ -54,7 +55,7 @@ pub(crate) struct Authorization {
     // pub(super) headers: Option<[(String, String)]>
 }
 
-impl<'a> Default for Authorization {
+impl Default for Authorization {
     fn default() -> Self {
         Self {
             verb: reqwest::Method::GET,
@@ -66,6 +67,15 @@ impl<'a> Default for Authorization {
         }
     }
 }
+
+#[derive(Debug, Default)]
+pub(crate) struct RequestOptions<T = String > {
+    pub(crate) url: String,
+    pub(crate) auth: Authorization,
+    pub(crate) headers: Option<HeaderMap>,
+    pub(crate) data: Option<T>
+}
+
 
 impl Authorization {
 

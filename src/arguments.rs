@@ -8,9 +8,10 @@ use serde::{Deserialize, Serialize};
 /// - `Archive` 归档存储
 /// - `DeepColdArchive` 深度冷归档存储
 /// 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(tag ="StorageClass")]
 pub enum StorageClass {
+    #[default]
     Standard, 
     IA,
     Archive,
@@ -19,19 +20,21 @@ pub enum StorageClass {
 }
 
 /// 指定存储空间的数据容灾类型
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(tag = "DataRedundancyType")]
 pub enum DataRedundancyType {
     /// 本地冗余LRS将您的数据冗余存储在同一个可用区的不同存储设备上，可支持两个存储设备并发损坏时，仍维持数据不丢失，可正常访问
+    #[default]
     LRS,
     /// 同城冗余ZRS采用多可用区（AZ）内的数据冗余存储机制，将用户的数据冗余存储在同一地域（Region）的多个可用区。当某个可用区不可用时，仍然能够保障数据的正常访问
     ZRS,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Default)]
 pub enum OssAcl {
     #[serde(rename = "public-read-write")]
     PublicReadWrite,
+    #[default]
     #[serde(rename = "public-read")]
     PublicRead,
     #[serde(rename = "private")]
@@ -109,7 +112,7 @@ impl OSSQuery for ListBucketsQuery {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct CreateBucketConfiguration {
     #[serde(rename = "StorageClass")]
     pub storage_class: StorageClass,

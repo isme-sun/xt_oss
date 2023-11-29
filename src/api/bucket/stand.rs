@@ -1,15 +1,42 @@
+use reqwest::Method;
+
 use crate::{
-    arguments::ListObject2Query,
+    arguments::{ListObject2Query, CreateBucketConfiguration},
     entities::{BucketInfo, BucketStat, ListBucketResult},
-    util::Authorization,
+    util::{Authorization, RequestOptions},
     OssClient, OssData, OssResult,
 };
 
 #[allow(non_snake_case)]
 impl OssClient {
+
     /// 调用PutBucket接口创建存储空间（Bucket）。
-    pub fn PutBucket(&self) {
-        todo!()
+    pub async fn PutBucket(&self, config: CreateBucketConfiguration) -> OssResult<()> {
+        let url = {
+            let base_url = self.options.base_url();
+            base_url
+        };
+        let auth = Authorization {
+            verb:Method::PUT,
+            bucket: Some(self.options.bucket.to_owned()),
+            ..Default::default()
+        };
+
+        println!("{:#?}", auth);
+
+        let options: RequestOptions<String> = RequestOptions {
+            url,
+            auth,
+            data: Some(serde_xml_rs::to_string(&config).unwrap()),
+            ..Default::default()
+        };
+
+        let (_status, headers, _data) = self.general_request(options).await?;
+        let result = OssData {
+            headers,
+            ..Default::default()
+        };
+        Ok(result)
     }
 
     /// 调用DeleteBucket删除某个存储空间（Bucket）。
@@ -174,4 +201,35 @@ impl OssClient {
     pub fn GetBucketTransferAcceleration() {
         todo!()
     }
+}
+
+#[cfg(test)]
+mod api_bucket_stand {
+
+    use dotenv::dotenv;
+
+    use crate::{OssOptions, OssClient, arguments::CreateBucketConfiguration};
+
+
+    #[tokio::test]
+    async fn put_bucket() {
+        dotenv().ok();
+        println!("{}", "-".repeat(60));
+
+        let options = OssOptions::from_env();
+        let client = OssClient::builder(options);
+        let config = CreateBucketConfiguration::default();
+        let rs = client.PutBucket(config).await;
+        match rs {
+            Ok(oss_data) => {
+                println!("{:#?}", oss_data)
+            },
+            Err(err) => {
+                println!("{:#?}", err)
+            }
+            
+        }
+        println!("{}", "-".repeat(60));
+    }
+    
 }

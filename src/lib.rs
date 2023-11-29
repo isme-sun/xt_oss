@@ -7,20 +7,20 @@ pub(crate) mod util;
 
 use bytes::Bytes;
 use reqwest::{
-    header,
+    header::{self, HOST},
     header::{HeaderMap, HeaderValue},
-    StatusCode,
+    StatusCode, Url,
 };
 use serde::{Deserialize, Serialize};
-use std::env;
 use std::fmt::{self, Display};
 use std::time::Duration;
-use util::Authorization;
+use std::{env, str::FromStr};
+use util::{Authorization, RequestOptions};
 
 /// *阿里云OSS服务地址*
-const OSS_BASE_URL: &'static str = "aliyuncs.com";
+pub const OSS_BASE_URL: &'static str = "aliyuncs.com";
 /// *默认区域*
-const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
+pub const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
 
 /// OSS 返回结果
 // pub type OssResult = Result<(), Box<dyn std::error::Error>>;
@@ -175,6 +175,7 @@ impl OssOptions {
     pub fn base_url(&self) -> String {
         format!("{}://{}.{}", self.schema(), self.bucket, self.host()).to_string()
     }
+
 }
 
 #[derive(Debug)]
@@ -195,6 +196,49 @@ impl OssClient {
             .build()
             .unwrap();
         OssClient { options, client }
+    }
+
+    async fn general_request(
+        &self,
+        options: RequestOptions,
+    ) -> Result<(StatusCode, HeaderMap, Bytes), OssError> {
+        let RequestOptions {
+            url,
+            auth,
+            headers,
+            data,
+        } = options;
+
+        let url = Url::from_str(&url[..]).unwrap();
+        let host = url.host().unwrap();
+
+        let value = auth
+            .to_value(&self.options.access_key_id, &self.options.access_key_secret)
+            .to_string();
+
+        let builder = self
+            .client
+            .request(auth.verb, url.to_string())
+            .header(HOST, host.to_string())
+            .header(header::DATE, crate::util::get_gmt_date(&auth.date))
+            .header(header::AUTHORIZATION, value);
+
+        let builder = builder.headers(headers.unwrap());
+        let builder = builder.body(data.unwrap());
+
+        let response = builder.send().await.unwrap();
+
+        let status = response.status();
+        let headers = response.headers().clone();
+        let data = response.bytes().await.unwrap();
+
+        if !status.is_success() {
+            let content = String::from_utf8_lossy(&data);
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        } else {
+            Ok((status, headers, data))
+        }
     }
 
     async fn request(
