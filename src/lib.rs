@@ -55,40 +55,29 @@ pub struct OssData<T> {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct OssOptions {
-    /// 通过阿里云控制台创建的AccessKey ID ///
-    pub access_key_id: String,
-    /// 通过阿里云控制台创建的AccessKey Secret
-    pub access_key_secret: String,
-    /// 使用临时授权方式。更多信息，请参见 [使用STS进行临时授权](https://help.aliyun.com/zh/oss/developer-reference/authorized-access-3#section-zkq-3rq-dhb)。
-    pub sts_token: String,
-    /// 通过控制台或PutBucket创建的Bucket
-    pub bucket: String,
-    /// OSS访问域名。
-    pub endpoint: String,
-    /// Bucket所在的区域， 默认值为oss-cn-hangzhou
-    pub region: String,
-    /// 是否使用阿里云内网访问，默认值为false
+pub struct OssOptions<'a> {
+    pub access_key_id: &'a str,
+    pub access_key_secret: &'a str,
+    pub sts_token: &'a str,
+    pub bucket: &'a str,
+    pub endpoint: &'a str,
+    pub region: &'a str,
     pub internal: bool,
-    /// 是否支持上传自定义域名，默认值为false
     pub cname: bool,
-    /// Bucket是否开启请求者付费模式，默认值为false
     pub is_request_pay: bool,
-    /// 设置secure为true，则使用HTTPS；设置secure为false，则使用HTTP
     pub secure: bool,
-    /// 超时时间，默认值为60000
     pub timeout: u64,
 }
 
-impl Default for OssOptions {
+impl<'a> Default for OssOptions<'a> {
     fn default() -> Self {
         Self {
             access_key_id: Default::default(),
             access_key_secret: Default::default(),
             sts_token: Default::default(),
             bucket: Default::default(),
-            endpoint: OSS_BASE_URL.to_string(),
-            region: DEFAULT_REGION.to_string(),
+            endpoint: OSS_BASE_URL,
+            region: DEFAULT_REGION,
             internal: false,
             cname: false,
             is_request_pay: false,
@@ -99,42 +88,83 @@ impl Default for OssOptions {
 }
 
 #[allow(dead_code)]
-impl OssOptions {
-    pub fn from_env() -> Self {
-        let mut options = OssOptions::default();
+impl<'a> OssOptions<'a>{
 
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn from_env(mut self) -> Self {
         if let Ok(access_key_id) = env::var("OSS_ACCESS_KEY_ID") {
-            options.access_key_id = access_key_id;
+            self.access_key_id = access_key_id.as_str::<'a>();
         }
-        if let Ok(access_key_secret) = env::var("OSS_ACCESS_KEY_SECRET") {
-            options.access_key_secret = access_key_secret;
+        if let Ok(_access_key_secret) = env::var("OSS_ACCESS_KEY_SECRET") {
+            self.access_key_secret = "123123";
         }
-        if let Ok(sts_token) = env::var("OSS_STS_TOKEN") {
-            options.sts_token = sts_token;
+        if let Ok(_sts_token) = env::var("OSS_STS_TOKEN") {
+            self.sts_token = "123123";
         }
-        if let Ok(oss_bucket) = env::var("OSS_BUCKET") {
-            options.bucket = oss_bucket
+        if let Ok(_oss_bucket) = env::var("OSS_BUCKET") {
+            self.bucket = "asdsa";
         }
-        if let Ok(oss_region) = env::var("OSS_REGION") {
-            options.region = oss_region;
+        if let Ok(_oss_region) = env::var("OSS_REGION") {
+            self.region = "2134234342";
         }
         if let Ok(value) = env::var("OSS_INTERNAL") {
-            options.internal = value.parse::<bool>().unwrap_or(false);
+            self.internal = value.parse::<bool>().unwrap_or(false);
         }
         if let Ok(value) = env::var("OSS_CNAME") {
-            options.cname = value.parse::<bool>().unwrap_or(false);
+            self.cname = value.parse::<bool>().unwrap_or(false);
         }
         if let Ok(value) = env::var("OSS_IS_REQUEST_PAY") {
-            options.is_request_pay = value.parse::<bool>().unwrap_or(false);
+            self.is_request_pay = value.parse::<bool>().unwrap_or(false);
         }
         if let Ok(value) = env::var("OSS_SECURE") {
-            options.secure = value.parse::<bool>().unwrap_or(false);
+            self.secure = value.parse::<bool>().unwrap_or(false);
         }
         if let Ok(value) = env::var("OSS_TIMEOUT") {
-            options.timeout = value.parse::<u64>().unwrap_or(60);
+            self.timeout = value.parse::<u64>().unwrap_or(60);
         }
-        options
+
+        self
     }
+
+
+    // pub fn from_env() -> Self {
+    //     let mut options = OssOptions::default();
+
+    //     if let Ok(access_key_id) = env::var("OSS_ACCESS_KEY_ID") {
+    //         options.access_key_id = &*access_key_id
+    //     }
+    //     if let Ok(access_key_secret) = env::var("OSS_ACCESS_KEY_SECRET") {
+    //         options.access_key_secret = &*access_key_secret;
+    //     }
+    //     if let Ok(sts_token) = env::var("OSS_STS_TOKEN") {
+    //         options.sts_token = &*sts_token;
+    //     }
+    //     if let Ok(oss_bucket) = env::var("OSS_BUCKET") {
+    //         options.bucket = &*oss_bucket;
+    //     }
+    //     if let Ok(oss_region) = env::var("OSS_REGION") {
+    //         options.region = &*oss_region;
+    //     }
+    //     if let Ok(value) = env::var("OSS_INTERNAL") {
+    //         options.internal = value.parse::<bool>().unwrap_or(false);
+    //     }
+    //     if let Ok(value) = env::var("OSS_CNAME") {
+    //         options.cname = value.parse::<bool>().unwrap_or(false);
+    //     }
+    //     if let Ok(value) = env::var("OSS_IS_REQUEST_PAY") {
+    //         options.is_request_pay = value.parse::<bool>().unwrap_or(false);
+    //     }
+    //     if let Ok(value) = env::var("OSS_SECURE") {
+    //         options.secure = value.parse::<bool>().unwrap_or(false);
+    //     }
+    //     if let Ok(value) = env::var("OSS_TIMEOUT") {
+    //         options.timeout = value.parse::<u64>().unwrap_or(60);
+    //     }
+    //     options
+    // }
 
     pub fn common_headers(&self) -> HeaderMap {
         let mut headers = header::HeaderMap::new();
@@ -175,18 +205,17 @@ impl OssOptions {
     pub fn base_url(&self) -> String {
         format!("{}://{}.{}", self.schema(), self.bucket, self.host()).to_string()
     }
-
 }
 
 #[derive(Debug)]
 #[allow(non_snake_case)]
-pub struct OssClient {
-    pub options: OssOptions,
+pub struct OssClient<'a> {
+    pub options: OssOptions<'a>,
     client: reqwest::Client,
 }
 // *----------------------------------------------------------------------------------
 /// 初始化，私有方法
-impl OssClient {
+impl<'a> OssClient<'a> {
     #[allow(dead_code)]
     pub fn builder(options: OssOptions) -> Self {
         let common_headers = options.common_headers();
