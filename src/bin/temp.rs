@@ -3,10 +3,8 @@ use base64::{engine::general_purpose, Engine as _};
 #[allow(unused_imports)]
 use chrono::{DateTime, Utc};
 use hmacsha1;
-use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use core::fmt;
-use std::fmt::Display;
+use std::fmt::{self, Display};
 #[allow(unused_imports)]
 use std::{str::from_utf8, time::Duration};
 
@@ -14,7 +12,7 @@ use bytes::Bytes;
 #[allow(unused_imports)]
 use reqwest::{
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, DATE},
-    Client, IntoUrl, Method, Url,
+    Client, IntoUrl, Method, StatusCode, Url,
 };
 #[derive(Debug, Default)]
 pub struct OssData<T> {
@@ -22,7 +20,6 @@ pub struct OssData<T> {
     pub headers: HeaderMap,
     pub data: T,
 }
-
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct OssError {
@@ -67,7 +64,10 @@ pub struct OssRequest<'a> {
 impl<'a> Default for OssRequest<'a> {
     fn default() -> Self {
         let mut default_headers = HeaderMap::new();
-        default_headers.insert(CONTENT_TYPE, OssRequest::DEFAULT_CONTENT_TYPE.parse().unwrap());
+        default_headers.insert(
+            CONTENT_TYPE,
+            OssRequest::DEFAULT_CONTENT_TYPE.parse().unwrap(),
+        );
         let client = Client::builder()
             .default_headers(default_headers)
             .user_agent(Self::USER_AGENT)
@@ -184,10 +184,22 @@ impl<'a> OssRequest<'a> {
             Ok(oss_data)
         } else {
             let content = String::from_utf8_lossy(&data);
-            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
-            Err(oss_error)
+            if content.len() > 0 {
+                let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+                Err(oss_error)
+            } else {
+                if headers.contains_key("x-oss-err") {
+                    let error_info = headers.get("x-oss-err").unwrap();
+                    let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
+                    let content = String::from_utf8_lossy(&error_info);
+                    let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+                    Err(oss_error)
+                } else {
+                    let oss_error = OssError::default();
+                    Err(oss_error)
+                }
+            }
         }
-
     }
 
     fn authorization(&self, dt: &String) -> String {
@@ -235,58 +247,139 @@ impl<'a> OssRequest<'a> {
     }
 }
 
-#[derive(Debug, Default)]
 #[allow(unused)]
-pub struct OssUrl<T: IntoUrl> {
-    origin: T,
-    bucket: String,
-    region: String,
-    object: String,
-    res: String,
-}
+#[derive(Debug)]
+struct OssUrl(Url);
 
-impl<T> OssUrl<T>
-where
-    T: IntoUrl,
-{
-    pub fn from(value: T) -> Self {
-        // let url = value.try_into::<Url>().unwrap();
-        Self {
-            origin: value,
-            bucket: "".into(),
-            region: "".into(),
-            object: "".into(),
-            res: "".into(),
-        }
+#[allow(unused)]
+impl OssUrl {
+    pub fn bucket(&self) -> String {
+        let host = self.0.host().unwrap().to_string();
+        let rs = host.split(".");
+        println!("{:#?}", rs.count());
+        "".to_string()
+    }
+
+    pub fn region(&self) -> String {
+        self.0.host().unwrap().to_string()
+    }
+
+    pub fn object(&self) -> String {
+        self.0.path().to_string()
     }
 }
 
+#[allow(unused)]
 async fn get_file() {
     let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
     let oss_req = OssRequest::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
 
-     let resp = oss_req.bucket("xuetube-dev")
+    let resp = oss_req
+        .bucket("xuetube-dev")
         .object("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg")
         .method(Method::GET)
-        .execute(url).await;
+        .execute(url)
+        .await;
 
     match resp {
         Ok(oss_data) => {
             println!("{:#?}", oss_data.data.len());
-        },
+        }
         Err(oss_err) => {
             println!("{}", oss_err);
         }
     }
 }
 
+#[allow(unused)]
+async fn get_file_stat() {
+    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
+    let oss_req = OssRequest::new()
+        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
+
+    let resp = oss_req
+        .bucket("xuetube-dev")
+        .object("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg")
+        .method(Method::HEAD)
+        .resource("objectMeta")
+        .execute(url)
+        .await;
+
+    match resp {
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.headers);
+        }
+        Err(oss_err) => {
+            println!("{}", oss_err);
+        }
+    }
+}
+
+#[allow(unused)]
+async fn get_file_head() {
+    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
+    let oss_req = OssRequest::new()
+        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
+
+    let resp = oss_req
+        .bucket("xuetube-dev")
+        .object("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg")
+        .method(Method::HEAD)
+        .execute(url)
+        .await;
+
+    match resp {
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.headers);
+        }
+        Err(oss_err) => {
+            println!("{}", oss_err);
+        }
+    }
+}
+
+#[allow(unused)]
+async fn get_buckets() {
+    let resp = OssRequest::new()
+        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+        .execute("https://oss-cn-shanghai.aliyuncs.com")
+        .await
+        .unwrap();
+
+    println!("status code: {}", resp.status);
+    println!("headers: {:#?}", resp.headers);
+    let data = String::from_utf8_lossy(&resp.data);
+    println!("data: {}", data);
+}
+
+#[allow(unused)]
+async fn get_regions() {
+    let resp = OssRequest::new()
+        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+        .execute("https://oss-cn-shanghai.aliyuncs.com/?regions")
+        .await;
+
+    match resp {
+        Ok(oss_data) => {
+            println!("status code: {}", oss_data.status);
+            println!("headers: {:#?}", oss_data.headers);
+            let data = String::from_utf8_lossy(&oss_data.data);
+            println!("data: {}", data);
+        }
+        Err(err) => {
+            println!("{}", err);
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
-    // let content = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPEVycm9yPgogIDxDb2RlPkFjY2Vzc0RlbmllZDwvQ29kZT4KICA8TWVzc2FnZT5Zb3UgaGF2ZSBubyByaWdodCB0byBhY2Nlc3MgdGhpcyBvYmplY3QgYmVjYXVzZSBvZiBidWNrZXQgYWNsLjwvTWVzc2FnZT4KICA8UmVxdWVzdElkPjY1NjgwRjc3MzcxRjE0MzkzMzJFMUNDMjwvUmVxdWVzdElkPgogIDxIb3N0SWQ+eHVldHViZS1kZXYub3NzLWNuLXNoYW5naGFpLmFsaXl1bmNzLmNvbTwvSG9zdElkPgogIDxFQz4wMDAzLTAwMDAwMDAxPC9FQz4KICA8UmVjb21tZW5kRG9jPmh0dHBzOi8vYXBpLmFsaXl1bi5jb20vdHJvdWJsZXNob290P3E9MDAwMy0wMDAwMDAwMTwvUmVjb21tZW5kRG9jPgo8L0Vycm9yPgo=";
-    // let rs = general_purpose::STANDARD.decode(content).unwrap();
-
     // println!("{}", String::from_utf8_lossy(&rs));
 
     // * ------------------------------------------------------------------------------------
@@ -300,6 +393,39 @@ async fn main() {
     // println!("{}", url.host().as_ref().unwrap());
     // * ------------------------------------------------------------------------------------
 
-    get_file().await
+    // get_file_head().await
+    // get_buckets().await
 
+    // let url =
+    //     "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/course/content-400x400.jpeg?objectMeta";
+    // let oss_url = OssUrl(url.parse::<Url>().unwrap());
+
+    // println!("{}", oss_url.region());
+    // println!("{}", oss_url.bucket());
+    // println!("{}", oss_url.object());
+
+    let url: Url =
+        "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/course/content-400x400.jpeg?objectMeta"
+            .parse()
+            .unwrap();
+
+    println!("{:#?}", url);
+
+    let host = url.host().unwrap().to_string();
+    let fragment = &host[..(host.len() - OssRequest::OSS_BASE_URL.len() - 1)];
+    let (bucket, region) = fragment.split_once('.').unwrap_or(("", fragment));
+    println!("{:#?}", (bucket, region));
+
+    // let s = host.split_at(host.len() - OssRequest::OSS_BASE_URL.len()).0.strip_suffix(".").unwrap();
+
+    // println!("{:#?}", s);
+
+    // let base_url_len = OssRequest::OSS_BASE_URL.len();
+    // let host = host.split_at(host.len() - base_url_len);
+
+    // println!("{:#?}", host);
+
+    // for sec in host.split_terminator('.').into_iter() {
+    //     println!("{}", sec);
+    // }
 }
