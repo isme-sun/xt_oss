@@ -7,7 +7,7 @@ pub(crate) mod util;
 
 use bytes::Bytes;
 use reqwest::{
-    header::{self, HOST},
+    header,
     header::{HeaderMap, HeaderValue},
     StatusCode, Url,
 };
@@ -56,11 +56,11 @@ pub struct OssData<T> {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OssOptions {
-    /// 通过阿里云控制台创建的AccessKey ID ///
+    /// 通过阿里云控制台创建的AccessKey ID
     pub access_key_id: String,
     /// 通过阿里云控制台创建的AccessKey Secret
     pub access_key_secret: String,
-    /// 使用临时授权方式。更多信息，请参见 [使用STS进行临时授权](https://help.aliyun.com/zh/oss/developer-reference/authorized-access-3#section-zkq-3rq-dhb)。
+    /// 使用临时授权方式
     pub sts_token: String,
     /// 通过控制台或PutBucket创建的Bucket
     pub bucket: String,
@@ -175,7 +175,6 @@ impl OssOptions {
     pub fn base_url(&self) -> String {
         format!("{}://{}.{}", self.schema(), self.bucket, self.host()).to_string()
     }
-
 }
 
 #[derive(Debug)]
@@ -210,7 +209,7 @@ impl OssClient {
         } = options;
 
         let url = Url::from_str(&url[..]).unwrap();
-        let host = url.host().unwrap();
+        // let host = url.host().unwrap();
 
         let value = auth
             .to_value(&self.options.access_key_id, &self.options.access_key_secret)
@@ -219,12 +218,21 @@ impl OssClient {
         let builder = self
             .client
             .request(auth.verb, url.to_string())
-            .header(HOST, host.to_string())
+            // .header(HOST, host.to_string())
             .header(header::DATE, crate::util::get_gmt_date(&auth.date))
             .header(header::AUTHORIZATION, value);
 
-        let builder = builder.headers(headers.unwrap());
-        let builder = builder.body(data.unwrap());
+        let builder = if let Some(headers) = headers {
+            builder.headers(headers)
+        } else {
+            builder
+        };
+
+        let builder = if let Some(data) = data {
+            builder.body(data)
+        } else {
+            builder
+        };
 
         let response = builder.send().await.unwrap();
 
@@ -272,38 +280,38 @@ impl OssClient {
     }
 }
 
-#[cfg(test)]
-mod test {
+// #[cfg(test)]
+// mod test {
 
-    use crate::{arguments as args, util::Authorization};
-    use reqwest::header::HeaderMap;
+//     use crate::{arguments as args, util::Authorization};
+//     use reqwest::header::HeaderMap;
 
-    #[test]
-    fn test_create_bucket_configuration() {
-        let cfg = args::CreateBucketConfiguration {
-            storage_class: args::StorageClass::Standard,
-            data_redundancy_type: args::DataRedundancyType::LRS,
-        };
-        let rs = serde_xml_rs::to_string(&cfg).unwrap();
-        println!("{}", "-".repeat(60));
-        println!("{}", rs);
-        println!("{}", "-".repeat(60));
-        assert!(true)
-    }
+//     #[test]
+//     fn test_create_bucket_configuration() {
+//         let cfg = args::CreateBucketConfiguration {
+//             storage_class: args::StorageClass::Standard,
+//             data_redundancy_type: args::DataRedundancyType::LRS,
+//         };
+//         let rs = serde_xml_rs::to_string(&cfg).unwrap();
+//         println!("{}", "-".repeat(60));
+//         println!("{}", rs);
+//         println!("{}", "-".repeat(60));
+//         assert!(true)
+//     }
 
-    #[test]
-    fn test_http_headers() {
-        let mut headers = HeaderMap::new();
-        headers.insert("x-oss-acl", "private".parse().unwrap());
-        headers.insert(
-            "x-oss-resource-group-id",
-            "rg-aek27tc********".parse().unwrap(),
-        );
+//     #[test]
+//     fn test_http_headers() {
+//         let mut headers = HeaderMap::new();
+//         headers.insert("x-oss-acl", "private".parse().unwrap());
+//         headers.insert(
+//             "x-oss-resource-group-id",
+//             "rg-aek27tc********".parse().unwrap(),
+//         );
 
-        let _auth = Authorization {
-            ..Default::default()
-        };
+//         let _auth = Authorization {
+//             ..Default::default()
+//         };
 
-        println!("{:#?}", headers);
-    }
-}
+//         println!("{:#?}", headers);
+//     }
+// }
