@@ -1,17 +1,52 @@
 #[allow(unused_imports)]
 use base64::{engine::general_purpose, Engine as _};
+#[allow(unused_imports)]
 use chrono::{DateTime, Utc};
 use hmacsha1;
-use std::str::FromStr;
+use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
+use core::fmt;
+use std::fmt::Display;
 #[allow(unused_imports)]
 use std::{str::from_utf8, time::Duration};
 
 use bytes::Bytes;
+#[allow(unused_imports)]
 use reqwest::{
-    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE},
+    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, DATE},
     Client, IntoUrl, Method, Url,
 };
-use xt_oss::OssData;
+#[derive(Debug, Default)]
+pub struct OssData<T> {
+    pub status: StatusCode,
+    pub headers: HeaderMap,
+    pub data: T,
+}
+
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct OssError {
+    #[serde(rename(deserialize = "Code"))]
+    pub code: String,
+    #[serde(rename(deserialize = "Message"))]
+    pub message: String,
+    #[serde(rename(deserialize = "RequestId"))]
+    pub request_id: String,
+    #[serde(rename(deserialize = "HostId"))]
+    pub host_id: String,
+    #[serde(rename(deserialize = "EC"))]
+    pub ec: String,
+    #[serde(rename(deserialize = "RecommendDoc"))]
+    pub recommend_doc: String,
+}
+
+impl Display for OssError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}]: {}", self.code, self.message)
+    }
+}
+
+pub type OssResult<T> = Result<OssData<T>, OssError>;
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -32,7 +67,7 @@ pub struct OssRequest<'a> {
 impl<'a> Default for OssRequest<'a> {
     fn default() -> Self {
         let mut default_headers = HeaderMap::new();
-        default_headers.insert(CONTENT_TYPE, "application/octet-stream".parse().unwrap());
+        default_headers.insert(CONTENT_TYPE, OssRequest::DEFAULT_CONTENT_TYPE.parse().unwrap());
         let client = Client::builder()
             .default_headers(default_headers)
             .user_agent(Self::USER_AGENT)
@@ -62,6 +97,7 @@ impl<'a> OssRequest<'a> {
     const USER_AGENT: &'static str = "xt oss/0.1";
     const DEFAULT_CONTENT_TYPE: &'static str = "application/octet-stream";
     const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
+    const GMT_DATE_FMT: &'static str = "%a, %d %b %Y %H:%M:%S GMT";
 
     fn new() -> Self {
         Self::default()
@@ -117,29 +153,45 @@ impl<'a> OssRequest<'a> {
         self
     }
 
-    async fn execute(mut self, url: &'a str) {
-        // let headers = self.headers.unwrap_or(HeaderMap::new());
+    async fn execute(self, url: &'a str) -> OssResult<Bytes> {
+        let date = Utc::now().format(OssRequest::GMT_DATE_FMT).to_string();
+        let auth = self.authorization(&date).parse().unwrap();
+
+        let mut headers = HeaderMap::new();
+        headers.insert(DATE, date.parse().unwrap());
+        headers.insert(AUTHORIZATION, auth);
+        headers.extend(self.headers.unwrap_or(HeaderMap::new()));
+
+        let body = self.body.unwrap_or(Bytes::new());
+
         let request_builder = self
             .client
             .request(self.method, url)
-            .headers(self.headers.unwrap_or(HeaderMap::new()))
-            .header(AUTHORIZATION, HeaderValue::from_static("test"))
-            .body(self.body.unwrap_or(Bytes::new()));
+            .headers(headers)
+            .body(body);
 
         let resp = request_builder.send().await.unwrap();
         let status = resp.status();
         let headers = resp.headers().clone();
         let data = resp.bytes().await.unwrap();
-        let oss_data = OssData {
-            // status,
-            headers,
-            data,
-        };
-        println!("{:#?}", oss_data);
+
+        if status.is_success() {
+            let oss_data = OssData {
+                status,
+                headers,
+                data,
+            };
+            Ok(oss_data)
+        } else {
+            let content = String::from_utf8_lossy(&data);
+            let oss_error: OssError = serde_xml_rs::from_str(&content).unwrap();
+            Err(oss_error)
+        }
+
     }
 
-    fn authorization(mut self) -> String {
-        let auth = if let (Some(key), Some(secret)) = (self.access_key_id, self.access_key_secret) {
+    fn authorization(&self, dt: &String) -> String {
+        let auth = if let (Some(key), secret) = (self.access_key_id, self.signature(dt.clone())) {
             format!("OSS {}:{}", key, secret)
         } else {
             "".into()
@@ -147,19 +199,19 @@ impl<'a> OssRequest<'a> {
         auth
     }
 
-    fn signature(mut self, dt: DateTime<Utc>) -> String {
-        let fmt = "%a, %d %b %Y %H:%M:%S GMT";
+    fn signature(&self, date: String) -> String {
         let value = format!(
             "{VERB}\n\n{ContentType}\n{Date}\n{Resource}",
             VERB = &self.method.to_string(),
-            ContentType= OssRequest::DEFAULT_CONNECT_TIMEOUT,
-            Date = dt.format(fmt).to_string(),
+            ContentType = OssRequest::DEFAULT_CONTENT_TYPE,
+            Date = date,
             Resource = &self.canonicalized_resource()
         );
         let key = self.access_key_secret.unwrap().as_bytes();
         let message = &value.as_bytes();
-        let value = hmacsha1::hmac_sha1(key,message);
-        general_purpose::STANDARD.encode(value.as_slice())
+        let value = hmacsha1::hmac_sha1(key, message);
+        let encoded = general_purpose::STANDARD.encode(value.as_slice());
+        encoded
     }
 
     fn canonicalized_resource(&self) -> String {
@@ -209,6 +261,27 @@ where
     }
 }
 
+async fn get_file() {
+    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
+    let oss_req = OssRequest::new()
+        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
+
+     let resp = oss_req.bucket("xuetube-dev")
+        .object("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg")
+        .method(Method::GET)
+        .execute(url).await;
+
+    match resp {
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.data.len());
+        },
+        Err(oss_err) => {
+            println!("{}", oss_err);
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     // let content = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPEVycm9yPgogIDxDb2RlPkFjY2Vzc0RlbmllZDwvQ29kZT4KICA8TWVzc2FnZT5Zb3UgaGF2ZSBubyByaWdodCB0byBhY2Nlc3MgdGhpcyBvYmplY3QgYmVjYXVzZSBvZiBidWNrZXQgYWNsLjwvTWVzc2FnZT4KICA8UmVxdWVzdElkPjY1NjgwRjc3MzcxRjE0MzkzMzJFMUNDMjwvUmVxdWVzdElkPgogIDxIb3N0SWQ+eHVldHViZS1kZXYub3NzLWNuLXNoYW5naGFpLmFsaXl1bmNzLmNvbTwvSG9zdElkPgogIDxFQz4wMDAzLTAwMDAwMDAxPC9FQz4KICA8UmVjb21tZW5kRG9jPmh0dHBzOi8vYXBpLmFsaXl1bi5jb20vdHJvdWJsZXNob290P3E9MDAwMy0wMDAwMDAwMTwvUmVjb21tZW5kRG9jPgo8L0Vycm9yPgo=";
@@ -219,21 +292,14 @@ async fn main() {
     // * ------------------------------------------------------------------------------------
 
     // 从一个地址中解析 bucket | region | object | res
-    let url =
-        "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/course/content-400x400.jpeg?objectMeta";
+    // let url =
+    //     "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/course/content-400x400.jpeg?objectMeta";
 
-    let url = Url::from_str(url).unwrap();
-    println!("{}", url.domain().as_ref().unwrap());
-    println!("{}", url.host().as_ref().unwrap());
+    // let url = Url::from_str(url).unwrap();
+    // println!("{}", url.domain().as_ref().unwrap());
+    // println!("{}", url.host().as_ref().unwrap());
+    // * ------------------------------------------------------------------------------------
 
-    // let oss_req = OssRequest::new()
-    //                 .bucket("xuetube-dev")
-    //                 .object("index.html")
-    //                 .method(Method::HEAD)
-    //                 .resource("objectMeta");
+    get_file().await
 
-    // println!("{}",oss_req.canonicalized_resource());
-
-    // let resp = oss_req.execute(url).await;
-    // println!("{:#?}", resp);
 }
