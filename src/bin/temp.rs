@@ -1,115 +1,11 @@
-// use reqwest::Client;
-// use xt_oss::{DEFAULT_REGION, OSS_BASE_URL};
-
-// #[allow(unused)]
-// #[derive(Debug)]
-// struct Options<'a> {
-//     pub access_key_id: &'a str,
-//     pub access_key_secret: &'a str,
-//     pub sts_token: &'a str,
-//     pub bucket: &'a str,
-//     pub endpoint: &'a str,
-//     pub region: &'a str,
-//     pub internal: bool,
-//     pub cname: bool,
-//     pub is_request_pay: bool,
-//     pub secure: bool,
-//     pub timeout: u64,
-// }
-
-// impl<'a> Default for Options<'a> {
-//     fn default() -> Self {
-//         Self {
-//             access_key_id: Default::default(),
-//             access_key_secret: Default::default(),
-//             sts_token: Default::default(),
-//             bucket: Default::default(),
-//             endpoint: Default::default(),
-//             region: DEFAULT_REGION,
-//             internal: false,
-//             cname: true,
-//             is_request_pay: false,
-//             secure: true,
-//             timeout: 60,
-//         }
-//     }
-// }
-
-// #[allow(unused)]
-// impl<'a> Options<'a> {
-//     fn root_url(&self) -> String {
-//         format!("{}://{}.{}", self.schema(), self.region, OSS_BASE_URL)
-//     }
-
-//     fn base_url(&self) -> String {
-//         format!(
-//             "{}://{}.{}.{}",
-//             self.schema(),
-//             self.bucket,
-//             self.region,
-//             OSS_BASE_URL
-//         )
-//     }
-
-//     fn schema(&self) -> &'a str {
-//         if self.secure == true {
-//             "https"
-//         } else {
-//             "http"
-//         }
-//     }
-// }
-
-// #[allow(unused)]
-// #[derive(Debug)]
-// struct OssClient<'a> {
-//     options: Options<'a>,
-//     client: Client,
-// }
-
-// impl<'a> OssClient<'a> {
-//     #[allow(unused_mut)]
-//     fn new(option: &'a Options) -> Self {
-//         let mut opt = Options { ..*option };
-//         let client = OssClient {
-//             options: opt,
-//             client: reqwest::Client::new(),
-//         };
-//         client
-//     }
-
-// }
-
-// #[allow(unused)]
-// pub struct OssRequest {
-//     options: OssOptions,
-//     client: Client,
-//     method: Option<Method>,
-//     url: Option<String>,
-//     object_key: Option<String>,
-//     headers: Option<HeaderMap>,
-//     res: Option<String>,
-//     data: Option<Bytes>,
-// }
-
-// impl Default for OssRequest {
-//     fn default() -> Self {
-//         Self {
-//             options: OssOptions::default(),
-//             client: reqwest::Client::builder().build().unwrap(),
-//             method: Some(Method::GET),
-//             url: None,
-//             object_key: None,
-//             headers: None,
-//             res: None,
-//             data: None
-//         }
-//     }
-// }
-
 use std::time::Duration;
 
-use reqwest::{header::HeaderMap, Client};
+use bytes::Bytes;
+use reqwest::{
+    header::{HeaderMap, CONTENT_TYPE},
+    Client, Method,
+};
+use xt_oss::OssData;
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -118,12 +14,17 @@ pub struct OssRequest<'a> {
     access_key_secret: &'a str,
     sts_token: &'a str,
     timeout: u64,
-    inner: Client,
+    client: Client,
+    method: Method,
+    headers: Option<HeaderMap>,
+    resourse: Option<&'a str>,
+    body: Option<Bytes>,
 }
 
 impl<'a> Default for OssRequest<'a> {
     fn default() -> Self {
-        let default_headers = HeaderMap::new();
+        let mut default_headers = HeaderMap::new();
+        default_headers.insert(CONTENT_TYPE, "application/octet-stream".parse().unwrap());
         let client = Client::builder()
             .default_headers(default_headers)
             .user_agent(Self::USER_AGENT)
@@ -135,7 +36,11 @@ impl<'a> Default for OssRequest<'a> {
             access_key_secret: Default::default(),
             sts_token: Default::default(),
             timeout: 60,
-            inner: client,
+            client,
+            method: Method::GET,
+            headers: None,
+            resourse: None,
+            body: None,
         }
     }
 }
@@ -145,7 +50,8 @@ impl<'a> OssRequest<'a> {
     const OSS_BASE_URL: &'static str = "aliyuncs.com";
     const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
     const USER_AGENT: &'static str = "xt oss/0.1";
-    const DEFAULT_CONNECT_TIMEOUT: u64 = 60;
+    const DEFAULT_CONTENT_TYPE: &'static str = "application/octet-stream";
+    const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
 
     fn new() -> Self {
         Self::default()
@@ -170,19 +76,55 @@ impl<'a> OssRequest<'a> {
         self.timeout = value;
         self
     }
+
+    fn method(mut self, value: Method) -> Self {
+        self.method = value;
+        self
+    }
+
+    fn headers(mut self, value: HeaderMap) -> Self {
+        self.headers = Some(value);
+        self
+    }
+
+    fn resource(mut self, value: &'a str) -> Self {
+        self.resourse = Some(value);
+        self
+    }
+
+    fn body(mut self, value: Bytes) -> Self {
+        self.body = Some(value);
+        self
+    }
+
+    async fn execute(mut self, url: &'a str) {
+        // let headers = self.headers.unwrap_or(HeaderMap::new());
+        let request_builder = self
+            .client
+            .request(self.method, url)
+            .headers(self.headers.unwrap_or(HeaderMap::new()))
+            .body(self.body.unwrap_or(Bytes::new()));
+
+        let resp = request_builder.send().await.unwrap();
+        let status = resp.status();
+        let headers = resp.headers().clone();
+        let data = resp.bytes().await.unwrap();
+        let oss_data = OssData {
+            // status,
+            headers,
+            data,
+        };
+        println!("{:#?}", oss_data);
+    }
 }
 
 #[tokio::main]
 async fn main() {
-    let req = OssRequest::new()
-        .access_key_id("abcd")
-        .access_key_secret("1234")
-        .timeout(32)
-        .sts_token("abcd");
+    let url = "https://dev-service.xuetube.com/api/system/echo?name=sjy";
+    let mut headers = HeaderMap::new();
+    headers.insert("x-name", "xuetube".parse().unwrap());
+    headers.insert("x-1", "xuetube".parse().unwrap());
+    headers.insert("x-2", "xuetube".parse().unwrap());
 
-    println!("{:#?}",req);
-
-    let req1 = OssRequest::new();
-
-    println!("{:#?}",req1);
+    OssRequest::new().headers(headers).execute(url).await;
 }
