@@ -116,6 +116,6 @@ impl OSSQuery for ListBucketsQuery {
 pub struct CreateBucketConfiguration {
     #[serde(rename = "StorageClass")]
     pub storage_class: StorageClass,
-    #[serde(rename = "DataRedundancyType")]
-    pub data_redundancy_type: DataRedundancyType
+    #[serde(rename = "data_redundancy_type", skip_serializing_if = "Option::is_none")]
+    pub data_redundancy_type: Option<DataRedundancyType>
 }
