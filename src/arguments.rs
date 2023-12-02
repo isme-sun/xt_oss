@@ -1,22 +1,21 @@
 use serde::{Deserialize, Serialize};
 
-
 /// 指定存储空间的存储类型
-/// 
+///
 /// - `Standard` 标准存储
 /// - `IA` 低频访问
 /// - `Archive` 归档存储
 /// - `DeepColdArchive` 深度冷归档存储
-/// 
+///
 #[derive(Debug, Serialize, Deserialize, Default)]
-#[serde(tag ="StorageClass")]
+#[serde(tag = "StorageClass")]
 pub enum StorageClass {
     #[default]
-    Standard, 
+    Standard,
     IA,
     Archive,
     ColdArchive,
-    DeepColdArchive
+    DeepColdArchive,
 }
 
 /// 指定存储空间的数据容灾类型
@@ -30,7 +29,7 @@ pub enum DataRedundancyType {
     ZRS,
 }
 
-#[derive(Debug, Serialize, Deserialize,Default)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub enum OssAcl {
     #[serde(rename = "public-read-write")]
     PublicReadWrite,
@@ -116,6 +115,9 @@ impl OSSQuery for ListBucketsQuery {
 pub struct CreateBucketConfiguration {
     #[serde(rename = "StorageClass")]
     pub storage_class: StorageClass,
-    #[serde(rename = "data_redundancy_type", skip_serializing_if = "Option::is_none")]
-    pub data_redundancy_type: Option<DataRedundancyType>
+    #[serde(
+        rename = "data_redundancy_type",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub data_redundancy_type: Option<DataRedundancyType>,
 }
