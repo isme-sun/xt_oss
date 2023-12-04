@@ -20,6 +20,8 @@ pub use reqwest::header::HeaderMap;
 pub use reqwest::header::HeaderValue;
 pub use reqwest::Method;
 
+use crate::oss::entities::RegionInfoList;
+
 pub const BASE_URL: &'static str = "aliyuncs.com";
 pub const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
 const USER_AGENT: &'static str = "xt oss/0.1";
@@ -326,7 +328,6 @@ impl<'a> Request<'a> {
 
     pub fn execute(&self, url: &'a str) -> RequestTask<'_> {
         RequestTask::new(self, url)
-        // todo!()
     }
 }
 
@@ -482,15 +483,17 @@ impl<'a> Client<'a> {
             let query_str = region.to_string();
             format!("{root_url}?{query_str}")
         };
-        let data = self
+        let result = self
             .request
             .execute(url.as_str())
             .send()
             .await
             .unwrap();
-        println!("{:#?}", data.headers);
-        println!("{:#?}", data.status);
-        println!("{:#?}", data.data);
+
+        let content = String::from_utf8_lossy(&result.data);
+        let regions: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
+
+        println!("{}", serde_json::to_string(&regions).unwrap());
     }
 
 

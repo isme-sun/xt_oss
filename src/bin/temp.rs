@@ -144,5 +144,4 @@ async fn main() {
     client
         .DescribeRegions(oss::arguments::DescribeRegionsQuery::default())
         .await;
-    println!("{:#?}", client)
 }
