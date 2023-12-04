@@ -8,10 +8,7 @@ use reqwest::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use std::{
-    cell::RefCell,
-    fmt::{self, Display},
-};
+use std::fmt::{self, Display};
 
 pub(crate) mod api;
 pub mod arguments;
@@ -345,7 +342,7 @@ pub struct Options<'a> {
     /// 通过控制台或PutBucket创建的Bucket
     bucket: &'a str,
     /// OSS访问域名。
-    endpoint: &'a str,
+    // endpoint: &'a str,
     /// Bucket所在的区域， 默认值为oss-cn-hangzhou
     region: &'a str,
     /// 是否使用阿里云内网访问，默认值为false
@@ -367,7 +364,7 @@ impl<'a> Default for Options<'a> {
             access_key_secret: Default::default(),
             sts_token: Default::default(),
             bucket: Default::default(),
-            endpoint: Default::default(),
+            // endpoint: Default::default(),
             region: crate::oss::DEFAULT_REGION,
             internal: false,
             cname: false,
@@ -409,10 +406,10 @@ impl<'a> Options<'a> {
         self
     }
 
-    pub fn endpoint(mut self, value: &'a str) -> Self {
-        self.endpoint = value;
-        self
-    }
+    // pub fn endpoint(mut self, value: &'a str) -> Self {
+    //     self.endpoint = value;
+    //     self
+    // }
     pub fn internal(mut self, value: bool) -> Self {
         self.internal = value;
         self
@@ -467,7 +464,7 @@ impl<'a> Options<'a> {
 #[allow(unused)]
 pub struct Client<'a> {
     options: Options<'a>,
-    request: RefCell<self::Request<'a>>,
+    request: Request<'a>,
 }
 
 impl<'a> Client<'a> {
@@ -475,28 +472,26 @@ impl<'a> Client<'a> {
         let request = self::Request::new()
             .access_key_id(options.access_key_id)
             .access_key_secret(options.access_key_secret);
-        Self {
-            options,
-            request: RefCell::new(request),
-        }
+        Self { options, request }
     }
 
     #[allow(non_snake_case)]
-    pub async fn DescribeRegions(&self, _region: arguments::DescribeRegionsQuery) {
-        todo!()
-        // let url = {
-        //     let root_url = self.options.root_url();
-        //     let query_str = region.to_string();
-        //     format!("{root_url}?{query_str}")
-        // };
-        // let data = self
-        //     .request
-        //     .borrow_mut()
-        //     .execute(Box::leak(url.into_boxed_str()))
-        //     .await
-        //     .unwrap();
-        // println!("{:#?}", data.headers);
-        // println!("{:#?}", data.status);
-        // println!("{:#?}", data.data);
+    pub async fn DescribeRegions(&self, region: arguments::DescribeRegionsQuery) {
+        let url = {
+            let root_url = self.options.root_url();
+            let query_str = region.to_string();
+            format!("{root_url}?{query_str}")
+        };
+        let data = self
+            .request
+            .execute(url.as_str())
+            .send()
+            .await
+            .unwrap();
+        println!("{:#?}", data.headers);
+        println!("{:#?}", data.status);
+        println!("{:#?}", data.data);
     }
+
+
 }

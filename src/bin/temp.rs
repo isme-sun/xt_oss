@@ -3,7 +3,7 @@ use std::{thread::sleep, time::Duration};
 use reqwest::Method;
 // use std::{thread::sleep, time::Duration};
 // use xt_oss::utils::options_from_env;
-use xt_oss::oss;
+use xt_oss::{oss, utils};
 
 #[allow(unused)]
 async fn get_file_info() {
@@ -127,11 +127,11 @@ async fn create_bcuket() {
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    // let options = options_from_env();
+    let options = utils::options_from_env();
     // println!("{:#?}", options);
     // println!("{}", options.base_url());
     // println!("{}", options.root_url());
-    create_bcuket().await;
+    // create_bcuket().await;
 
     // get_regions().await;
     // get_buckets().await;
@@ -140,9 +140,9 @@ async fn main() {
     // get_file().await;
 
     // oss::entities::
-    // let client = oss::Client::new(options);
-    // client
-    //     .DescribeRegions(oss::arguments::DescribeRegionsQuery::default())
-    //     .await;
-    // println!("{:#?}", client)
+    let client = oss::Client::new(options);
+    client
+        .DescribeRegions(oss::arguments::DescribeRegionsQuery::default())
+        .await;
+    println!("{:#?}", client)
 }
