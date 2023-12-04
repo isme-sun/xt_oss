@@ -48,30 +48,26 @@ async fn get_file() {
 //         }
 //     }
 // }
+/// ```rust
+/// oss::Request::new()
+///     .access_key_id("abc")
+///     .access_secret_key("efg")
+///     .sts_token("123")
+///     .fetch(url)
+///     .method(Method::GET)
+///     .headers(HeaderMap::new())
+///     .body(Bytes::new())
+/// ```
 
 #[allow(unused)]
 async fn get_file_info() {
-    // let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
+    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
 
     let req = oss::Request::new()
             .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
             .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
 
-    // let resp = req.method(Method::HEAD).execute(url).await;
-    // match resp {
-    //     Ok(oss_data) => {
-    //         println!("{:#?}", oss_data.headers);
-    //     }
-    //     Err(oss_err) => {
-    //         println!("{}", oss_err);
-    //     }
-    // }
-
-    // sleep(Duration::from_secs(2));
-    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
-
-    let resp = req.method(Method::HEAD).resource("objectMeta").execute(url).await;
-
+    let resp = req.method(Method::HEAD).execute(url).await;
     match resp {
         Ok(oss_data) => {
             println!("{:#?}", oss_data.headers);
@@ -80,6 +76,20 @@ async fn get_file_info() {
             println!("{}", oss_err);
         }
     }
+
+    // sleep(Duration::from_secs(2));
+    // let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
+
+    // let resp = req.method(Method::HEAD).resource("objectMeta").execute(url).await;
+
+    // match resp {
+    //     Ok(oss_data) => {
+    //         println!("{:#?}", oss_data.headers);
+    //     }
+    //     Err(oss_err) => {
+    //         println!("{}", oss_err);
+    //     }
+    // }
 }
 
 /*

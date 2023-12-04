@@ -136,18 +136,19 @@ impl<'a> Authorization<'a> {
     }
 }
 
-#[allow(unused)]
+// #[allow(unused)]
 #[derive(Debug)]
 pub struct Request<'a> {
     access_key_id: Option<&'a str>,
     access_key_secret: Option<&'a str>,
     sts_token: Option<&'a str>,
     timeout: u64,
+    client: reqwest::Client,
+
     method: Method,
     headers: Option<HeaderMap>,
     resourse: Option<&'a str>,
     body: Option<Bytes>,
-    client: reqwest::Client,
 }
 
 impl<'a> Default for Request<'a> {
