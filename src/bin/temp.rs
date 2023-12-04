@@ -1,73 +1,19 @@
+use std::{thread::sleep, time::Duration};
+
 use reqwest::Method;
 // use std::{thread::sleep, time::Duration};
 // use xt_oss::utils::options_from_env;
 use xt_oss::oss;
 
-/* 
 #[allow(unused)]
-async fn get_file() {
-    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
-    let oss_req = oss::Request::new()
+async fn get_file_info() {
+    let request = oss::Request::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
 
-    let resp = oss_req
-        // .bucket("xuetube-dev")
-        // .object("upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg")
-        .method(oss::Method::GET)
-        .execute(url)
-        .await;
-
-    match resp {
-        Ok(oss_data) => {
-            println!("{:#?}", oss_data.data.len());
-        }
-        Err(oss_err) => {
-            println!("{}", oss_err);
-        }
-    }
-}
-*/
-
-// async fn get_file_stat() {
-//     let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
-//     let resp = oss::Request::new()
-//         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
-//         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-//         .method(oss::Method::HEAD)
-//         .resource("objectMeta")
-//         .execute(url)
-//         .await;
-
-//     match resp {
-//         Ok(oss_data) => {
-//             println!("{:#?}", oss_data.headers);
-//         }
-//         Err(oss_err) => {
-//             println!("{}", oss_err);
-//         }
-//     }
-// }
-/// ```rust
-/// oss::Request::new()
-///     .access_key_id("abc")
-///     .access_secret_key("efg")
-///     .sts_token("123")
-///     .fetch(url)
-///     .method(Method::GET)
-///     .headers(HeaderMap::new())
-///     .body(Bytes::new())
-/// ```
-
-#[allow(unused)]
-async fn get_file_info() {
     let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
 
-    let req = oss::Request::new()
-            .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
-            .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj");
-
-    let resp = req.method(Method::HEAD).execute(url).await;
+    let resp = request.execute(url).method(Method::HEAD).send().await;
     match resp {
         Ok(oss_data) => {
             println!("{:#?}", oss_data.headers);
@@ -77,28 +23,33 @@ async fn get_file_info() {
         }
     }
 
-    // sleep(Duration::from_secs(2));
-    // let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
+    sleep(Duration::from_secs(2));
+    let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
 
-    // let resp = req.method(Method::HEAD).resource("objectMeta").execute(url).await;
+    let resp = request
+        .execute(url)
+        .method(Method::HEAD)
+        .resourse("objectMeta")
+        .send()
+        .await;
 
-    // match resp {
-    //     Ok(oss_data) => {
-    //         println!("{:#?}", oss_data.headers);
-    //     }
-    //     Err(oss_err) => {
-    //         println!("{}", oss_err);
-    //     }
-    // }
+    match resp {
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.headers);
+        }
+        Err(oss_err) => {
+            println!("{}", oss_err);
+        }
+    }
 }
 
-/*
 #[allow(unused)]
 async fn get_buckets() {
     let resp = oss::Request::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
         .execute("https://oss-cn-shanghai.aliyuncs.com")
+        .send()
         .await
         .unwrap();
 
@@ -114,6 +65,7 @@ pub async fn get_regions() {
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
         .execute("https://oss-cn-shanghai.aliyuncs.com/?regions")
+        .send()
         .await;
 
     match resp {
@@ -132,8 +84,8 @@ pub async fn get_regions() {
 #[allow(unused)]
 async fn create_bcuket() {
     let mut headers = oss::HeaderMap::new();
-    // headers.insert("x-oss-resource-group-id", "bababa".parse().unwrap());
-    headers.insert("x-oss-acl", "private".parse().unwrap());
+    headers.insert("x-oss-resource-group-id", "bababa".parse().unwrap());
+    headers.insert("x-oss-acl", "public-read".parse().unwrap());
 
     let config = oss::arguments::CreateBucketConfiguration {
         storage_class: oss::arguments::StorageClass::Standard,
@@ -141,16 +93,21 @@ async fn create_bcuket() {
     };
 
     let data = serde_xml_rs::to_string(&config).unwrap();
-    println!("{}", data);
-    let data = oss::Bytes::from(serde_xml_rs::to_string(&config).unwrap());
+    let data = r#"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <CreateBucketConfiguration>
+        <StorageClass>Standard</StorageClass>
+    </CreateBucketConfiguration>"#;
+    let data = oss::Bytes::from(data);
 
-    let resp = oss::Request::new()
+    let resp = crate::oss::Request::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+        .execute("https://xuetube-t1.oss-cn-shanghai.aliyuncs.com/")
         .method(oss::Method::PUT)
-        .headers(headers)
         .body(data)
-        .execute("https://xuetube-t3.oss-cn-shanghai.aliyuncs.com/")
+        .headers(headers)
+        .send()
         .await;
 
     match resp {
@@ -167,7 +124,6 @@ async fn create_bcuket() {
     }
 }
 
-*/
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
@@ -175,11 +131,12 @@ async fn main() {
     // println!("{:#?}", options);
     // println!("{}", options.base_url());
     // println!("{}", options.root_url());
+    create_bcuket().await;
 
     // get_regions().await;
     // get_buckets().await;
     // get_file_stat().await;
-    get_file_info().await;
+    // get_file_info().await;
     // get_file().await;
 
     // oss::entities::
@@ -189,4 +146,3 @@ async fn main() {
     //     .await;
     // println!("{:#?}", client)
 }
-

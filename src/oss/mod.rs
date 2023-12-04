@@ -136,81 +136,35 @@ impl<'a> Authorization<'a> {
     }
 }
 
-// #[allow(unused)]
-#[derive(Debug)]
-pub struct Request<'a> {
-    access_key_id: Option<&'a str>,
-    access_key_secret: Option<&'a str>,
-    sts_token: Option<&'a str>,
-    timeout: u64,
-    client: reqwest::Client,
-
-    method: Method,
-    headers: Option<HeaderMap>,
+#[allow(unused)]
+pub struct RequestTask<'a> {
+    request: &'a crate::oss::Request<'a>,
+    url: &'a str,
     resourse: Option<&'a str>,
-    body: Option<Bytes>,
+    method: Method,
+    headers: HeaderMap,
+    body: Bytes,
 }
 
-impl<'a> Default for Request<'a> {
-    fn default() -> Self {
-        let mut default_headers = HeaderMap::new();
-        default_headers.insert(
-            CONTENT_TYPE,
-            crate::oss::DEFAULT_CONTENT_TYPE.parse().unwrap(),
-        );
-        let client = reqwest::Client::builder()
-            .default_headers(default_headers)
-            .user_agent(crate::oss::USER_AGENT)
-            .connect_timeout(Duration::from_secs(crate::oss::DEFAULT_CONNECT_TIMEOUT))
-            .build()
-            .unwrap();
+impl<'a> RequestTask<'a> {
+    pub fn new(request: &'a crate::oss::Request<'a>, url: &'a str) -> Self {
         Self {
-            access_key_id: None,
-            access_key_secret: None,
-            sts_token: None,
-            timeout: 60,
-            client,
-            method: Method::GET,
-            headers: None,
+            request,
+            url,
             resourse: None,
-            body: None,
+            method: Method::GET,
+            headers: HeaderMap::new(),
+            body: Bytes::new(),
         }
     }
-}
 
-#[allow(unused)]
-impl<'a> Request<'a> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn access_key_id(mut self, value: &'a str) -> Self {
-        self.access_key_id = Some(value);
-        self
-    }
-
-    pub fn access_key_secret(mut self, value: &'a str) -> Self {
-        self.access_key_secret = Some(value);
-        self
-    }
-
-    pub fn sts_token(mut self, value: &'a str) -> Self {
-        self.sts_token = Some(value);
-        self
-    }
-
-    pub fn timeout(mut self, value: u64) -> Self {
-        self.timeout = value;
+    pub fn resourse(mut self, value: &'a str) -> Self {
+        self.resourse = Some(value);
         self
     }
 
     pub fn headers(mut self, value: HeaderMap) -> Self {
-        self.headers = Some(value);
-        self
-    }
-
-    pub fn resource(mut self, value: &'a str) -> Self {
-        self.resourse = Some(value);
+        self.headers = value;
         self
     }
 
@@ -220,48 +174,23 @@ impl<'a> Request<'a> {
     }
 
     pub fn body(mut self, value: Bytes) -> Self {
-        self.body = Some(value);
+        self.body = value;
         self
     }
 
-    pub fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
-    where
-        T: IntoUrl,
-    {
-        let url: Url = input.into_url().unwrap();
-        let host = url.host().unwrap().to_string();
-        if host == crate::oss::BASE_URL {
-            (None, None, None)
-        } else {
-            let fragment = &host[..(host.len() - crate::oss::BASE_URL.len() - 1)];
-            let result = fragment.split_once('.');
-            let (bucket, region) = match result {
-                Some((bucket, region)) => (Some(bucket.to_string()), Some(region.to_string())),
-                _ => (None, Some(fragment.to_string())),
-            };
-            let object = url.path().trim_start_matches('/');
-            let object = if object == "" {
-                None
-            } else {
-                Some(object.to_string())
-            };
-            (region, bucket, object)
-        }
-    }
-
-    pub async fn execute(&self, url: &'a str) -> crate::oss::Result<Bytes> {
-        let (_, bucket, object) = Self::parse_url(url);
+    pub async fn send(&self) -> crate::oss::Result<Bytes> {
+        let (_, bucket, object) = Self::parse_url(self.url);
         let date = Utc::now().format(crate::oss::GMT_DATE_FMT).to_string();
         let mut headers = HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
-        headers.extend(self.headers.clone().unwrap_or(HeaderMap::new()));
+        headers.extend(self.headers.to_owned());
 
         headers.insert(
             AUTHORIZATION,
             Authorization {
-                access_key_id: self.access_key_id.unwrap_or_default(),
-                access_key_secret: self.access_key_secret.unwrap_or_default(),
-                sts_token: self.access_key_secret.unwrap_or_default(),
+                access_key_id: self.request.access_key_id.unwrap_or_default(),
+                access_key_secret: self.request.access_key_secret.unwrap_or_default(),
+                sts_token: self.request.access_key_secret.unwrap_or_default(),
                 headers: &headers,
                 method: &self.method,
                 bucket,
@@ -274,13 +203,12 @@ impl<'a> Request<'a> {
             .unwrap(),
         );
 
-        let body = self.body.to_owned().unwrap_or(Bytes::new());
-
         let request_builder = self
+            .request
             .client
-            .request(self.method.to_owned(), url)
+            .request(self.method.to_owned(), self.url)
             .headers(headers)
-            .body(body);
+            .body(self.body.to_owned());
 
         let resp = request_builder.send().await.unwrap();
         let status = resp.status();
@@ -314,10 +242,94 @@ impl<'a> Request<'a> {
         }
     }
 
-    fn reset(&mut self) {
-        self.resourse = None;
-        self.method = Method::GET;
-        self.body = None;
+    pub fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
+    where
+        T: IntoUrl,
+    {
+        let url: Url = input.into_url().unwrap();
+        let host = url.host().unwrap().to_string();
+        if host == crate::oss::BASE_URL {
+            (None, None, None)
+        } else {
+            let fragment = &host[..(host.len() - crate::oss::BASE_URL.len() - 1)];
+            let result = fragment.split_once('.');
+            let (bucket, region) = match result {
+                Some((bucket, region)) => (Some(bucket.to_string()), Some(region.to_string())),
+                _ => (None, Some(fragment.to_string())),
+            };
+            let object = url.path().trim_start_matches('/');
+            let object = if object == "" {
+                None
+            } else {
+                Some(object.to_string())
+            };
+            (region, bucket, object)
+        }
+    }
+}
+
+// #[allow(unused)]
+#[derive(Debug)]
+pub struct Request<'a> {
+    access_key_id: Option<&'a str>,
+    access_key_secret: Option<&'a str>,
+    sts_token: Option<&'a str>,
+    timeout: u64,
+    client: reqwest::Client,
+}
+
+impl<'a> Default for Request<'a> {
+    fn default() -> Self {
+        let mut default_headers = HeaderMap::new();
+        default_headers.insert(
+            CONTENT_TYPE,
+            crate::oss::DEFAULT_CONTENT_TYPE.parse().unwrap(),
+        );
+        let client = reqwest::Client::builder()
+            .default_headers(default_headers)
+            .user_agent(crate::oss::USER_AGENT)
+            .connect_timeout(Duration::from_secs(crate::oss::DEFAULT_CONNECT_TIMEOUT))
+            .build()
+            .unwrap();
+        Self {
+            access_key_id: None,
+            access_key_secret: None,
+            sts_token: None,
+            timeout: 60,
+            client,
+        }
+    }
+}
+
+#[allow(unused)]
+impl<'a> Request<'a> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn access_key_id(mut self, value: &'a str) -> Self {
+        self.access_key_id = Some(value);
+        self
+    }
+
+    pub fn access_key_secret(mut self, value: &'a str) -> Self {
+        self.access_key_secret = Some(value);
+        self
+    }
+
+    pub fn sts_token(mut self, value: &'a str) -> Self {
+        self.sts_token = Some(value);
+        self
+    }
+
+    pub fn timeout(mut self, value: u64) -> Self {
+        self.timeout = value;
+        self
+    }
+
+    pub fn execute(&self, url: &'a str) -> RequestTask<'_> {
+        RequestTask::new(self, url)
+        // todo!()
     }
 }
 
