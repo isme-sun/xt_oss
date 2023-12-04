@@ -1,6 +1,6 @@
-use crate::OssClient;
+use crate::oss::Client;
 #[allow(non_snake_case)]
-impl OssClient {
+impl<'a> Client<'a> {
 
 	/// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）。
 	pub async fn PutBucketAcl() {

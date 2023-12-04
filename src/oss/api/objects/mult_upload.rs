@@ -1,8 +1,9 @@
-use crate::OssClient;
+// use crate::OssClient;
+use crate::oss::Client;
 
 /// 基础操作
 #[allow(non_snake_case)]
-impl OssClient{
+impl<'a> Client<'a>{
 
 	/// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
 	/// 初始化一个Multipart Upload事件

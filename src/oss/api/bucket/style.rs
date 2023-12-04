@@ -1,7 +1,7 @@
-use crate::OssClient;
+use crate::oss::Client;
 
 #[allow(non_snake_case)]
-impl OssClient {
+impl<'a> Client<'a> {
 
 	/// 调用PutStyle接口新增图片样式。一个图片样式中可以包含单个或多个图片处理参数
 	pub async fn PutStyle() {

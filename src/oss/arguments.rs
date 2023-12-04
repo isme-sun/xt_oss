@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 /// 指定存储空间的存储类型
@@ -84,12 +86,12 @@ pub struct DescribeRegionsQuery {
     pub regions: Option<String>,
 }
 
-impl OSSQuery for DescribeRegionsQuery {
-    fn to_query(&self) -> String {
+impl Display for DescribeRegionsQuery {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(region) = &self.regions {
-            format!("regions={}", region)
+            write!(f, "regions={}", region)
         } else {
-            "regions".to_string()
+            write!(f, "regions")
         }
     }
 }
