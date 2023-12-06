@@ -4,6 +4,7 @@ use reqwest::Method;
 // use std::{thread::sleep, time::Duration};
 // use xt_oss::utils::options_from_env;
 use xt_oss::oss;
+use xt_oss::oss::arguments::CreateBucketParams;
 use xt_oss::utils;
 
 #[allow(unused)]
@@ -67,7 +68,8 @@ async fn main() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let object = client.GetObjectMeta("1.txt").await.unwrap();
+    let params = CreateBucketParams::new("xuetube-t100");
+    let object = client.PutBucket(params).await.unwrap();
     println!("{:#?}", object);
 
 }

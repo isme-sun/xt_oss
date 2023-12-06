@@ -1,3 +1,4 @@
+use super::oss;
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use hmacsha1;
@@ -9,13 +10,12 @@ use reqwest::{
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use std::time::Duration;
-use super::oss;
 
 pub(crate) mod api;
 pub mod arguments;
 pub mod entities;
 
-// re -export
+// re-export
 pub use bytes::Bytes;
 pub use reqwest::header::HeaderMap;
 pub use reqwest::header::HeaderValue;
@@ -215,7 +215,7 @@ impl<'a> RequestTask<'a> {
 
         let resp = request_builder.send().await.unwrap();
         let status = resp.status();
-        let headers = resp.headers().clone();
+        let headers = resp.headers().to_owned();
         let data = resp.bytes().await.unwrap();
 
         if status.is_success() {
@@ -226,6 +226,14 @@ impl<'a> RequestTask<'a> {
             };
             Ok(oss_data)
         } else {
+            println!();
+            println!("is_client_error: {}", status.is_client_error());
+            println!("is_informational: {}", status.is_informational());
+            println!("is_redirection: {}", status.is_redirection());
+            println!("is_server_error: {}", status.is_server_error());
+            println!("is_success: {}", status.is_success());
+            println!();
+
             let content = String::from_utf8_lossy(&data);
             if content.len() > 0 {
                 let oss_error: Error = serde_xml_rs::from_str(&content).unwrap();
@@ -284,10 +292,7 @@ pub struct Request<'a> {
 impl<'a> Default for Request<'a> {
     fn default() -> Self {
         let mut default_headers = HeaderMap::new();
-        default_headers.insert(
-            CONTENT_TYPE,
-            oss::DEFAULT_CONTENT_TYPE.parse().unwrap(),
-        );
+        default_headers.insert(CONTENT_TYPE, oss::DEFAULT_CONTENT_TYPE.parse().unwrap());
         let client = reqwest::Client::builder()
             .default_headers(default_headers)
             .user_agent(oss::USER_AGENT)
@@ -479,19 +484,4 @@ impl<'a> Client<'a> {
             .access_key_secret(options.access_key_secret);
         Self { options, request }
     }
-
-    // #[allow(non_snake_case)]
-    // pub async fn DescribeRegions(&self, region: arguments::DescribeRegionsQuery) {
-    //     let url = {
-    //         let root_url = self.options.root_url();
-    //         let query_str = region.to_string();
-    //         format!("{root_url}?{query_str}")
-    //     };
-    //     let result = self.request.task().url(&url.as_str()).send().await.unwrap();
-
-    //     let content = String::from_utf8_lossy(&result.data);
-    //     let regions: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
-
-    //     println!("{}", serde_json::to_string(&regions).unwrap());
-    // }
 }
