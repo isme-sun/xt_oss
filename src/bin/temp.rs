@@ -4,6 +4,7 @@ use reqwest::Method;
 // use std::{thread::sleep, time::Duration};
 // use xt_oss::utils::options_from_env;
 use xt_oss::oss;
+use xt_oss::oss::arguments::CreateBucketConfiguration;
 use xt_oss::utils;
 
 #[allow(unused)]
@@ -85,6 +86,7 @@ pub async fn get_regions() {
     }
 }
 
+/*
 #[allow(unused)]
 async fn create_bcuket() {
     let mut headers = oss::HeaderMap::new();
@@ -128,6 +130,7 @@ async fn create_bcuket() {
         }
     }
 }
+*/
 
 #[tokio::main]
 async fn main() {
@@ -145,17 +148,13 @@ async fn main() {
     // get_file().await;
 
     // oss::entities::
-    // let client = oss::Client::new(options);
-
-    let mut query = oss::arguments::DescribeRegionsQuery::default();
-    query.regions =  Some("oss-cn-shanghai".to_string());
-
-    println!("{}", query);
-
-    // let result = client
-    //     .DescribeRegions(oss::arguments::DescribeRegionsQuery::default())
+    let _client = oss::Client::new(options);
+    // let query = oss::arguments::ListObject2Query::default();
+    // let result = client.GetBucketStat()
     //     .await.unwrap();
     // let content = serde_json::to_string(&result.data).unwrap();
+    let config = CreateBucketConfiguration::default();
+    println!("{:#?}", config);
 
     // println!("{}", content);
 }

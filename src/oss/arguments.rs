@@ -1,5 +1,7 @@
-use std::fmt::Display;
+use std::fmt::{self, Display};
 
+// use reqwest::header::HeaderMap;
+use crate::oss;
 use serde::{Deserialize, Serialize};
 
 /// 指定存储空间的存储类型
@@ -31,42 +33,51 @@ pub enum DataRedundancyType {
     ZRS,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Default)]
 pub enum OssAcl {
-    #[serde(rename = "public-read-write")]
+    // #[serde(rename = "public-read-write")]
     PublicReadWrite,
     #[default]
-    #[serde(rename = "public-read")]
+    // #[serde(rename = "public-read")]
     PublicRead,
-    #[serde(rename = "private")]
+    // #[serde(rename = "private")]
     Private,
 }
 
-impl OssAcl {}
+impl fmt::Display for OssAcl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let desc = match self {
+            Self::PublicRead => "public-read",
+            Self::PublicReadWrite => "public-read-write",
+            Self::Private => "private",
+        };
+        write!(f, "{}", desc)
+    }
+}
 
 pub trait OSSQuery {
     fn to_query(&self) -> String;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListObject2Query {
+pub struct ListObject2Query<'a> {
     #[serde(rename = "list-type")]
     pub list_type: i32,
-    pub delimiter: Option<String>,
+    pub delimiter: Option<&'a str>,
     #[serde(rename = "start-after")]
-    pub start_after: Option<String>,
+    pub start_after: Option<&'a str>,
     #[serde(rename = "continuation-token")]
-    pub continuation_token: Option<String>,
+    pub continuation_token: Option<&'a str>,
     #[serde(rename = "max-keys")]
     pub max_keys: Option<i32>,
     pub prefix: Option<String>,
     #[serde(rename = "encoding-type")]
-    pub encoding_type: Option<String>,
+    pub encoding_type: Option<&'a str>,
     #[serde(rename = "fetch-owner")]
     pub fetch_owner: Option<bool>,
 }
 
-impl Default for ListObject2Query {
+impl<'a> Default for ListObject2Query<'a> {
     fn default() -> Self {
         ListObject2Query {
             list_type: 2,
@@ -75,9 +86,15 @@ impl Default for ListObject2Query {
             continuation_token: None,
             max_keys: Some(100),
             prefix: None,
-            encoding_type: Some("url".to_string()),
+            encoding_type: Some("url"),
             fetch_owner: None,
         }
+    }
+}
+
+impl<'a> fmt::Display for ListObject2Query<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", serde_qs::to_string(self).unwrap())
     }
 }
 
@@ -113,13 +130,57 @@ impl OSSQuery for ListBucketsQuery {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct CreateBucketConfiguration {
-    #[serde(rename = "StorageClass")]
-    pub storage_class: StorageClass,
-    #[serde(
-        rename = "data_redundancy_type",
-        skip_serializing_if = "Option::is_none"
-    )]
+#[derive(Debug, Default)]
+pub struct CreateBucketParams<'a> {
+    pub acl: Option<OssAcl>,
+    pub group_id: Option<&'a str>,
+    pub config: Option<CreateBucketConfiguration<'a>>,
+}
+
+impl<'a> CreateBucketParams<'a> {
+
+    pub fn headers(&self) -> oss::HeaderMap {
+        let mut headers = oss::HeaderMap::default();
+        if let Some(acl) = &self.acl {
+            headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
+        }
+        if let Some(group_id) = &self.group_id {
+            headers.insert("x-oss-resource-group-id", group_id.parse().unwrap());
+        }
+        headers
+    }
+
+    pub fn config(&self) -> oss::Bytes {
+
+        oss::Bytes::from("ok")
+    }
+
+}
+
+#[derive(Debug, Default)]
+pub struct CreateBucketConfiguration<'a> {
+    pub acl: Option<OssAcl>,
+    pub group_id: Option<&'a str>,
+    pub storage_class: Option<StorageClass>,
     pub data_redundancy_type: Option<DataRedundancyType>,
+}
+
+impl<'a> CreateBucketConfiguration<'a> {
+
+    pub fn headers(&self) -> oss::HeaderMap {
+        let mut headers = oss::HeaderMap::default();
+        if let Some(acl) = &self.acl {
+            headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
+        }
+        if let Some(group_id) = &self.group_id {
+            headers.insert("x-oss-resource-group-id", group_id.parse().unwrap());
+        }
+        headers
+    }
+
+    pub fn config(&self) -> oss::Bytes {
+
+        oss::Bytes::from("ok")
+    }
+
 }
