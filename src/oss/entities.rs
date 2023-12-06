@@ -118,7 +118,7 @@ pub struct BucketStat {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OSSObject {
+pub struct Object {
     #[serde(rename(deserialize = "Key"))]
     pub key: String,
     #[serde(rename(deserialize = "LastModified"))]
@@ -148,7 +148,7 @@ pub struct ListBucketResult {
     pub key_count: i32,
     // #[serde(rename = "$value")]
     #[serde(rename(deserialize = "Contents"))]
-    pub contents: Vec<OSSObject>,
+    pub contents: Vec<Object>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
