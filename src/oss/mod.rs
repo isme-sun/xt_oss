@@ -7,8 +7,9 @@ use reqwest::{
     IntoUrl, StatusCode, Url,
 };
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 use std::fmt::{self, Display};
+use std::time::Duration;
+use super::oss;
 
 pub(crate) mod api;
 pub mod arguments;
@@ -19,8 +20,6 @@ pub use bytes::Bytes;
 pub use reqwest::header::HeaderMap;
 pub use reqwest::header::HeaderValue;
 pub use reqwest::Method;
-
-use crate::oss::entities::RegionInfoList;
 
 pub const BASE_URL: &'static str = "aliyuncs.com";
 pub const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
@@ -103,7 +102,7 @@ impl<'a> Authorization<'a> {
             "{VERB}\n\n{ContentType}\n{Date}\n{Header}{Resource}",
             VERB = self.method.to_string(),
             Header = header_str,
-            ContentType = crate::oss::DEFAULT_CONTENT_TYPE,
+            ContentType = oss::DEFAULT_CONTENT_TYPE,
             Date = self.date,
             Resource = self.canonicalized_resource()
         );
@@ -146,15 +145,20 @@ pub struct RequestTask<'a> {
 }
 
 impl<'a> RequestTask<'a> {
-    pub fn new(request: &'a crate::oss::Request<'a>, url: &'a str) -> Self {
+    pub fn new(request: &'a oss::Request<'a>) -> Self {
         Self {
             request,
-            url,
+            url: Default::default(),
             resourse: None,
             method: Method::GET,
             headers: HeaderMap::new(),
             body: Bytes::new(),
         }
+    }
+
+    pub fn url(mut self, value: &'a str) -> Self {
+        self.url = value;
+        self
     }
 
     pub fn resourse(mut self, value: &'a str) -> Self {
@@ -177,9 +181,9 @@ impl<'a> RequestTask<'a> {
         self
     }
 
-    pub async fn send(&self) -> crate::oss::Result<Bytes> {
+    pub async fn send(&self) -> super::oss::Result<Bytes> {
         let (_, bucket, object) = Self::parse_url(self.url);
-        let date = Utc::now().format(crate::oss::GMT_DATE_FMT).to_string();
+        let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
         let mut headers = HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
         headers.extend(self.headers.to_owned());
@@ -250,7 +254,7 @@ impl<'a> RequestTask<'a> {
         if host == crate::oss::BASE_URL {
             (None, None, None)
         } else {
-            let fragment = &host[..(host.len() - crate::oss::BASE_URL.len() - 1)];
+            let fragment = &host[..(host.len() - oss::BASE_URL.len() - 1)];
             let result = fragment.split_once('.');
             let (bucket, region) = match result {
                 Some((bucket, region)) => (Some(bucket.to_string()), Some(region.to_string())),
@@ -282,12 +286,12 @@ impl<'a> Default for Request<'a> {
         let mut default_headers = HeaderMap::new();
         default_headers.insert(
             CONTENT_TYPE,
-            crate::oss::DEFAULT_CONTENT_TYPE.parse().unwrap(),
+            oss::DEFAULT_CONTENT_TYPE.parse().unwrap(),
         );
         let client = reqwest::Client::builder()
             .default_headers(default_headers)
-            .user_agent(crate::oss::USER_AGENT)
-            .connect_timeout(Duration::from_secs(crate::oss::DEFAULT_CONNECT_TIMEOUT))
+            .user_agent(oss::USER_AGENT)
+            .connect_timeout(Duration::from_secs(oss::DEFAULT_CONNECT_TIMEOUT))
             .build()
             .unwrap();
         Self {
@@ -326,8 +330,8 @@ impl<'a> Request<'a> {
         self
     }
 
-    pub fn execute(&self, url: &'a str) -> RequestTask<'_> {
-        RequestTask::new(self, url)
+    pub fn task(&self) -> RequestTask<'_> {
+        RequestTask::new(self)
     }
 }
 
@@ -366,7 +370,7 @@ impl<'a> Default for Options<'a> {
             sts_token: Default::default(),
             bucket: Default::default(),
             // endpoint: Default::default(),
-            region: crate::oss::DEFAULT_REGION,
+            region: oss::DEFAULT_REGION,
             internal: false,
             cname: false,
             is_request_pay: false,
@@ -452,10 +456,10 @@ impl<'a> Options<'a> {
     fn host(&self) -> String {
         match self.internal {
             true => {
-                format!("{}-internal.{}", self.region, crate::oss::BASE_URL)
+                format!("{}-internal.{}", self.region, oss::BASE_URL)
             }
             false => {
-                format!("{}.{}", self.region, crate::oss::BASE_URL)
+                format!("{}.{}", self.region, oss::BASE_URL)
             }
         }
     }
@@ -476,25 +480,18 @@ impl<'a> Client<'a> {
         Self { options, request }
     }
 
-    #[allow(non_snake_case)]
-    pub async fn DescribeRegions(&self, region: arguments::DescribeRegionsQuery) {
-        let url = {
-            let root_url = self.options.root_url();
-            let query_str = region.to_string();
-            format!("{root_url}?{query_str}")
-        };
-        let result = self
-            .request
-            .execute(url.as_str())
-            .send()
-            .await
-            .unwrap();
+    // #[allow(non_snake_case)]
+    // pub async fn DescribeRegions(&self, region: arguments::DescribeRegionsQuery) {
+    //     let url = {
+    //         let root_url = self.options.root_url();
+    //         let query_str = region.to_string();
+    //         format!("{root_url}?{query_str}")
+    //     };
+    //     let result = self.request.task().url(&url.as_str()).send().await.unwrap();
 
-        let content = String::from_utf8_lossy(&result.data);
-        let regions: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
+    //     let content = String::from_utf8_lossy(&result.data);
+    //     let regions: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
 
-        println!("{}", serde_json::to_string(&regions).unwrap());
-    }
-
-
+    //     println!("{}", serde_json::to_string(&regions).unwrap());
+    // }
 }

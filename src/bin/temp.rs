@@ -3,7 +3,8 @@ use std::{thread::sleep, time::Duration};
 use reqwest::Method;
 // use std::{thread::sleep, time::Duration};
 // use xt_oss::utils::options_from_env;
-use xt_oss::{oss, utils};
+use xt_oss::oss;
+use xt_oss::utils;
 
 #[allow(unused)]
 async fn get_file_info() {
@@ -13,7 +14,7 @@ async fn get_file_info() {
 
     let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg";
 
-    let resp = request.execute(url).method(Method::HEAD).send().await;
+    let resp = request.task().url(url).method(Method::HEAD).send().await;
     match resp {
         Ok(oss_data) => {
             println!("{:#?}", oss_data.headers);
@@ -27,7 +28,8 @@ async fn get_file_info() {
     let url = "https://xuetube-dev.oss-cn-shanghai.aliyuncs.com/upload/2022/05/2d3b8dc1-6955-40de-a23b-21a1389d218f.jpg?objectMeta";
 
     let resp = request
-        .execute(url)
+        .task()
+        .url(url)
         .method(Method::HEAD)
         .resourse("objectMeta")
         .send()
@@ -48,7 +50,8 @@ async fn get_buckets() {
     let resp = oss::Request::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-        .execute("https://oss-cn-shanghai.aliyuncs.com")
+        .task()
+        .url("https://oss-cn-shanghai.aliyuncs.com")
         .send()
         .await
         .unwrap();
@@ -64,7 +67,8 @@ pub async fn get_regions() {
     let resp = oss::Request::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-        .execute("https://oss-cn-shanghai.aliyuncs.com/?regions")
+        .task()
+        .url("https://oss-cn-shanghai.aliyuncs.com/?regions")
         .send()
         .await;
 
@@ -103,7 +107,8 @@ async fn create_bcuket() {
     let resp = crate::oss::Request::new()
         .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
         .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-        .execute("https://xuetube-t1.oss-cn-shanghai.aliyuncs.com/")
+        .task()
+        .url("https://xuetube-t1.oss-cn-shanghai.aliyuncs.com/")
         .method(oss::Method::PUT)
         .body(data)
         .headers(headers)
@@ -127,6 +132,7 @@ async fn create_bcuket() {
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
+    #[allow(unused)]
     let options = utils::options_from_env();
     // println!("{:#?}", options);
     // println!("{}", options.base_url());
@@ -135,13 +141,21 @@ async fn main() {
 
     // get_regions().await;
     // get_buckets().await;
-    // get_file_stat().await;
     // get_file_info().await;
     // get_file().await;
 
     // oss::entities::
-    let client = oss::Client::new(options);
-    client
-        .DescribeRegions(oss::arguments::DescribeRegionsQuery::default())
-        .await;
+    // let client = oss::Client::new(options);
+
+    let mut query = oss::arguments::DescribeRegionsQuery::default();
+    query.regions =  Some("oss-cn-shanghai".to_string());
+
+    println!("{}", query);
+
+    // let result = client
+    //     .DescribeRegions(oss::arguments::DescribeRegionsQuery::default())
+    //     .await.unwrap();
+    // let content = serde_json::to_string(&result.data).unwrap();
+
+    // println!("{}", content);
 }
