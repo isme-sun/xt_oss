@@ -4,7 +4,6 @@ use reqwest::Method;
 // use std::{thread::sleep, time::Duration};
 // use xt_oss::utils::options_from_env;
 use xt_oss::oss;
-use xt_oss::oss::arguments::CreateBucketConfiguration;
 use xt_oss::utils;
 
 #[allow(unused)]
@@ -63,98 +62,12 @@ async fn get_buckets() {
     println!("data: {}", data);
 }
 
-#[allow(unused)]
-pub async fn get_regions() {
-    let resp = oss::Request::new()
-        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
-        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-        .task()
-        .url("https://oss-cn-shanghai.aliyuncs.com/?regions")
-        .send()
-        .await;
-
-    match resp {
-        Ok(oss_data) => {
-            println!("status code: {}", oss_data.status);
-            println!("headers: {:#?}", oss_data.headers);
-            let data = String::from_utf8_lossy(&oss_data.data);
-            println!("data: {}", data);
-        }
-        Err(err) => {
-            println!("{}", err);
-        }
-    }
-}
-
-/*
-#[allow(unused)]
-async fn create_bcuket() {
-    let mut headers = oss::HeaderMap::new();
-    headers.insert("x-oss-resource-group-id", "bababa".parse().unwrap());
-    headers.insert("x-oss-acl", "public-read".parse().unwrap());
-
-    let config = oss::arguments::CreateBucketConfiguration {
-        storage_class: oss::arguments::StorageClass::Standard,
-        data_redundancy_type: None,
-    };
-
-    let data = serde_xml_rs::to_string(&config).unwrap();
-    let data = r#"
-    <?xml version="1.0" encoding="UTF-8"?>
-    <CreateBucketConfiguration>
-        <StorageClass>Standard</StorageClass>
-    </CreateBucketConfiguration>"#;
-    let data = oss::Bytes::from(data);
-
-    let resp = crate::oss::Request::new()
-        .access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
-        .access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-        .task()
-        .url("https://xuetube-t1.oss-cn-shanghai.aliyuncs.com/")
-        .method(oss::Method::PUT)
-        .body(data)
-        .headers(headers)
-        .send()
-        .await;
-
-    match resp {
-        Ok(oss_data) => {
-            println!("status code: {}", oss_data.status);
-            println!("headers: {:#?}", oss_data.headers);
-            let data = String::from_utf8_lossy(&oss_data.data);
-            println!("data: {}", data);
-        }
-        Err(err) => {
-            println!("{:#?}", err);
-            println!("{}", err);
-        }
-    }
-}
-*/
-
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    #[allow(unused)]
     let options = utils::options_from_env();
-    // println!("{:#?}", options);
-    // println!("{}", options.base_url());
-    // println!("{}", options.root_url());
-    // create_bcuket().await;
+    let client = oss::Client::new(options);
+    let object = client.GetObjectMeta("1.txt").await.unwrap();
+    println!("{:#?}", object);
 
-    // get_regions().await;
-    // get_buckets().await;
-    // get_file_info().await;
-    // get_file().await;
-
-    // oss::entities::
-    let _client = oss::Client::new(options);
-    // let query = oss::arguments::ListObject2Query::default();
-    // let result = client.GetBucketStat()
-    //     .await.unwrap();
-    // let content = serde_json::to_string(&result.data).unwrap();
-    let config = CreateBucketConfiguration::default();
-    println!("{:#?}", config);
-
-    // println!("{}", content);
 }

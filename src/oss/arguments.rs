@@ -132,13 +132,22 @@ impl OSSQuery for ListBucketsQuery {
 
 #[derive(Debug, Default)]
 pub struct CreateBucketParams<'a> {
+    pub name: &'a str,
     pub acl: Option<OssAcl>,
     pub group_id: Option<&'a str>,
-    pub config: Option<CreateBucketConfiguration<'a>>,
+    pub config: Option<CreateBucketConfiguration>,
 }
 
 impl<'a> CreateBucketParams<'a> {
 
+
+    pub fn new(name: &'a str) -> Self {
+        Self {
+            name,
+            ..Default::default()
+        }
+    }
+
     pub fn headers(&self) -> oss::HeaderMap {
         let mut headers = oss::HeaderMap::default();
         if let Some(acl) = &self.acl {
@@ -151,36 +160,18 @@ impl<'a> CreateBucketParams<'a> {
     }
 
     pub fn config(&self) -> oss::Bytes {
-
-        oss::Bytes::from("ok")
+        let data_str = serde_xml_rs::to_string(&self.config).unwrap();
+        oss::Bytes::from(data_str)
     }
-
 }
 
-#[derive(Debug, Default)]
-pub struct CreateBucketConfiguration<'a> {
-    pub acl: Option<OssAcl>,
-    pub group_id: Option<&'a str>,
-    pub storage_class: Option<StorageClass>,
+#[derive(Debug, Serialize, Default)]
+pub struct CreateBucketConfiguration {
+    #[serde(rename = "StorageClass")]
+    pub storage_class: StorageClass,
+    #[serde(
+        rename = "data_redundancy_type",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub data_redundancy_type: Option<DataRedundancyType>,
-}
-
-impl<'a> CreateBucketConfiguration<'a> {
-
-    pub fn headers(&self) -> oss::HeaderMap {
-        let mut headers = oss::HeaderMap::default();
-        if let Some(acl) = &self.acl {
-            headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
-        }
-        if let Some(group_id) = &self.group_id {
-            headers.insert("x-oss-resource-group-id", group_id.parse().unwrap());
-        }
-        headers
-    }
-
-    pub fn config(&self) -> oss::Bytes {
-
-        oss::Bytes::from("ok")
-    }
-
 }

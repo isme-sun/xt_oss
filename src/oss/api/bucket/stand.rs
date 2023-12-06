@@ -1,41 +1,45 @@
 #[allow(unused)]
 use crate::oss::{
-    Method,
-    arguments::{ListObject2Query, CreateBucketConfiguration},
-    entities::{BucketInfo, ListBucketResult, BucketStat},
-    Client, Data, Result, self,
+    self,
+    arguments::{CreateBucketConfiguration, CreateBucketParams, ListObject2Query},
+    entities::{BucketInfo, BucketStat, ListBucketResult},
+    Client, Data, Method, Result,
 };
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
-
-    /*
     /// 调用PutBucket接口创建存储空间（Bucket）。
-    pub async fn PutBucket(&self, config: CreateBucketConfiguration) -> Result<()> {
+    pub async fn PutBucket(&self, params: CreateBucketParams<'_>) -> Result<oss::Bytes> {
+        let bucket = params.name;
         let url = {
-            let base_url = self.options.base_url();
-            base_url
+            format!(
+                "{}://{}.{}",
+                self.options.schema(),
+                bucket,
+                self.options.host()
+            )
         };
 
-        let data = oss::Bytes::from("");
-        let headers = oss::HeaderMap::new();
-        let resp = self.request.task()
-                       .url(&url)
-                       .method(Method::PUT)
-                       .headers(headers)
-                       .body(data)
-                       .send().await.unwrap();
+        let headers = params.headers();
+        let data = params.config();
 
-        let content = String::from_utf8_lossy(&resp.data);
-        let buckets: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
+        let resp = self
+            .request
+            .task()
+            .url(&url)
+            .method(Method::PUT)
+            .headers(headers)
+            .body(data)
+            .send()
+            .await?;
+
         let result = Data {
             status: resp.status,
             headers: resp.headers,
-            data: buckets,
+            data: resp.data,
         };
         Ok(result)
     }
-    */
 
     /// 调用DeleteBucket删除某个存储空间（Bucket）。
     /// - 只有Bucket的拥有者才有权限删除该Bucket。

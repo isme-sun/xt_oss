@@ -1,3 +1,4 @@
+use crate::oss;
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use serde_xml_rs;
@@ -29,6 +30,13 @@ pub struct ListAllMyBucketsResult {
     pub owner: Owner,
     #[serde(rename(deserialize = "Buckets"))]
     pub buckets: Buckets,
+}
+
+impl From<oss::Bytes> for ListAllMyBucketsResult {
+    fn from(data: oss::Bytes) -> Self {
+        let content = String::from_utf8_lossy(&data);
+        serde_xml_rs::from_str::<Self>(&content).unwrap()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

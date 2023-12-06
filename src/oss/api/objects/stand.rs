@@ -1,7 +1,4 @@
-// use crate::{util::Authorization, OssClient, OssData, OssResult};
-// use bytes::Bytes;
-// use reqwest::Method;
-use crate::oss::Client;
+use crate::oss::{self,Client, Bytes};
 
 /// 基础操作
 #[allow(non_snake_case)]
@@ -12,25 +9,21 @@ impl<'a> Client<'a> {
     }
 
     /// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限
-    // pub async fn GetObject(&self, objectKey: String) -> OssResult<Bytes> {
-    // 	// TODO 完善参数
-    // 	let url = {
-    // 			let base_url = self.options.base_url();
-    // 			format!("{base_url}/{objectKey}")
-    // 	};
+    pub async fn GetObject(&self, objectKey: &'a str) -> oss::Result<Bytes> {
+    	let url = {
+    			let base_url = self.options.base_url();
+    			format!("{base_url}/{objectKey}")
+    	};
 
-    // 	let auth = Authorization {
-    // 			verb: Method::GET,
-    // 			bucket: Some(self.options.bucket.to_owned()),
-    // 			object_key: Some(objectKey),
-    // 			..Authorization::default()
-    // 	};
+        let resp = self.request.task().url(&url).send().await.unwrap();
 
-    // 	let (_status, headers, data) = self.request(url, auth).await?;
-
-    // 	let ossData = OssData { headers, data };
-    // 	Ok(ossData)
-    // }
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: resp.data
+        };
+        Ok(result)
+    }
 
     /// 调用CopyObject接口拷贝同一地域下相同或不同存储空间（Bucket）之间的文件（Object）
     pub async fn CopyObject(&self) {
@@ -53,47 +46,50 @@ impl<'a> Client<'a> {
     }
 
     /// HeadObject接口用于获取某个文件（Object）的元信息
-    // pub async fn HeadObject(&self, objectKey: String) -> OssResult<Bytes> {
-    //     let url = {
-    //         let base_url = self.options.base_url();
-    //         format!("{base_url}/{objectKey}")
-    //     };
+    pub async fn HeadObject(&self, object: &'a str) -> oss::Result<()> {
+        let url = {
+            let base_url = self.options.base_url();
+            format!("{base_url}/{object}")
+        };
+        let resp = self.request.task()
+                    .url(&url)
+                    .method(oss::Method::HEAD)
+                    .send()
+                    .await
+                    .unwrap();
 
-    //     let auth = Authorization {
-    //         verb: Method::HEAD,
-    //         bucket: Some(self.options.bucket.to_owned()),
-    //         object_key: Some(objectKey),
-    //         ..Authorization::default()
-    //     };
-
-    //     let (_status, headers, data) = self.request(url, auth).await?;
-
-    //     let ossData = OssData { headers, data };
-    //     Ok(ossData)
-    // }
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: ()
+        };
+        Ok(result)
+    }
 
     /// 调用GetObjectMeta接口获取一个文件（Object）的元数据信息
     ///
     /// 包括该Object的ETag、Size、LastModified信息，并且不返回该Object的内容。
-    // pub async fn GetObjectMeta(&self, objectKey: String) -> OssResult<Bytes> {
-    //     let url = {
-    //         let base_url = self.options.base_url();
-    //         format!("{base_url}/{objectKey}?objectMeta")
-    //     };
+    pub async fn GetObjectMeta(&self, object: &'a str) -> oss::Result<()> {
+        let url = {
+            let base_url = self.options.base_url();
+            format!("{base_url}/{object}?objectMeta")
+        };
 
-    //     let auth = Authorization {
-    //         verb: Method::HEAD,
-    //         bucket: Some(self.options.bucket.to_owned()),
-    //         sub_res: Some("objectMeta".to_string()),
-    //         object_key: Some(objectKey),
-    //         ..Authorization::default()
-    //     };
+        let resp = self.request.task()
+                    .url(&url)
+                    .method(oss::Method::HEAD)
+                    .resourse("objectMeta")
+                    .send()
+                    .await
+                    .unwrap();
 
-    //     let (_status, headers, data) = self.request(url, auth).await?;
-
-    //     let ossData = OssData { headers, data };
-    //     Ok(ossData)
-    // }
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: ()
+        };
+        Ok(result)
+    }
 
     /// 调用RestoreObject接口解冻归档类型、冷归档、深度冷归档类型的文件（Object）
     pub async fn RestoreObject(&self) {
