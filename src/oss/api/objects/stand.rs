@@ -1,26 +1,26 @@
-use crate::oss::{self,Client, Bytes};
+use crate::oss::{self, api::objects::params::PutObjectParams, Bytes, Client};
 
 /// 基础操作
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
     /// 调用PutObject接口上传文件（Object）
-    pub async fn PutObject(&self) {
-        todo!()
+    pub fn PutObject(&self, object: &'a str) -> PutObjectParams {
+        PutObjectParams::new(&self, object)
     }
 
     /// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限
     pub async fn GetObject(&self, objectKey: &'a str) -> oss::Result<Bytes> {
-    	let url = {
-    			let base_url = self.options.base_url();
-    			format!("{base_url}/{objectKey}")
-    	};
+        let url = {
+            let base_url = self.options.base_url();
+            format!("{base_url}/{objectKey}")
+        };
 
         let resp = self.request.task().url(&url).send().await.unwrap();
 
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: resp.data
+            data: resp.data,
         };
         Ok(result)
     }
@@ -51,17 +51,19 @@ impl<'a> Client<'a> {
             let base_url = self.options.base_url();
             format!("{base_url}/{object}")
         };
-        let resp = self.request.task()
-                    .url(&url)
-                    .method(oss::Method::HEAD)
-                    .send()
-                    .await
-                    .unwrap();
+        let resp = self
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::HEAD)
+            .send()
+            .await
+            .unwrap();
 
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: ()
+            data: (),
         };
         Ok(result)
     }
@@ -75,18 +77,20 @@ impl<'a> Client<'a> {
             format!("{base_url}/{object}?objectMeta")
         };
 
-        let resp = self.request.task()
-                    .url(&url)
-                    .method(oss::Method::HEAD)
-                    .resourse("objectMeta")
-                    .send()
-                    .await
-                    .unwrap();
+        let resp = self
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::HEAD)
+            .resourse("objectMeta")
+            .send()
+            .await
+            .unwrap();
 
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: ()
+            data: (),
         };
         Ok(result)
     }

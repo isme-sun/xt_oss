@@ -55,10 +55,6 @@ impl fmt::Display for OssAcl {
     }
 }
 
-pub trait OSSQuery {
-    fn to_query(&self) -> String;
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListObject2Query<'a> {
     #[serde(rename = "list-type")]
@@ -124,9 +120,9 @@ pub struct ListBucketsQuery {
     pub max_keys: Option<i32>,
 }
 
-impl OSSQuery for ListBucketsQuery {
-    fn to_query(&self) -> String {
-        serde_qs::to_string(&self).unwrap()
+impl fmt::Display for ListBucketsQuery {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", serde_qs::to_string(&self).unwrap())
     }
 }
 
@@ -139,8 +135,6 @@ pub struct CreateBucketParams<'a> {
 }
 
 impl<'a> CreateBucketParams<'a> {
-
-
     pub fn new(name: &'a str) -> Self {
         Self {
             name,

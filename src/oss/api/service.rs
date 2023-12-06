@@ -1,6 +1,6 @@
 use crate::oss::{self, Client};
 use crate::oss::{
-    arguments::{ListBucketsQuery, OSSQuery},
+    arguments::ListBucketsQuery,
     entities::ListAllMyBucketsResult,
 };
 
@@ -16,7 +16,7 @@ impl<'a> Client<'a> {
     ) -> oss::Result<ListAllMyBucketsResult> {
         let url = {
             let base_url = self.options.root_url();
-            format!("{}?{}", base_url, query.to_query())
+            format!("{}?{}", base_url, query)
         };
         let resp = self.request.task().url(&url).send().await.unwrap();
         let data: ListAllMyBucketsResult = resp.data.into();
