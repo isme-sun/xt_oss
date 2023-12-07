@@ -135,7 +135,7 @@ impl<'a> Authorization<'a> {
 }
 
 #[allow(unused)]
-pub struct RequestTask<'a> {
+pub(crate) struct RequestTask<'a> {
     request: &'a crate::oss::Request<'a>,
     url: &'a str,
     resourse: Option<&'a str>,
@@ -335,6 +335,7 @@ impl<'a> Request<'a> {
         self
     }
 
+    #[allow(private_interfaces)]
     pub fn task(&self) -> RequestTask<'_> {
         RequestTask::new(self)
     }

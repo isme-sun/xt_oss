@@ -1,6 +1,7 @@
 use xt_oss::oss;
 use xt_oss::oss::Bytes;
 use xt_oss::utils;
+use dotenv;
 
 #[tokio::main]
 async fn main() {

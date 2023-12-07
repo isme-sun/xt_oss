@@ -1,3 +1,6 @@
+use dotenv;
+use serde_json;
+
 use xt_oss::oss;
 use xt_oss::utils;
 
@@ -7,7 +10,7 @@ async fn get_cname() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client.ListCname().await.unwrap();
-    let content = serde_json::to_string(&result.data).unwrap();
+    let content = serde_json::to_string_pretty(&result.data).unwrap();
     println!("{}", content);
 }
 
