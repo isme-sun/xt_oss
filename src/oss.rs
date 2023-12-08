@@ -226,13 +226,13 @@ impl<'a> RequestTask<'a> {
             };
             Ok(oss_data)
         } else {
-            println!();
-            println!("is_client_error: {}", status.is_client_error());
-            println!("is_informational: {}", status.is_informational());
-            println!("is_redirection: {}", status.is_redirection());
-            println!("is_server_error: {}", status.is_server_error());
-            println!("is_success: {}", status.is_success());
-            println!();
+            // println!();
+            // println!("is_client_error: {}", status.is_client_error());
+            // println!("is_informational: {}", status.is_informational());
+            // println!("is_redirection: {}", status.is_redirection());
+            // println!("is_server_error: {}", status.is_server_error());
+            // println!("is_success: {}", status.is_success());
+            // println!();
 
             let content = String::from_utf8_lossy(&data);
             if content.len() > 0 {

@@ -1,44 +1,17 @@
 #[allow(unused)]
 use crate::oss::{
     self,
-    arguments::{CreateBucketConfiguration, CreateBucketParams, ListObject2Query},
     entities::{BucketInfo, BucketStat, ListBucketResult},
     Client, Data, Method, Result,
 };
 
+use super::builders::{ListObject2Builder, CreateBucketBuilder};
+
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
-    /// 调用PutBucket接口创建存储空间（Bucket）。
-    pub async fn PutBucket(&self, params: CreateBucketParams<'_>) -> Result<oss::Bytes> {
-        let bucket = params.name;
-        let url = {
-            format!(
-                "{}://{}.{}",
-                self.options.schema(),
-                bucket,
-                self.options.host()
-            )
-        };
 
-        let headers = params.headers();
-        let data = params.config();
-
-        let resp = self
-            .request
-            .task()
-            .url(&url)
-            .method(Method::PUT)
-            .headers(headers)
-            .body(data)
-            .send()
-            .await?;
-
-        let result = Data {
-            status: resp.status,
-            headers: resp.headers,
-            data: resp.data,
-        };
-        Ok(result)
+    pub fn PutBucket(&self) -> CreateBucketBuilder {
+        CreateBucketBuilder::new(&self)
     }
 
     /// 调用DeleteBucket删除某个存储空间（Bucket）。
@@ -54,23 +27,11 @@ impl<'a> Client<'a> {
     }
 
     // ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-    pub async fn ListObjectsV2(&self, qurey: ListObject2Query<'a>) -> Result<ListBucketResult> {
-        let url = {
-            let base_url = self.options.base_url();
-            format!("{}?{}", base_url, qurey)
-        };
-
-        let resp = self.request.task().url(&url).send().await.unwrap();
-
-        let content = String::from_utf8_lossy(&resp.data);
-        let buckets: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
-        let result = Data {
-            status: resp.status,
-            headers: resp.headers,
-            data: buckets,
-        };
-        Ok(result)
+    #[allow(private_interfaces)]
+    pub fn ListObjectsV2(&self) -> ListObject2Builder {
+        ListObject2Builder::new(&self)
     }
+
 
     // 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
     pub async fn GetBucketInfo(&self) -> Result<BucketInfo> {

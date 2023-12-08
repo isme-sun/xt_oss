@@ -1,10 +1,10 @@
+use dotenv;
 use xt_oss::oss;
 use xt_oss::oss::Bytes;
 use xt_oss::utils;
-use dotenv;
 
-#[tokio::main]
-async fn main() {
+#[allow(unused)]
+async fn put_object() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
@@ -16,4 +16,27 @@ async fn main() {
         .await
         .unwrap();
     println!("{:#?}", result);
+}
+
+#[allow(unused)]
+async fn object_list() {
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let result = client
+        .ListObjectsV2()
+        .prefix("course/video")
+        .max_keys(10)
+        .send()
+        .await
+        .unwrap();
+
+    for item in result.data.contents {
+        println!("{}", urlencoding::decode(&item.key).unwrap());
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    object_list().await;
 }
