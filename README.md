@@ -6,48 +6,48 @@
 
 ### 关于Service/Region操作
 
-- [X] `ListBuckets（GetService）`
-- [X] `DescribeRegions`
+- [X] *`ListBuckets（GetService）`
+- [X] * `DescribeRegions` 
 
 ### Bucket - 基础操作
 
-- [ ] `PutBucket`
-- [ ] `DeleteBucket`
-- [ ] `ListObjects`
-- [X] `ListObjectsV2`
-- [X] `GetBucketInfo`
-- [ ] `GetBucketLocation`
-- [X] `GetBucketStat`
+- [X] * `PutBucket` 
+- [ ] * `DeleteBucket`
+- [ ] * `ListObjects`
+- [X] * `ListObjectsV2`
+- [ ] * `GetBucketInfo`
+- [ ] * `GetBucketLocation`
+- [ ] * `GetBucketStat`
 
 ### Bucket 合规保留策略（WORM）
 
-- [ ] `InitiateBucketWorm`
-- [ ] `AbortBucketWorm`
-- [ ] `CompleteBucketWorm`
-- [ ] `ExtendBucketWorm`
-- [ ] `GetBucketWorm`
+- [ ] * `InitiateBucketWorm`
+- [ ] * `AbortBucketWorm`
+- [ ] * `CompleteBucketWorm`
+- [ ] * `ExtendBucketWorm`
+- [ ] * `GetBucketWorm`
 
 ### Bucket 权限控制（ACL）
 
-- [ ] `PutBucketAcl`
-- [ ] `GetBucketAcl`
+- [ ] * `PutBucketAcl`
+- [ ] * `GetBucketAcl`
 
 ### Bucket 生命周期（Lifecycle）
 
-- [ ] `PutBucketLifecycle`
-- [ ] `GetBucketLifecycle`
-- [ ] `DeleteBucketLifecycle`
+- [ ] * `PutBucketLifecycle`
+- [ ] * `GetBucketLifecycle`
+- [ ] * `DeleteBucketLifecycle`
 
 ### Bucket 传输加速（TransferAcceleration）
 
-- [ ] `PutBucketTransferAcceleration`
-- [ ] `GetBucketTransferAcceleration`
+- [ ] * `PutBucketTransferAcceleration`
+- [ ] * `GetBucketTransferAcceleration`
 
 ### Bucket 版本控制（Versioning）
 
-- [ ] `PutBucketVersioning`
-- [ ] `GetBucketVersioning`
-- [ ] `ListObjectVersions（GetBucketVersions）`
+- [ ] * `PutBucketVersioning`
+- [ ] * `GetBucketVersioning`
+- [ ] * `ListObjectVersions（GetBucketVersions）`
 
 ### Bucket 数据复制（Replication）
 
@@ -60,9 +60,9 @@
 
 ### Bucket 授权策略（Policy）
 
-- [ ] `PutBucketPolicy`
-- [ ] `GetBucketPolicy`
-- [ ] `DeleteBucketPolicy`
+- [ ] * `PutBucketPolicy`
+- [ ] * `GetBucketPolicy`
+- [ ] * `DeleteBucketPolicy`
 
 ### Bucket 清单（Inventory）
 
@@ -73,43 +73,43 @@
 
 ### Bucket 日志管理（Logging）
 
-- [ ] `PutBucketLogging`
-- [ ] `GetBucketLogging`
-- [ ] `DeleteBucketLogging`
+- [ ] * `PutBucketLogging`
+- [ ] * `GetBucketLogging`
+- [ ] * `DeleteBucketLogging`
 
 ### Bucket 静态网站（Website）
 
-- [ ] `PutBucketWebsite`
-- [ ] `GetBucketWebsite`
-- [ ] `DeleteBucketWebsite`
+- [ ] * `PutBucketWebsite`
+- [ ] * `GetBucketWebsite`
+- [ ] * `DeleteBucketWebsite`
 
 ### Bucket 防盗链（Referer）
 
-- [ ] `PutBucketReferer`
-- [ ] `GetBucketReferer`
+- [ ] * `PutBucketReferer`
+- [ ] * `GetBucketReferer`
 
 ### Bucket 标签（Tags）
 
-- [ ] `PutBucketTags`
-- [ ] `GetBucketTags`
-- [ ] `DeleteBucketTags`
+- [ ] * `PutBucketTags`
+- [ ] * `GetBucketTags`
+- [ ] * `DeleteBucketTags`
 
 ### Bucket 加密（Encryption）
 
-- [ ] `PutBucketEncryption`
-- [ ] `GetBucketEncryption`
-- [ ] `DeleteBucketEncryption`
+- [ ] * `PutBucketEncryption`
+- [ ] * `GetBucketEncryption`
+- [ ] * `DeleteBucketEncryption`
 
 ### Bucket 请求者付费（RequestPayment）
 
-- [ ] `PutBucketRequestPayment`
-- [ ] `GetBucketRequestPayment`
+- [ ] * `PutBucketRequestPayment`
+- [ ] * `GetBucketRequestPayment`
 
 ### Bucket 跨域资源共享（CORS）
 
-- [ ] `PutBucketCors`
-- [ ] `GetBucketCors`
-- [ ] `DeleteBucketCors`
+- [ ] * `PutBucketCors`
+- [ ] * `GetBucketCors`
+- [ ] * `DeleteBucketCors`
 - [ ] `Options`
 
 ### Bucket 访问跟踪（AccessMonitor）
@@ -131,18 +131,18 @@
 
 ### Bucket 自定义域名（CNAME）
 
-- [ ] `CreateCnameToken`
-- [ ] `GetCnameToken`
-- [ ] `PutCname`
-- [X] `ListCname`
-- [ ] `DeleteCname`
+- [ ] * `CreateCnameToken`
+- [ ] * `GetCnameToken`
+- [ ] * `PutCname`
+- [X] * `ListCname`
+- [ ] * `DeleteCname`
 
 ### Bucket 图片样式（Style）
 
-- [ ] `PutStyle`
-- [ ] `GetStyle`
-- [ ] `ListStyle`
-- [ ] `DeleteStyle`
+- [ ] * `PutStyle`
+- [ ] * `GetStyle`
+- [ ] * `ListStyle`
+- [ ] * `DeleteStyle`
 
 ### Bucket  安全传输层协议（TLS）
 
@@ -182,33 +182,33 @@
 
 ### Object 基础操作 Stand
 
-- [ ] `PutObject`
-- [ ] `GetObject`
-- [ ] `CopyObject`
-- [ ] `AppendObject`
-- [ ] `DeleteObject`
-- [ ] `DeleteMultipleObjects`
-- [X] `HeadObject`
-- [X] `GetObjectMeta`
+- [ ] * `PutObject`
+- [ ] * `GetObject`
+- [ ] * `CopyObject`
+- [ ] * `AppendObject`
+- [ ] * `DeleteObject`
+- [ ] * `DeleteMultipleObjects`
+- [X] * `HeadObject`
+- [X] * `GetObjectMeta`
 - [ ] `PostObject`
 - [ ] `Callback`
-- [ ] `RestoreObject`
+- [ ] * `RestoreObject`
 - [ ] `SelectObject`
 
 ### Object 分片上传（MultipartUpload）
 
-- [ ] `InitiateMultipartUpload`
-- [ ] `UploadPart`
-- [ ] `UploadPartCopy`
-- [ ] `CompleteMultipartUpload`
-- [ ] `AbortMultipartUpload`
-- [ ] `ListMultipartUploads`
-- [ ] `ListParts`
+- [ ] * `InitiateMultipartUpload`
+- [ ] * `UploadPart`
+- [ ] * `UploadPartCopy`
+- [ ] * `CompleteMultipartUpload`
+- [ ] * `AbortMultipartUpload`
+- [ ] * `ListMultipartUploads`
+- [ ] * `ListParts`
 
 ### Object 权限控制（ACL)
 
-- [ ] `PutObjectACL`
-- [ ] `GetObjectACL`
+- [ ] * `PutObjectACL`
+- [ ] * `GetObjectACL`
 
 ### Object 软链接（Symlink）
 
@@ -217,20 +217,20 @@
 
 ### Object 标签（Tagging）
 
-- [ ] `PutObjectTagging`
-- [ ] `GetObjectTagging`
-- [ ] `DeleteObjectTagging`
+- [ ] * `PutObjectTagging`
+- [ ] * `GetObjectTagging`
+- [ ] * `DeleteObjectTagging`
 
 ### 关于LiveChannel的操作
 
-- [ ] `PutLiveChannel`
-- [ ] `ListLiveChannel`
-- [ ] `DeleteLiveChannel`
-- [ ] `PutLiveChannelStatus`
-- [ ] `GetLiveChannelInfo`
-- [ ] `GetLiveChannelStat`
-- [ ] `GetLiveChannelHistory`
-- [ ] `PostVodPlaylist`
+- [ ] * `PutLiveChannel`
+- [ ] * `ListLiveChannel`
+- [ ] * `DeleteLiveChannel`
+- [ ] * `PutLiveChannelStatus`
+- [ ] * `GetLiveChannelInfo`
+- [ ] * `GetLiveChannelStat`
+- [ ] * `GetLiveChannelHistory`
+- [ ] * `PostVodPlaylist`
 - [ ] `GetVodPlaylist`
 
  ```rust
