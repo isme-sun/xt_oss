@@ -1,3 +1,5 @@
+use std::process;
+
 use dotenv;
 use xt_oss::oss;
 use xt_oss::oss::Bytes;
@@ -14,7 +16,10 @@ async fn put_object() {
         .headers(oss::HeaderMap::new())
         .send()
         .await
-        .unwrap();
+        .unwrap_or_else(|err|{
+            println!("{:#?}", err);
+            process::exit(2);
+        });
     println!("{:#?}", result);
 }
 
@@ -25,15 +30,20 @@ async fn object_list() {
     let client = oss::Client::new(options);
     let result = client
         .ListObjectsV2()
-        .prefix("course/video")
+        .prefix("course/video1")
         .max_keys(10)
         .send()
         .await
         .unwrap();
 
-    for item in result.data.contents {
-        println!("{}", urlencoding::decode(&item.key).unwrap());
+    if let Some(contents) = result.data.contents {
+        for item in contents {
+            println!("{}", urlencoding::decode(&item.key).unwrap());
+        }
+    } else {
+        println!("not exists");
     }
+
 }
 
 #[tokio::main]

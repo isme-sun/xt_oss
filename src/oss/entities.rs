@@ -148,7 +148,7 @@ pub struct ListBucketResult {
     pub key_count: i32,
     // #[serde(rename = "$value")]
     #[serde(rename(deserialize = "Contents"))]
-    pub contents: Vec<Object>,
+    pub contents: Option<Vec<Object>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -229,3 +229,8 @@ pub struct RegionInfoList {
     #[serde(rename(serialize = "RegionInfo", deserialize = "RegionInfo"))]
     pub region_info: Vec<RegionInfo>,
 }
+
+/// Bucket所在的地域
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "$value")]
+pub struct LocationConstraint(String);

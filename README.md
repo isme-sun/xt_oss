@@ -12,12 +12,12 @@
 ### Bucket - 基础操作
 
 - [X] 03 ★ `PutBucket` 
-- [ ] 04 ★ `DeleteBucket`
+- [X] 04 ★ `DeleteBucket`
 - [ ] 05 ★ `ListObjects`
 - [X] 06 ★ `ListObjectsV2`
-- [ ] 07 ★ `GetBucketInfo`
-- [ ] 08 ★ `GetBucketLocation`
-- [ ] 09 ★ `GetBucketStat`
+- [X] 07 ★ `GetBucketInfo`
+- [X] 08 ★ `GetBucketLocation`
+- [X] 09 ★ `GetBucketStat`
 
 ### Bucket 合规保留策略（WORM）
 

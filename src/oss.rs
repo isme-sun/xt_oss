@@ -36,7 +36,7 @@ pub struct Data<T> {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct Error {
+pub struct Message {
     #[serde(rename(deserialize = "Code"))]
     pub code: String,
     #[serde(rename(deserialize = "Message"))]
@@ -51,13 +51,35 @@ pub struct Error {
     pub recommend_doc: String,
 }
 
-impl Display for Error {
+impl Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}]: {}", self.code, self.message)
     }
 }
 
-type Result<T> = std::result::Result<Data<T>, Error>;
+// #[derive(Debug, Default, Deserialize, Serialize)]
+// pub struct Error {
+//     #[serde(rename(deserialize = "Code"))]
+//     pub code: String,
+//     #[serde(rename(deserialize = "Message"))]
+//     pub message: String,
+//     #[serde(rename(deserialize = "RequestId"))]
+//     pub request_id: String,
+//     #[serde(rename(deserialize = "HostId"))]
+//     pub host_id: String,
+//     #[serde(rename(deserialize = "EC"))]
+//     pub ec: String,
+//     #[serde(rename(deserialize = "RecommendDoc"))]
+//     pub recommend_doc: String,
+// }
+
+// impl Display for Error {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "[{}]: {}", self.code, self.message)
+//     }
+// }
+
+type Result<T> = std::result::Result<Data<T>, Message>;
 
 #[derive(Debug)]
 #[allow(unused)]
@@ -226,28 +248,20 @@ impl<'a> RequestTask<'a> {
             };
             Ok(oss_data)
         } else {
-            // println!();
-            // println!("is_client_error: {}", status.is_client_error());
-            // println!("is_informational: {}", status.is_informational());
-            // println!("is_redirection: {}", status.is_redirection());
-            // println!("is_server_error: {}", status.is_server_error());
-            // println!("is_success: {}", status.is_success());
-            // println!();
-
             let content = String::from_utf8_lossy(&data);
             if content.len() > 0 {
-                let oss_error: Error = serde_xml_rs::from_str(&content).unwrap();
-                Err(oss_error)
+                let message: Message = serde_xml_rs::from_str(&content).unwrap();
+                Err(message)
             } else {
                 if headers.contains_key("x-oss-err") {
                     let error_info = headers.get("x-oss-err").unwrap();
                     let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
                     let content = String::from_utf8_lossy(&error_info);
-                    let oss_error: Error = serde_xml_rs::from_str(&content).unwrap();
-                    Err(oss_error)
+                    let message: Message = serde_xml_rs::from_str(&content).unwrap();
+                    Err(message)
                 } else {
-                    let oss_error = Error::default();
-                    Err(oss_error)
+                    let message = Message::default();
+                    Err(message)
                 }
             }
         }

@@ -4,7 +4,7 @@ use std::fmt;
 use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
-    entities::ListBucketResult,
+    entities::{BucketInfo, BucketStat, ListBucketResult, LocationConstraint},
 };
 
 // --------------------------------------------------------------------------
@@ -239,6 +239,8 @@ impl<'a> CreateBucketBuilder<'a> {
             )
         };
 
+        println!("{}", url);
+
         let headers = self.headers();
 
         let builder = self
@@ -261,6 +263,224 @@ impl<'a> CreateBucketBuilder<'a> {
             status: resp.status,
             headers: resp.headers,
             data: (),
+        };
+        Ok(result)
+    }
+}
+
+// --------------------------------------------------------------------------
+
+#[derive(Debug)]
+#[allow(unused)]
+pub struct DeleteBucketBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    name: Option<&'a str>,
+}
+
+#[allow(unused)]
+impl<'a> DeleteBucketBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self { client, name: None }
+    }
+
+    pub fn name(mut self, value: &'a str) -> Self {
+        self.name = Some(value);
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let bucket = if let Some(name) = self.name {
+            name
+        } else {
+            self.client.options.bucket
+        };
+        let url = {
+            format!(
+                "{}://{}.{}",
+                self.client.options.schema(),
+                bucket,
+                self.client.options.host(),
+            )
+        };
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::DELETE)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+// --------------------------------------------------------------------------
+#[derive(Debug)]
+#[allow(unused)]
+pub struct BucketInfoBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    name: Option<&'a str>,
+}
+#[allow(unused)]
+impl<'a> BucketInfoBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self { client, name: None }
+    }
+
+    pub fn name(mut self, value: &'a str) -> Self {
+        self.name = Some(value);
+        self
+    }
+    pub async fn send(&self) -> oss::Result<BucketInfo> {
+        let bucket = if let Some(name) = self.name {
+            name
+        } else {
+            self.client.options.bucket
+        };
+        let res = "bucketInfo";
+        let url = {
+            format!(
+                "{}://{}.{}?{}",
+                self.client.options.schema(),
+                bucket,
+                self.client.options.host(),
+                res
+            )
+        };
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .resourse(&res)
+            .send()
+            .await
+            .unwrap();
+
+        let content = String::from_utf8_lossy(&resp.data);
+        let bucket_info: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: bucket_info,
+        };
+        Ok(result)
+    }
+}
+
+// --------------------------------------------------------------------------
+#[derive(Debug)]
+#[allow(unused)]
+pub struct BucketStatBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    name: Option<&'a str>,
+}
+#[allow(unused)]
+impl<'a> BucketStatBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self { client, name: None }
+    }
+
+    pub fn name(mut self, value: &'a str) -> Self {
+        self.name = Some(value);
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<BucketStat> {
+        let bucket = if let Some(name) = self.name {
+            name
+        } else {
+            self.client.options.bucket
+        };
+        let res = "stat";
+        let url = {
+            format!(
+                "{}://{}.{}?{}",
+                self.client.options.schema(),
+                bucket,
+                self.client.options.host(),
+                res
+            )
+        };
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let content = String::from_utf8_lossy(&resp.data);
+        let bucket_stat: BucketStat = serde_xml_rs::from_str(&content).unwrap();
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: bucket_stat,
+        };
+        Ok(result)
+    }
+}
+
+// --------------------------------------------------------------------------
+#[derive(Debug)]
+#[allow(unused)]
+pub struct BucketLocationBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    name: Option<&'a str>,
+}
+#[allow(unused)]
+impl<'a> BucketLocationBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self { client, name: None }
+    }
+
+    pub fn name(mut self, value: &'a str) -> Self {
+        self.name = Some(value);
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<LocationConstraint> {
+        let bucket = if let Some(name) = self.name {
+            name
+        } else {
+            self.client.options.bucket
+        };
+        let res = "location";
+        let url = {
+            format!(
+                "{}://{}.{}?{}",
+                self.client.options.schema(),
+                bucket,
+                self.client.options.host(),
+                res
+            )
+        };
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let content = String::from_utf8_lossy(&resp.data);
+        let bucket_stat: LocationConstraint = serde_xml_rs::from_str(&content).unwrap();
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: bucket_stat,
         };
         Ok(result)
     }
