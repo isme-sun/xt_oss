@@ -1,11 +1,13 @@
-use crate::oss::{self, api::objects::params::PutObjectParams, Bytes, Client};
+use crate::oss::{self, Bytes, Client};
+
+use super::builders::PutObjectBuilder;
 
 /// 基础操作
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
     /// 调用PutObject接口上传文件（Object）
-    pub fn PutObject(&self, object: &'a str) -> PutObjectParams {
-        PutObjectParams::new(&self, object)
+    pub fn PutObject(&self, object: &'a str) -> PutObjectBuilder {
+        PutObjectBuilder::new(&self, object)
     }
 
     /// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限
@@ -100,6 +102,4 @@ impl<'a> Client<'a> {
         todo!()
     }
 
-    // ! 不实现
-    // pub async fn SelectObject() {}
 }

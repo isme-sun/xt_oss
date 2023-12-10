@@ -1,13 +1,13 @@
-use crate::oss;
+use crate::oss::{self, Bytes};
 
-pub struct PutObjectParams<'a> {
+pub struct PutObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
     headers: oss::HeaderMap,
     content: oss::Bytes,
 }
 
-impl<'a> PutObjectParams<'a> {
+impl<'a> PutObjectBuilder<'a> {
     pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
         Self {
             client,
@@ -17,7 +17,7 @@ impl<'a> PutObjectParams<'a> {
         }
     }
 
-    pub fn content(mut self, content: oss::Bytes) -> Self {
+    pub fn content(mut self, content: Bytes) -> Self {
         self.content = content;
         self
     }

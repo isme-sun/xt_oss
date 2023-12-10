@@ -1,26 +1,41 @@
-use std::process;
+// use std::process;
+
+use std::fs::File;
+use std::io::Read;
 
 use dotenv;
 use xt_oss::oss;
-use xt_oss::oss::Bytes;
 use xt_oss::utils;
+
+fn read_assets_file(filepath: String) -> Vec<u8> {
+    let current_dir = std::env::current_dir().unwrap();
+    let filepath = format!("{}/assets/{}", current_dir.to_str().unwrap(), filepath);
+    let mut pic_file = File::open(filepath).unwrap();
+    let mut content: Vec<u8> = Vec::new();
+    pic_file.read_to_end(&mut content).unwrap();
+    content
+}
 
 #[allow(unused)]
 async fn put_object() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
+
     let result = client
-        .PutObject("xtoss/example/123.txt")
-        .content(Bytes::from("相见时难别亦难"))
-        .headers(oss::HeaderMap::new())
+        .PutObject("xtoss/example/settings.json")
+        .content({
+            let filename = String::from("settings.json");
+            let content = read_assets_file(filename);
+            oss::Bytes::from(content)
+        })
         .send()
-        .await
-        .unwrap_or_else(|err|{
-            println!("{:#?}", err);
-            process::exit(2);
-        });
-    println!("{:#?}", result);
+        .await;
+
+    match result {
+        Ok(data) => println!("{:#?}", data.headers),
+        Err(message) => println!("{}", message),
+    }
 }
 
 #[allow(unused)]
@@ -43,10 +58,10 @@ async fn object_list() {
     } else {
         println!("not exists");
     }
-
 }
 
 #[tokio::main]
 async fn main() {
-    object_list().await;
+    // object_list().await;
+    put_object().await;
 }
