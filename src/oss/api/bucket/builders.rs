@@ -47,13 +47,11 @@ impl<'a> fmt::Display for ListObject2Query<'a> {
     }
 }
 
-#[allow(unused)]
 pub struct ListObject2Builder<'a> {
     client: &'a oss::Client<'a>,
     query: ListObject2Query<'a>,
 }
 
-#[allow(unused)]
 impl<'a> ListObject2Builder<'a> {
     pub fn new(client: &'a oss::Client) -> Self {
         Self {
@@ -271,13 +269,11 @@ impl<'a> CreateBucketBuilder<'a> {
 // --------------------------------------------------------------------------
 
 #[derive(Debug)]
-#[allow(unused)]
 pub struct DeleteBucketBuilder<'a> {
     client: &'a oss::Client<'a>,
     name: Option<&'a str>,
 }
 
-#[allow(unused)]
 impl<'a> DeleteBucketBuilder<'a> {
     pub fn new(client: &'a oss::Client) -> Self {
         Self { client, name: None }
@@ -378,7 +374,6 @@ impl<'a> BucketInfoBuilder<'a> {
 
 // --------------------------------------------------------------------------
 #[derive(Debug)]
-#[allow(unused)]
 pub struct BucketStatBuilder<'a> {
     client: &'a oss::Client<'a>,
     name: Option<&'a str>,
@@ -433,7 +428,6 @@ impl<'a> BucketStatBuilder<'a> {
 
 // --------------------------------------------------------------------------
 #[derive(Debug)]
-#[allow(unused)]
 pub struct BucketLocationBuilder<'a> {
     client: &'a oss::Client<'a>,
     name: Option<&'a str>,
@@ -481,6 +475,79 @@ impl<'a> BucketLocationBuilder<'a> {
             status: resp.status,
             headers: resp.headers,
             data: bucket_stat,
+        };
+        Ok(result)
+    }
+}
+
+// --------------------------------------------------------------------------
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct InitiateWormConfiguration {
+    #[serde(rename = "RetentionPeriodInDays")]
+    retention_period_in_days: i32
+}
+
+impl Default for InitiateWormConfiguration {
+    fn default() -> Self {
+        Self { retention_period_in_days: 1 }
+    }
+}
+
+#[allow(unused)]
+pub struct InitiateBucketWormBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    days: i32
+}
+
+#[allow(unused)]
+impl<'a> InitiateBucketWormBuilder<'a> {
+
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self { client, days: 1 }
+    }
+
+    pub fn days(mut self, value: i32) -> Self {
+        self.days = value;
+        self
+    }
+
+    fn config(&self) -> String {
+        let config = InitiateWormConfiguration{
+            retention_period_in_days: self.days
+        };
+        serde_xml_rs::to_string(&config).unwrap()
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let bucket = self.client.options.bucket;
+        let res = "worm";
+        let url = {
+            format!(
+                "{}://{}.{}?{}",
+                self.client.options.schema(),
+                bucket,
+                self.client.options.host(),
+                res
+            )
+        };
+
+        let config = self.config();
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .method(oss::Method::POST)
+            .url(&url)
+            .body(oss::Bytes::from(config))
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: ()
         };
         Ok(result)
     }

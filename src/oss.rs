@@ -46,9 +46,9 @@ pub struct Message {
     #[serde(rename(deserialize = "HostId"))]
     pub host_id: String,
     #[serde(rename(deserialize = "EC"))]
-    pub ec: String,
+    pub ec: Option<String>,
     #[serde(rename(deserialize = "RecommendDoc"))]
-    pub recommend_doc: String,
+    pub recommend_doc: Option<String>,
 }
 
 impl Display for Message {
