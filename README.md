@@ -22,8 +22,8 @@
 ### Bucket 合规保留策略（WORM）
 
 - [X] 10 ★ `InitiateBucketWorm`
-- [ ] 11 ★ `AbortBucketWorm`
-- [ ] 12 ★ `CompleteBucketWorm`
+- [X] 11 ★ `AbortBucketWorm`
+- [X] 12 ★ `CompleteBucketWorm`
 - [ ] 13 ★ `ExtendBucketWorm`
 - [X] 14 ★ `GetBucketWorm`
 

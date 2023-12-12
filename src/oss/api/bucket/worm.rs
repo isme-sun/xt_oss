@@ -18,14 +18,48 @@ impl<'a> Client<'a> {
 
     /// AbortBucketWorm用于删除未锁定的合规保留策略。
     #[allow(non_snake_case)]
-    pub fn AbortBucketWorm() {
-        todo!()
+    pub async fn AbortBucketWorm(&self) -> oss::Result<()> {
+        let res = "worm";
+        let url = format!("{}?{}", self.options.base_url(), res);
+
+        let resp = self
+            .request
+            .task()
+            .method(oss::Method::DELETE)
+            .url(&url)
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
     }
 
     /// CompleteBucketWorm用于锁定合规保留策略。
     #[allow(non_snake_case)]
-    pub fn CompleteBucketWorm() {
-        todo!()
+    pub async fn CompleteBucketWorm(&self, worm_id: &'a str) -> oss::Result<()> {
+        let res = format!("wormId={}", worm_id);
+        let url = format!("{}/?{}", self.options.base_url(), res);
+
+        let resp = self
+            .request
+            .task()
+            .method(oss::Method::POST)
+            .url(&url)
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
     }
 
     /// ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。
