@@ -21,11 +21,11 @@
 
 ### Bucket 合规保留策略（WORM）
 
-- [ ] 10 ★ `InitiateBucketWorm`
+- [X] 10 ★ `InitiateBucketWorm`
 - [ ] 11 ★ `AbortBucketWorm`
 - [ ] 12 ★ `CompleteBucketWorm`
 - [ ] 13 ★ `ExtendBucketWorm`
-- [ ] 14 ★ `GetBucketWorm`
+- [X] 14 ★ `GetBucketWorm`
 
 ### Bucket 权限控制（ACL）
 
