@@ -153,10 +153,10 @@ pub struct ListBucketResult {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Owner {
-    #[serde(rename(deserialize = "DisplayName"))]
+    #[serde(rename="ID")]
+    pub id: String,
+    #[serde(rename="DisplayName")]
     pub display_name: String,
-    #[serde(rename(deserialize = "ID"))]
-    pub id: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -234,3 +234,41 @@ pub struct RegionInfoList {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "$value")]
 pub struct LocationConstraint(String);
+
+
+
+/* 
+<AccessControlPolicy>
+    <Owner>
+        <ID>0022012****</ID>
+        <DisplayName>user_example</DisplayName>
+    </Owner>
+    <AccessControlList>
+        <Grant>public-read</Grant>
+    </AccessControlList>
+</AccessControlPolicy>
+*/
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AccessControlPolicy {
+    #[serde(rename="Owner")]
+    pub owner: Owner,
+    #[serde(rename="AccessControlList")]
+    pub access_control_list: AccessControlList
+}
+
+/*
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>value1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>value2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+
+
+*/

@@ -484,24 +484,25 @@ impl<'a> BucketLocationBuilder<'a> {
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct InitiateWormConfiguration {
     #[serde(rename = "RetentionPeriodInDays")]
-    retention_period_in_days: i32
+    retention_period_in_days: i32,
 }
 
 impl Default for InitiateWormConfiguration {
     fn default() -> Self {
-        Self { retention_period_in_days: 1 }
+        Self {
+            retention_period_in_days: 1,
+        }
     }
 }
 
 #[allow(unused)]
 pub struct InitiateBucketWormBuilder<'a> {
     client: &'a oss::Client<'a>,
-    days: i32
+    days: i32,
 }
 
 #[allow(unused)]
 impl<'a> InitiateBucketWormBuilder<'a> {
-
     pub fn new(client: &'a oss::Client) -> Self {
         Self { client, days: 1 }
     }
@@ -512,8 +513,8 @@ impl<'a> InitiateBucketWormBuilder<'a> {
     }
 
     fn config(&self) -> String {
-        let config = InitiateWormConfiguration{
-            retention_period_in_days: self.days
+        let config = InitiateWormConfiguration {
+            retention_period_in_days: self.days,
         };
         serde_xml_rs::to_string(&config).unwrap()
     }
@@ -547,7 +548,64 @@ impl<'a> InitiateBucketWormBuilder<'a> {
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: ()
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub struct PutBucketAclBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    acl: oss::arguments::OssAcl,
+}
+
+#[allow(unused)]
+impl<'a> PutBucketAclBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            acl: oss::arguments::OssAcl::Private,
+        }
+    }
+
+    pub fn acl(mut self, value: oss::arguments::OssAcl) -> Self {
+        self.acl = value;
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let bucket = self.client.options.bucket;
+        let res = "acl";
+        let url = {
+            format!(
+                "{}://{}.{}/?{}",
+                self.client.options.schema(),
+                bucket,
+                self.client.options.host(),
+                res
+            )
+        };
+
+        let mut headers = oss::HeaderMap::new();
+        headers.insert("x-oss-acl", self.acl.to_string().parse().unwrap());
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .method(oss::Method::PUT)
+            .headers(headers)
+            .url(&url)
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
         };
         Ok(result)
     }

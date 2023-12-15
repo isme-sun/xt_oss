@@ -29,8 +29,8 @@
 
 ### Bucket 权限控制（ACL）
 
-- [ ] 15 ★ `PutBucketAcl`
-- [ ] 16 ★ `GetBucketAcl`
+- [X] 15 ★ `PutBucketAcl`
+- [X] 16 ★ `GetBucketAcl`
 
 ### Bucket 生命周期（Lifecycle）
 
