@@ -84,7 +84,7 @@ impl<'a> Client<'a> {
             .await?;
 
         let content = String::from_utf8_lossy(&resp.data);
-        let config: WormConfiguration = serde_xml_rs::from_str(&content).unwrap();
+        let config: WormConfiguration = quick_xml::de::from_str(&content).unwrap();
 
         let result = oss::Data {
             status: resp.status,

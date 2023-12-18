@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// - `DeepColdArchive` 深度冷归档存储
 ///
 #[derive(Debug, Serialize, Deserialize, Default)]
-#[serde(tag = "StorageClass")]
+// #[serde(tag = "StorageClass")]
 pub enum StorageClass {
     #[default]
     Standard,
@@ -34,12 +34,9 @@ pub enum DataRedundancyType {
 
 #[derive(Debug, Default)]
 pub enum OssAcl {
-    // #[serde(rename = "public-read-write")]
     PublicReadWrite,
     #[default]
-    // #[serde(rename = "public-read")]
     PublicRead,
-    // #[serde(rename = "private")]
     Private,
 }
 
@@ -67,4 +64,14 @@ pub struct WormConfiguration {
     pub creation_date: String,
 }
 
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn t1() {
+        
+
+    }
+
+}
 

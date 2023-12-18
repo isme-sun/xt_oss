@@ -10,6 +10,7 @@ async fn get_cname() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client.ListCname().await.unwrap();
+    println!("{:#?}", result);
     let content = serde_json::to_string_pretty(&result.data).unwrap();
     println!("{}", content);
 }

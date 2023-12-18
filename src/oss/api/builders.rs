@@ -60,7 +60,7 @@ impl<'a> ListBucketsBuilder<'a> {
         let resp = self.client.request.task().url(&url).send().await.unwrap();
 
         let data = String::from_utf8_lossy(&resp.data);
-        let data = serde_xml_rs::from_str(&data).unwrap();
+        let data = quick_xml::de::from_str(&data).unwrap();
         Ok(oss::Data {
             status: resp.status,
             headers: resp.headers,
@@ -114,7 +114,7 @@ impl<'a> DescribeRegionsBuilder<'a> {
         let resp = self.client.request.task().url(&url).send().await.unwrap();
 
         let content = String::from_utf8_lossy(&resp.data);
-        let regoins: RegionInfoList = serde_xml_rs::from_str(&content).unwrap();
+        let regoins: RegionInfoList = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,

@@ -1,5 +1,5 @@
 use xt_oss::{
-    oss::{self, arguments::OssAcl},
+    oss::{self, arguments::{OssAcl, StorageClass, DataRedundancyType}},
     utils,
 };
 
@@ -7,7 +7,7 @@ use xt_oss::{
 async fn info_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketInfo().name("xuetube-t12").send().await;
+    let result = client.GetBucketInfo().name("xtoss-t1").send().await;
     match result {
         Ok(_) => println!("{:#?}", result),
         Err(message) => {
@@ -33,7 +33,13 @@ async fn stat_bucket() {
 async fn create_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.PutBucket().name("xuetube-t12").send().await;
+    let result = client.PutBucket()
+                        .name("xtoss-t1")
+                        .acl(OssAcl::PublicRead)
+                        .storage_class(StorageClass::Archive)
+                        .data_redundancy_type(DataRedundancyType::LRS)
+                        .send()
+                        .await;
     match result {
         Ok(_) => println!("{:#?}", result),
         Err(message) => {
@@ -46,7 +52,11 @@ async fn create_bucket() {
 async fn delete_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.DeleteBucket().name("xuetube-t12").send().await;
+    let result = client.DeleteBucket()
+                    // .name("xuetube-t12")
+                    .name("xtoss-t1")
+                    .send()
+                    .await;
 
     match result {
         Ok(_) => println!("{:#?}", result),
@@ -60,7 +70,7 @@ async fn delete_bucket() {
 async fn location_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketLocation().name("xuetube-dev1").send().await;
+    let result = client.GetBucketLocation().name("xtoss-dev1").send().await;
 
     match result {
         Ok(_) => println!("{:#?}", result),
@@ -89,7 +99,7 @@ async fn put_acl_bucket() {
     let options = utils::options_from_env();
     println!("{:#?}",&options);
     let client = oss::Client::new(options);
-    let result = client.PutBucketAcl().acl(OssAcl::Private).send().await;
+    let result = client.PutBucketAcl().acl(OssAcl::PublicRead).send().await;
 
 
     match result {
@@ -103,11 +113,11 @@ async fn put_acl_bucket() {
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    // create_bucket().await;
+    info_bucket().await;
     // stat_bucket().await;
     // location_bucket().await;
     // get_acl_bucket().await;
-    put_acl_bucket().await;
-
-
+    // put_acl_bucket().await;
+    // create_bucket().await;
+    // delete_bucket().await;
 }

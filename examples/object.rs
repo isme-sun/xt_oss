@@ -45,7 +45,7 @@ async fn object_list() {
     let client = oss::Client::new(options);
     let result = client
         .ListObjectsV2()
-        .prefix("course/video1")
+        .prefix("course/video")
         .max_keys(10)
         .send()
         .await
@@ -62,6 +62,6 @@ async fn object_list() {
 
 #[tokio::main]
 async fn main() {
-    // object_list().await;
-    put_object().await;
+    object_list().await;
+    // put_object().await;
 }

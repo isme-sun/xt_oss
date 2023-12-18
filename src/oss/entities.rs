@@ -1,7 +1,6 @@
 use crate::oss;
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
-use serde_xml_rs;
 
 /// OSS 存储类型
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -35,7 +34,7 @@ pub struct ListAllMyBucketsResult {
 impl From<oss::Bytes> for ListAllMyBucketsResult {
     fn from(data: oss::Bytes) -> Self {
         let content = String::from_utf8_lossy(&data);
-        serde_xml_rs::from_str::<Self>(&content).unwrap()
+        quick_xml::de::from_str::<Self>(&content).unwrap()
     }
 }
 
@@ -46,7 +45,7 @@ pub struct ListCnameResult {
     #[serde(rename(deserialize = "Owner"))]
     pub owner: String,
     #[serde(rename(deserialize = "Cname"))]
-    pub cname: Cname,
+    pub cname: Option<Cname>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -153,9 +152,9 @@ pub struct ListBucketResult {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Owner {
-    #[serde(rename="ID")]
+    #[serde(rename = "ID")]
     pub id: String,
-    #[serde(rename="DisplayName")]
+    #[serde(rename = "DisplayName")]
     pub display_name: String,
 }
 
@@ -235,40 +234,74 @@ pub struct RegionInfoList {
 #[serde(rename = "$value")]
 pub struct LocationConstraint(String);
 
-
-
-/* 
-<AccessControlPolicy>
-    <Owner>
-        <ID>0022012****</ID>
-        <DisplayName>user_example</DisplayName>
-    </Owner>
-    <AccessControlList>
-        <Grant>public-read</Grant>
-    </AccessControlList>
-</AccessControlPolicy>
-*/
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AccessControlPolicy {
-    #[serde(rename="Owner")]
+    #[serde(rename = "Owner")]
     pub owner: Owner,
-    #[serde(rename="AccessControlList")]
-    pub access_control_list: AccessControlList
+    #[serde(rename = "AccessControlList")]
+    pub access_control_list: AccessControlList,
 }
 
-/*
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Tag {
+    #[serde(rename(serialize = "Key", deserialize = "Key"))]
+    pub key: String,
+    #[serde(rename(serialize = "Value", deserialize = "Value"))]
+    pub value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TagSet {
+    #[serde(rename = "Tag")]
+    tag: Vec<Tag>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Tagging {
+    #[serde(rename = "TagSet")]
+    pub tag_set: TagSet,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::oss::entities::{Tag, TagSet, Tagging};
+
+    #[test]
+    fn t1() {
+        let tag = Tag {
+            key: "sjy".to_string(),
+            value: "孙健勇".to_string(),
+        };
+        let tag1 = Tag {
+            key: "sjy".to_string(),
+            value: "孙健勇".to_string(),
+        };
+
+        let tag_set = TagSet {
+            tag: vec![tag, tag1],
+        };
+
+        let tag_sets = Tagging { tag_set };
+        let content = quick_xml::se::to_string(&tag_sets).unwrap();
+        println!("{}", content);
+
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
 <Tagging>
-  <TagSet>
-    <Tag>
-      <Key>key1</Key>
-      <Value>value1</Value>
-    </Tag>
-    <Tag>
-      <Key>key2</Key>
-      <Value>value2</Value>
-    </Tag>
-  </TagSet>
-</Tagging>
+	<TagSet>
+		<Tag>
+			<Key>key1</Key>
+			<Value>value1</Value>
+		</Tag>
+		<Tag>
+			<Key>key2</Key>
+			<Value>value2</Value>
+		</Tag>
+	</TagSet>
+</Tagging>"#;
 
-
-*/
+        let c: Tagging = quick_xml::de::from_str(&xml).unwrap();
+        for tag in c.tag_set.tag {
+            println!("{} = {}", tag.key, tag.value);
+        }
+    }
+}

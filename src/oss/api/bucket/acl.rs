@@ -27,7 +27,7 @@ impl<'a> Client<'a> {
             .unwrap();
 
         let content = String::from_utf8_lossy(&resp.data);
-        let cnames: AccessControlPolicy = serde_xml_rs::from_str(&content).unwrap();
+        let cnames: AccessControlPolicy = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,

@@ -4,7 +4,7 @@ use std::fmt;
 use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
-    entities::{BucketInfo, BucketStat, ListBucketResult, LocationConstraint},
+    entities::{BucketInfo, BucketStat, ListBucketResult, LocationConstraint, Tagging},
 };
 
 // --------------------------------------------------------------------------
@@ -109,7 +109,7 @@ impl<'a> ListObject2Builder<'a> {
         let resp = self.client.request.task().url(&url).send().await.unwrap();
 
         let content = String::from_utf8_lossy(&resp.data);
-        let buckets: ListBucketResult = serde_xml_rs::from_str(&content).unwrap();
+        let buckets: ListBucketResult = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
@@ -121,14 +121,22 @@ impl<'a> ListObject2Builder<'a> {
 
 // --------------------------------------------------------------------------
 #[derive(Debug, Serialize, Default)]
-struct CreateBucketConfiguration {
+pub(crate) struct CreateBucketConfiguration {
     #[serde(rename = "StorageClass")]
-    storage_class: StorageClass,
+    pub(crate) storage_class: StorageClass,
     #[serde(
         rename = "data_redundancy_type",
         skip_serializing_if = "Option::is_none"
     )]
-    data_redundancy_type: Option<DataRedundancyType>,
+    pub(crate) data_redundancy_type: Option<DataRedundancyType>,
+}
+
+#[allow(unused)]
+impl CreateBucketConfiguration {
+    pub(crate) fn to_xml(&self) -> String {
+        let content = quick_xml::se::to_string(&self).unwrap();
+        format!("{}{}", oss::XML_DOCTYPE, content)
+    }
 }
 
 #[derive(Debug)]
@@ -213,8 +221,7 @@ impl<'a> CreateBucketBuilder<'a> {
 
     fn config(&self) -> Option<oss::Bytes> {
         let data = if let Some(config) = &self.config {
-            let data_str = serde_xml_rs::to_string(&config).unwrap();
-            Some(oss::Bytes::from(data_str))
+            Some(oss::Bytes::from(config.to_xml()))
         } else {
             None
         };
@@ -237,10 +244,7 @@ impl<'a> CreateBucketBuilder<'a> {
             )
         };
 
-        println!("{}", url);
-
         let headers = self.headers();
-
         let builder = self
             .client
             .request
@@ -248,7 +252,6 @@ impl<'a> CreateBucketBuilder<'a> {
             .url(&url)
             .method(oss::Method::PUT)
             .headers(headers);
-
         let builder = if let Some(data) = self.config() {
             builder.body(data)
         } else {
@@ -362,7 +365,7 @@ impl<'a> BucketInfoBuilder<'a> {
             .unwrap();
 
         let content = String::from_utf8_lossy(&resp.data);
-        let bucket_info: BucketInfo = serde_xml_rs::from_str(&content).unwrap();
+        let bucket_info: BucketInfo = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
@@ -416,7 +419,7 @@ impl<'a> BucketStatBuilder<'a> {
             .await?;
 
         let content = String::from_utf8_lossy(&resp.data);
-        let bucket_stat: BucketStat = serde_xml_rs::from_str(&content).unwrap();
+        let bucket_stat: BucketStat = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
@@ -470,7 +473,7 @@ impl<'a> BucketLocationBuilder<'a> {
             .await?;
 
         let content = String::from_utf8_lossy(&resp.data);
-        let bucket_stat: LocationConstraint = serde_xml_rs::from_str(&content).unwrap();
+        let bucket_stat: LocationConstraint = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
@@ -516,7 +519,7 @@ impl<'a> InitiateBucketWormBuilder<'a> {
         let config = InitiateWormConfiguration {
             retention_period_in_days: self.days,
         };
-        serde_xml_rs::to_string(&config).unwrap()
+        quick_xml::se::to_string(&config).unwrap()
     }
 
     pub async fn send(&self) -> oss::Result<()> {
@@ -608,5 +611,28 @@ impl<'a> PutBucketAclBuilder<'a> {
             data: (),
         };
         Ok(result)
+    }
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub struct PutBucketTagsbuilder<'a> {
+    client: &'a oss::Client<'a>,
+    tags: Tagging,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::oss::{
+        api::bucket::builders::CreateBucketConfiguration, arguments::DataRedundancyType,
+    };
+
+    #[test]
+    fn create_bucket_configuration() {
+        let mut config = CreateBucketConfiguration::default();
+        config.data_redundancy_type = Some(DataRedundancyType::LRS);
+        println!("{:#?}", config);
+        println!("{}", config.to_xml());
+        assert_eq!(1, 1);
     }
 }

@@ -27,6 +27,7 @@ const USER_AGENT: &'static str = "xt oss/0.1";
 const DEFAULT_CONTENT_TYPE: &'static str = "application/octet-stream";
 const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
 const GMT_DATE_FMT: &'static str = "%a, %d %b %Y %H:%M:%S GMT";
+const XML_DOCTYPE: &'static str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
 #[derive(Debug, Default)]
 pub struct Data<T> {
@@ -250,14 +251,14 @@ impl<'a> RequestTask<'a> {
         } else {
             let content = String::from_utf8_lossy(&data);
             if content.len() > 0 {
-                let message: Message = serde_xml_rs::from_str(&content).unwrap();
+                let message: Message = quick_xml::de::from_str(&content).unwrap();
                 Err(message)
             } else {
                 if headers.contains_key("x-oss-err") {
                     let error_info = headers.get("x-oss-err").unwrap();
                     let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
                     let content = String::from_utf8_lossy(&error_info);
-                    let message: Message = serde_xml_rs::from_str(&content).unwrap();
+                    let message: Message = quick_xml::de::from_str(&content).unwrap();
                     Err(message)
                 } else {
                     let message = Message::default();
