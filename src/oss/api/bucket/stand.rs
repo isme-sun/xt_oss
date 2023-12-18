@@ -1,8 +1,8 @@
-use crate::oss::api::bucket::builders::DeleteBucketBuilder;
+use crate::oss::api::bucket::builders::{DeleteBucketBuilder, ListObjectBuilder};
 #[allow(unused)]
 use crate::oss::{
     self,
-    entities::{BucketInfo, BucketStat, ListBucketResult},
+    entities::BucketStat,
     Client, Data, Method, Result,
 };
 
@@ -23,8 +23,9 @@ impl<'a> Client<'a> {
     }
 
     /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-    pub fn ListObjects(&self) {
-        todo!()
+    #[allow(private_interfaces)]
+    pub fn ListObjects(&self) -> ListObjectBuilder {
+        ListObjectBuilder::new(&self)
     }
 
     // ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。

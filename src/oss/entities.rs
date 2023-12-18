@@ -132,7 +132,7 @@ pub struct Object {
 
 #[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListBucketResult {
+pub struct ListBucketResult2 {
     #[serde(rename(deserialize = "Name"))]
     pub name: String,
     #[serde(rename(deserialize = "Prefix"))]
@@ -174,33 +174,33 @@ pub struct AccessControlList {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Bucket {
-    #[serde(rename(deserialize = "AccessMonitor"))]
+    #[serde(rename = "AccessMonitor")]
     pub access_monitor: Option<String>,
-    #[serde(rename(deserialize = "CreationDate"))]
+    #[serde(rename = "CreationDate")]
     pub creation_date: String,
-    #[serde(rename(deserialize = "ExtranetEndpoint"))]
+    #[serde(rename = "ExtranetEndpoint")]
     pub extranet_endpoint: String,
-    #[serde(rename(deserialize = "IntranetEndpoint"))]
+    #[serde(rename = "IntranetEndpoint")]
     pub intranet_endpoint: String,
-    #[serde(rename(deserialize = "Location"))]
+    #[serde(rename = "Location")]
     pub location: String,
-    #[serde(rename(deserialize = "StorageClass"))]
+    #[serde(rename = "StorageClass")]
     pub storage_class: StorageClass,
-    #[serde(rename(deserialize = "TransferAcceleration"))]
+    #[serde(rename = "TransferAcceleration")]
     pub transfer_acceleration: Option<String>,
-    #[serde(rename(deserialize = "CrossRegionReplication"))]
+    #[serde(rename = "CrossRegionReplication")]
     pub cross_region_replication: Option<String>,
-    #[serde(rename(deserialize = "Name"))]
+    #[serde(rename = "Name")]
     pub name: String,
-    #[serde(rename(deserialize = "ResourceGroupId"))]
+    #[serde(rename = "ResourceGroupId")]
     pub resource_group_id: Option<String>,
-    #[serde(rename(deserialize = "Owner"))]
+    #[serde(rename = "Owner")]
     pub owner: Option<Owner>,
-    #[serde(rename(deserialize = "AccessControlList"))]
+    #[serde(rename = "AccessControlList")]
     pub access_control_list: Option<AccessControlList>,
-    #[serde(rename(deserialize = "Comment"))]
+    #[serde(rename = "Comment")]
     pub comment: String,
-    #[serde(rename(deserialize = "BucketPolicy"))]
+    #[serde(rename = "BucketPolicy")]
     pub bucket_policy: Option<BucketPolicy>,
 }
 
@@ -213,19 +213,19 @@ pub struct BucketInfo {
 /// OSS 区域信息
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RegionInfo {
-    #[serde(rename(serialize = "AccelerateEndpoint", deserialize = "AccelerateEndpoint"))]
+    #[serde(rename = "AccelerateEndpoint")]
     pub accelerate_endpoint: String,
-    #[serde(rename(serialize = "InternalEndpoint", deserialize = "InternalEndpoint"))]
+    #[serde(rename = "InternalEndpoint")]
     pub internal_endpoint: String,
-    #[serde(rename(serialize = "InternetEndpoint", deserialize = "InternetEndpoint"))]
+    #[serde(rename = "InternetEndpoint")]
     pub internet_endpoint: String,
-    #[serde(rename(serialize = "Region", deserialize = "Region"))]
+    #[serde(rename = "Region")]
     pub region: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegionInfoList {
-    #[serde(rename(serialize = "RegionInfo", deserialize = "RegionInfo"))]
+    #[serde(rename = "RegionInfo")]
     pub region_info: Vec<RegionInfo>,
 }
 
@@ -244,9 +244,9 @@ pub struct AccessControlPolicy {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tag {
-    #[serde(rename(serialize = "Key", deserialize = "Key"))]
+    #[serde(rename = "Key")]
     pub key: String,
-    #[serde(rename(serialize = "Value", deserialize = "Value"))]
+    #[serde(rename = "Value")]
     pub value: String,
 }
 
@@ -260,6 +260,50 @@ pub struct TagSet {
 pub struct Tagging {
     #[serde(rename = "TagSet")]
     pub tag_set: TagSet,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CommonPrefixes {
+    #[serde(rename = "Prefix")]
+    pub prefix: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Contents {
+    #[serde(rename = "Key")]
+    pub key: String,
+    #[serde(rename = "LastModified")]
+    pub last_modified: String,
+    #[serde(rename = "ETag")]
+    pub etag: String,
+    #[serde(rename = "Type")]
+    pub r#type: String,
+    #[serde(rename = "Size")]
+    pub size: i32,
+    #[serde(rename = "StorageClass")]
+    pub storage_class: StorageClass,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListBucketResult {
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Prefix")]
+    pub prefix: String,
+    #[serde(rename = "Marker")]
+    pub marker: String,
+    #[serde(rename = "MaxKeys")]
+    pub max_keys: i32,
+    #[serde(rename = "Delimiter")]
+    pub delimiter: String,
+    #[serde(rename = "IsTruncated")]
+    pub is_truncated: bool,
+    #[serde(rename = "NextMarker")]
+    pub next_marker: Option<String>,
+    #[serde(rename = "Contents")]
+    pub contents: Option<Vec<Contents>>,
+    #[serde(rename = "CommonPrefixes")]
+    pub common_prefixes: Option<Vec<CommonPrefixes>>,
 }
 
 #[cfg(test)]

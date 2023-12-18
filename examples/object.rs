@@ -39,7 +39,27 @@ async fn put_object() {
 }
 
 #[allow(unused)]
-async fn object_list() {
+async fn object_list1() {
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let result = client
+        .ListObjects()
+        .prefix("course/video")
+        .max_keys(30)
+        .send()
+        .await;
+
+    match result {
+        Ok(data) => {
+            println!("{}", serde_json::to_string(&data.data).unwrap())
+        }
+        Err(message) => println!("{}", message),
+    }
+}
+
+#[allow(unused)]
+async fn object_list2() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
@@ -50,18 +70,11 @@ async fn object_list() {
         .send()
         .await
         .unwrap();
-
-    if let Some(contents) = result.data.contents {
-        for item in contents {
-            println!("{}", urlencoding::decode(&item.key).unwrap());
-        }
-    } else {
-        println!("not exists");
-    }
+    println!("{:#?}", result.data);
 }
 
 #[tokio::main]
 async fn main() {
-    object_list().await;
+    object_list1().await;
     // put_object().await;
 }

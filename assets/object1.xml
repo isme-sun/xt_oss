@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult>
+	<Name> xuetube-dev </Name>
+	<Prefix> </Prefix>
+	<Marker> </Marker>
+	<MaxKeys> 10 </MaxKeys>
+	<Delimiter> / </Delimiter>
+	<IsTruncated> true </IsTruncated>
+	<NextMarker> other/ </NextMarker>
+	<Contents>
+		<Key> 1.txt </Key>
+		<LastModified> 2022-08-29T09:10:13.000Z </LastModified>
+		<ETag> "E2FC714C4727EE9395F324CD2E7F331F" </ETag>
+		<Type> Normal </Type>
+		<Size> 4 </Size>
+		<StorageClass> Standard </StorageClass>
+		<Owner>
+			<ID> 1508492296054765 </ID>
+			<DisplayName> 1508492296054765 </DisplayName>
+		</Owner>
+	</Contents>
+	<Contents>
+		<Key>
+			2.txt
+		</Key>
+		<LastModified>
+			2022-08-30T02:53:52.000Z
+		</LastModified>
+		<ETag>
+			"900150983CD24FB0D6963F7D28E17F72"
+		</ETag>
+		<Type>
+			Normal
+		</Type>
+		<Size>
+			3
+		</Size>
+		<StorageClass>
+			Standard
+		</StorageClass>
+		<Owner>
+			<ID>
+				1508492296054765
+			</ID>
+			<DisplayName>
+				1508492296054765
+			</DisplayName>
+		</Owner>
+	</Contents>
+	<Contents>
+		<Key>
+			404.html
+		</Key>
+		<LastModified>
+			2021-07-31T11:58:10.000Z
+		</LastModified>
+		<ETag>
+			"717AF211902681C8DDE384D8BEF7DAB5"
+		</ETag>
+		<Type>
+			Normal
+		</Type>
+		<Size>
+			587
+		</Size>
+		<StorageClass>
+			Standard
+		</StorageClass>
+		<Owner>
+			<ID>
+				1508492296054765
+			</ID>
+			<DisplayName>
+				1508492296054765
+			</DisplayName>
+		</Owner>
+	</Contents>
+	<Contents>
+		<Key>
+			index.html
+		</Key>
+		<LastModified>
+			2022-08-31T05:40:04.000Z
+		</LastModified>
+		<ETag>
+			"6D9C0B1A7D42E9F9548CC8B53E94D5A4"
+		</ETag>
+		<Type>
+			Normal
+		</Type>
+		<Size>
+			880
+		</Size>
+		<StorageClass>
+			Standard
+		</StorageClass>
+		<Owner>
+			<ID>
+				1508492296054765
+			</ID>
+			<DisplayName>
+				1508492296054765
+			</DisplayName>
+		</Owner>
+	</Contents>
+	<CommonPrefixes>
+		<Prefix>
+			agora/
+		</Prefix>
+	</CommonPrefixes>
+	<CommonPrefixes>
+		<Prefix>
+			appendix/
+		</Prefix>
+	</CommonPrefixes>
+	<CommonPrefixes>
+		<Prefix>
+			backup/
+		</Prefix>
+	</CommonPrefixes>
+	<CommonPrefixes>
+		<Prefix>
+			course/
+		</Prefix>
+	</CommonPrefixes>
+	<CommonPrefixes>
+		<Prefix>
+			disk/
+		</Prefix>
+	</CommonPrefixes>
+	<CommonPrefixes>
+		<Prefix>
+			other/
+		</Prefix>
+	</CommonPrefixes>
+</ListBucketResult>

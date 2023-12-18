@@ -1,7 +1,7 @@
 #[allow(unused)]
 use crate::oss::{
     self,
-    entities::{BucketInfo, BucketStat, ListBucketResult},
+    entities::{BucketInfo, BucketStat},
     Client, Data, Method, Result,
 };
 

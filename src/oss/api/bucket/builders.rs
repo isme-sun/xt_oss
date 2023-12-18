@@ -4,8 +4,98 @@ use std::fmt;
 use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
-    entities::{BucketInfo, BucketStat, ListBucketResult, LocationConstraint, Tagging},
+    entities::{
+        BucketInfo, BucketStat, ListBucketResult, ListBucketResult2, LocationConstraint, Tagging,
+    },
 };
+// --------------------------------------------------------------------------
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct ListObjectQuery<'a> {
+    delimiter: Option<&'a str>,
+    marker: Option<&'a str>,
+    #[serde(rename = "max-keys")]
+    max_keys: Option<i32>,
+    prefix: Option<&'a str>,
+    #[serde(rename = "encoding-type")]
+    encoding_type: Option<&'a str>,
+}
+
+impl<'a> fmt::Display for ListObjectQuery<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", serde_qs::to_string(self).unwrap())
+    }
+}
+
+impl<'a> Default for ListObjectQuery<'a> {
+    fn default() -> Self {
+        ListObjectQuery {
+            delimiter: None,
+            marker: None,
+            max_keys: Some(100),
+            prefix: None,
+            encoding_type: None,
+        }
+    }
+}
+
+pub struct ListObjectBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    query: ListObjectQuery<'a>,
+}
+
+impl<'a> ListObjectBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            query: ListObjectQuery::default(),
+        }
+    }
+
+    pub fn delimiter(mut self, value: &'a str) -> Self {
+        self.query.delimiter = Some(value);
+        self
+    }
+
+    pub fn marker(mut self, value: &'a str) -> Self {
+        self.query.marker = Some(value);
+        self
+    }
+
+    pub fn max_keys(mut self, value: i32) -> Self {
+        self.query.max_keys = Some(value);
+        self
+    }
+
+    pub fn prefix(mut self, value: &'a str) -> Self {
+        self.query.prefix = Some(value);
+        self
+    }
+
+    pub fn encoding_type(mut self, value: &'a str) -> Self {
+        self.query.encoding_type = Some(value);
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<ListBucketResult> {
+        let url = {
+            let base_url = self.client.options.base_url();
+            format!("{}?{}", base_url, self.query)
+        };
+
+        // println!("{}", url);
+
+        let resp = self.client.request.task().url(&url).send().await.unwrap();
+
+        let content = String::from_utf8_lossy(&resp.data);
+        let buckets = quick_xml::de::from_str(&content).unwrap();
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: buckets,
+        };
+        Ok(result)
+    }
+}
 
 // --------------------------------------------------------------------------
 #[derive(Debug, Serialize, Deserialize)]
@@ -100,16 +190,25 @@ impl<'a> ListObject2Builder<'a> {
         self
     }
 
-    pub async fn send(&self) -> oss::Result<ListBucketResult> {
+    pub async fn send(&self) -> oss::Result<ListBucketResult2> {
         let url = {
             let base_url = self.client.options.base_url();
-            format!("{}?{}", base_url, self.query)
+            format!("{}/?{}", base_url, self.query)
         };
 
-        let resp = self.client.request.task().url(&url).send().await.unwrap();
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::GET)
+            .send()
+            .await
+            .unwrap();
 
         let content = String::from_utf8_lossy(&resp.data);
-        let buckets: ListBucketResult = quick_xml::de::from_str(&content).unwrap();
+        println!("{}", content);
+        let buckets: ListBucketResult2 = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
