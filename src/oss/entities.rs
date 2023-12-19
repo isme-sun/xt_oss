@@ -308,19 +308,46 @@ pub struct ListBucketResult {
     pub common_prefixes: Option<Vec<CommonPrefixes>>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefererList {
+    #[serde(rename = "Referer")]
+    pub referer: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefererBlacklist {
+    #[serde(rename = "Referer")]
+    pub referer: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefererConfiguration {
+
+    #[serde(rename = "AllowEmptyReferer")]
+    pub allow_empty_referer: bool,
+    #[serde(rename = "AllowTruncateQueryString")]
+    pub allow_truncate_query_string: bool,
+    #[serde(rename = "TruncatePath")]
+    pub truncate_path: bool,
+    #[serde(rename = "RefererList")]
+    pub referer_list: RefererList,
+    #[serde(rename = "RefererBlacklist")]
+    pub referer_blacklist: RefererBlacklist
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::oss::entities::{Tag, TagSet, Tagging};
+    use crate::oss::entities::{Tag, TagSet, Tagging, RefererConfiguration};
 
     #[test]
     fn t1() {
         let tag = Tag {
-            key: "sjy".to_string(),
-            value: "孙健勇".to_string(),
+            key: "key1".to_string(),
+            value: "value1".to_string(),
         };
         let tag1 = Tag {
-            key: "sjy".to_string(),
-            value: "孙健勇".to_string(),
+            key: "key1".to_string(),
+            value: "value1".to_string(),
         };
 
         let tag_set = TagSet {
@@ -350,4 +377,30 @@ mod tests {
             println!("{} = {}", tag.key, tag.value);
         }
     }
+
+    #[test]
+    fn referer_configuration() {
+        let content = r#"<?xml version="1.0" encoding="UTF-8"?>
+<RefererConfiguration>
+  <AllowEmptyReferer>false</AllowEmptyReferer>
+  <AllowTruncateQueryString>true</AllowTruncateQueryString>
+  <TruncatePath>true</TruncatePath>
+  <RefererList>
+    <Referer>http://www.aliyun.com</Referer>
+    <Referer>https://www.aliyun.com</Referer>
+    <Referer>http://www.*.com</Referer>
+    <Referer>https://www.?.aliyuncs.com</Referer>
+  </RefererList>
+  <RefererBlacklist>
+    <Referer>http://www.refuse.com</Referer>
+    <Referer>https://*.hack.com</Referer>
+    <Referer>http://ban.*.com</Referer>
+    <Referer>https://www.?.deny.com</Referer>
+  </RefererBlacklist>
+</RefererConfiguration>"#;
+
+        let object: RefererConfiguration =  quick_xml::de::from_str(&content).unwrap();
+        println!("{:#?}", object);
+    }
+
 }

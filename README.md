@@ -24,7 +24,7 @@
 - [X] 10 ★ `InitiateBucketWorm`
 - [X] 11 ★ `AbortBucketWorm`
 - [X] 12 ★ `CompleteBucketWorm`
-- [ ] 13 ★ `ExtendBucketWorm`
+- [X] 13 ★ `ExtendBucketWorm`
 - [X] 14 ★ `GetBucketWorm`
 
 ### Bucket 权限控制（ACL）
