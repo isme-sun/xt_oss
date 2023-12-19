@@ -137,7 +137,6 @@ impl<'a> Authorization<'a> {
             Date = self.date,
             Resource = self.canonicalized_resource()
         );
-        println!("{}", value);
 
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();

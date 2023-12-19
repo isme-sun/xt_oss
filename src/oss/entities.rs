@@ -1,6 +1,34 @@
 use crate::oss;
 use serde::{Deserialize, Serialize};
-#[allow(unused_imports)]
+
+pub(crate) mod inner {
+    use serde::{Deserialize, Serialize};
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct RefererList {
+        #[serde(rename = "Referer")]
+        pub referer: Option<Vec<String>>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct RefererBlacklist {
+        #[serde(rename = "Referer")]
+        pub referer: Option<Vec<String>>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct RefererConfiguration {
+        #[serde(rename = "AllowEmptyReferer")]
+        pub allow_empty_referer: bool,
+        #[serde(rename = "AllowTruncateQueryString")]
+        pub allow_truncate_query_string: bool,
+        #[serde(rename = "TruncatePath")]
+        pub truncate_path: bool,
+        #[serde(rename = "RefererList")]
+        pub referer_list: Option<RefererList>,
+        #[serde(rename = "RefererBlacklist")]
+        pub referer_blacklist: Option<RefererBlacklist>,
+    }
+}
 
 /// OSS 存储类型
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -283,7 +311,7 @@ pub struct Contents {
     #[serde(rename = "StorageClass")]
     pub storage_class: StorageClass,
     #[serde(rename = "Owner")]
-    pub owner: Option<Owner>
+    pub owner: Option<Owner>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -309,20 +337,7 @@ pub struct ListBucketResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RefererList {
-    #[serde(rename = "Referer")]
-    pub referer: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RefererBlacklist {
-    #[serde(rename = "Referer")]
-    pub referer: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct RefererConfiguration {
-
     #[serde(rename = "AllowEmptyReferer")]
     pub allow_empty_referer: bool,
     #[serde(rename = "AllowTruncateQueryString")]
@@ -330,14 +345,14 @@ pub struct RefererConfiguration {
     #[serde(rename = "TruncatePath")]
     pub truncate_path: bool,
     #[serde(rename = "RefererList")]
-    pub referer_list: RefererList,
+    pub referer_list: Vec<String>,
     #[serde(rename = "RefererBlacklist")]
-    pub referer_blacklist: RefererBlacklist
+    pub referer_blacklist: Vec<String>
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::oss::entities::{Tag, TagSet, Tagging, RefererConfiguration};
+    use crate::oss::entities::{RefererConfiguration, Tag, TagSet, Tagging};
 
     #[test]
     fn t1() {
@@ -399,8 +414,7 @@ mod tests {
   </RefererBlacklist>
 </RefererConfiguration>"#;
 
-        let object: RefererConfiguration =  quick_xml::de::from_str(&content).unwrap();
+        let object: RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
         println!("{:#?}", object);
     }
-
 }
