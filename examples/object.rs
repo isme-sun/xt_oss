@@ -46,7 +46,7 @@ async fn object_list1() {
     let result = client
         .ListObjects()
         .prefix("course/video")
-        .max_keys(30)
+        .max_keys(10)
         .send()
         .await;
 

@@ -5,7 +5,7 @@ use crate::oss::{
     Client, Data, Method, Result,
 };
 
-use super::builders::InitiateBucketWormBuilder;
+use super::builders::{InitiateBucketWormBuilder, ExtendBucketWormBuilder};
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
@@ -63,8 +63,8 @@ impl<'a> Client<'a> {
 
     /// ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。
     #[allow(non_snake_case)]
-    pub fn ExtendBucketWorm() {
-        todo!()
+    pub fn ExtendBucketWorm(&self) ->ExtendBucketWormBuilder {
+        ExtendBucketWormBuilder::new(self)
     }
 
     /// GetBucketWorm用于获取指定存储空间（Bucket）的合规保留策略信息。

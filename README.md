@@ -13,7 +13,7 @@
 
 - [X] 03 ★ `PutBucket` 
 - [X] 04 ★ `DeleteBucket`
-- [ ] 05 ★ `ListObjects`
+- [X] 05 ★ `ListObjects`
 - [X] 06 ★ `ListObjectsV2`
 - [X] 07 ★ `GetBucketInfo`
 - [X] 08 ★ `GetBucketLocation`

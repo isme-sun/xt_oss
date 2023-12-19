@@ -597,13 +597,25 @@ impl Default for InitiateWormConfiguration {
     }
 }
 
-#[allow(unused)]
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct ExtendWormConfiguration {
+    #[serde(rename = "RetentionPeriodInDays")]
+    pub(crate) retention_period_in_days: i32,
+}
+
+impl Default for ExtendWormConfiguration {
+    fn default() -> Self {
+        Self {
+            retention_period_in_days: 1,
+        }
+    }
+}
+
 pub struct InitiateBucketWormBuilder<'a> {
     client: &'a oss::Client<'a>,
     days: i32,
 }
 
-#[allow(unused)]
 impl<'a> InitiateBucketWormBuilder<'a> {
     pub fn new(client: &'a oss::Client) -> Self {
         Self { client, days: 1 }
@@ -635,6 +647,79 @@ impl<'a> InitiateBucketWormBuilder<'a> {
         };
 
         let config = self.config();
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .method(oss::Method::POST)
+            .url(&url)
+            .body(oss::Bytes::from(config))
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+#[allow(unused)]
+pub struct ExtendBucketWormBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    worm_id: Option<&'a str>,
+    days: i32,
+}
+
+#[allow(unused)]
+impl<'a> ExtendBucketWormBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            days: 1,
+            worm_id: None,
+        }
+    }
+
+    pub fn worm_id(mut self, value: &'a str) -> Self {
+        self.worm_id = Some(value);
+        self
+    }
+
+    pub fn days(mut self, value: i32) -> Self {
+        self.days = value;
+        self
+    }
+
+    fn config(&self) -> String {
+        let config = ExtendWormConfiguration {
+            retention_period_in_days: self.days,
+        };
+        quick_xml::se::to_string(&config).unwrap()
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let bucket = self.client.options.bucket;
+        let res = {
+            format!(
+                "wormExtend&wormId={}",
+                match self.worm_id {
+                    Some(worm_id) => worm_id,
+                    None => "",
+                }
+            )
+        };
+        let url = { format!("{}/?{}", self.client.options.base_url(), res) };
+
+        println!("{}", url);
+
+        let config = self.config();
+
+        println!("{}", config);
 
         let resp = self
             .client

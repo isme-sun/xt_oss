@@ -16,8 +16,10 @@ async fn main() {
     //     }
     // }
 
+    // 7A4AFCD96C394FDBAF9CFF9107507750
+    // * CompleteBucketWorm用于锁定合规保留策略 *
     // let result = client
-    //     .CompleteBucketWorm("47184D37AFE04D59BB64480EBA6A9402")
+    //     .CompleteBucketWorm("BC15D1A1AD0D48AD97EC096D87D705BD")
     //     .await;
     // match result {
     //     Ok(data) => {
@@ -43,10 +45,27 @@ async fn main() {
     let result = client.GetBucketWorm().await;
     match result {
         Ok(data) => {
-            println!("{}", serde_json::to_string(&data.data).unwrap());
+            println!("{:#?}", data.data);
         }
         Err(message) => {
             println!("{}", message)
         }
     }
+
+    // * ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。*
+    // let worm_id = "BC15D1A1AD0D48AD97EC096D87D705BD";
+    // let result = client.ExtendBucketWorm()
+    //                    .worm_id(worm_id)
+    //                    .days(2)
+    //                    .send()
+    //                    .await;
+    // match result {
+    //     Ok(data) => {
+    //         println!("{:#?}", data.data);
+    //     }
+    //     Err(message) => {
+    //         println!("{:#?}", message)
+    //     }
+    // }
+    
 }

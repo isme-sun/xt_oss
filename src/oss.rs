@@ -50,6 +50,14 @@ pub struct Message {
     pub ec: Option<String>,
     #[serde(rename(deserialize = "RecommendDoc"))]
     pub recommend_doc: Option<String>,
+    #[serde(rename = "OSSAccessKeyId")]
+    pub oss_access_key_id: Option<String>,
+    #[serde(rename = "SignatureProvided")]
+    pub signature_provided: Option<String>,
+    #[serde(rename = "StringToSign")]
+    pub string_to_sign: Option<String>,
+    #[serde(rename = "StringToSignBytes")]
+    pub string_to_sign_bytes: Option<String>
 }
 
 impl Display for Message {
@@ -129,6 +137,8 @@ impl<'a> Authorization<'a> {
             Date = self.date,
             Resource = self.canonicalized_resource()
         );
+        println!("{}", value);
+
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();
         let value = hmacsha1::hmac_sha1(key, message);

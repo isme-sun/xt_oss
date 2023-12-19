@@ -282,6 +282,8 @@ pub struct Contents {
     pub size: i32,
     #[serde(rename = "StorageClass")]
     pub storage_class: StorageClass,
+    #[serde(rename = "Owner")]
+    pub owner: Option<Owner>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
