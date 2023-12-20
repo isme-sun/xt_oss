@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
     entities::{
-        BucketInfo, BucketStat, ListBucketResult, ListBucketResult2, LocationConstraint, Tagging,
+        inner, BucketInfo, BucketStat, ListBucketResult, ListBucketResult2, LocationConstraint,
+        RefererConfiguration, Tag, TagSet, Tagging,
     },
 };
 // --------------------------------------------------------------------------
@@ -82,9 +83,7 @@ impl<'a> ListObjectBuilder<'a> {
             format!("{}?{}", base_url, self.query)
         };
 
-        // println!("{}", url);
-
-        let resp = self.client.request.task().url(&url).send().await.unwrap();
+        let resp = self.client.request.task().url(&url).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
         let buckets = quick_xml::de::from_str(&content).unwrap();
@@ -714,12 +713,7 @@ impl<'a> ExtendBucketWormBuilder<'a> {
             )
         };
         let url = { format!("{}/?{}", self.client.options.base_url(), res) };
-
-        println!("{}", url);
-
         let config = self.config();
-
-        println!("{}", config);
 
         let resp = self
             .client
@@ -741,6 +735,7 @@ impl<'a> ExtendBucketWormBuilder<'a> {
     }
 }
 
+// --------------------------------------------------------------------------
 #[allow(unused)]
 #[derive(Debug)]
 pub struct PutBucketAclBuilder<'a> {
@@ -798,11 +793,304 @@ impl<'a> PutBucketAclBuilder<'a> {
     }
 }
 
-#[allow(unused)]
+// --------------------------------------------------------------------------
+
 #[derive(Debug)]
-pub struct PutBucketTagsbuilder<'a> {
+#[allow(unused)]
+pub struct DeleteBucketTagsBuilder<'a> {
     client: &'a oss::Client<'a>,
-    tags: Tagging,
+    keys: Vec<&'a str>,
+}
+
+#[allow(unused)]
+impl<'a> DeleteBucketTagsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            keys: Vec::new(),
+        }
+    }
+
+    pub fn delete_key(mut self, value: &'a str) -> Self {
+        self.keys.push(value);
+        self
+    }
+
+    pub fn delete_keys(mut self, value: Vec<&'a str>) -> Self {
+        self.keys.extend(value);
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "tagging";
+        let query = if self.keys.len() > 0 {
+            let keys = self.keys.join(",");
+            format!("{}={}", res, keys)
+        } else {
+            format!("{}", res)
+        };
+        let url = { format!("{}/?{}", self.client.options.base_url(), query) };
+
+        println!("{}", url);
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::DELETE)
+            .resourse(&query)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+#[derive(Debug)]
+pub struct PutBucketRefererBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    config: RefererConfiguration,
+}
+
+impl<'a> PutBucketRefererBuilder<'a> {
+    pub fn new(cilent: &'a oss::Client) -> Self {
+        Self {
+            client: cilent,
+            config: RefererConfiguration::default(),
+        }
+    }
+
+    pub fn allow_empty_referer(mut self, value: bool) -> Self {
+        self.config.allow_empty_referer = value;
+        self
+    }
+
+    pub fn allow_truncate_query_string(mut self, value: bool) -> Self {
+        self.config.allow_truncate_query_string = value;
+        self
+    }
+
+    pub fn truncate_path(mut self, value: bool) -> Self {
+        self.config.truncate_path = value;
+        self
+    }
+
+    pub fn referer_list(mut self, value: Vec<String>) -> Self {
+        self.config.referer_list = value;
+        self
+    }
+
+    pub fn referer_blacklist(mut self, value: Vec<String>) -> Self {
+        self.config.referer_blacklist = value;
+        self
+    }
+
+    pub fn get_referer_list(self) -> Vec<String> {
+        self.config.referer_list
+    }
+
+    pub fn get_referer_blacklist(self) -> Vec<String> {
+        self.config.referer_blacklist
+    }
+
+    pub fn push_to_referer_list(mut self, value: &'a str) -> Self {
+        let mut index: Option<usize> = None;
+        for (i, item) in self.config.referer_list.iter().enumerate() {
+            if value == *item {
+                index = Some(i);
+                break;
+            }
+        }
+        if let None = index {
+            self.config.referer_list.push(value.to_string());
+        }
+        self
+    }
+
+    pub fn remove_from_referer_list(mut self, value: &'a str) -> Self {
+        let mut index: Option<usize> = None;
+        for (i, item) in self.config.referer_list.iter().enumerate() {
+            if value == *item {
+                index = Some(i);
+                break;
+            }
+        }
+        if let Some(index) = index {
+            self.config.referer_list.remove(index);
+        }
+        self
+    }
+
+    pub fn push_to_referer_blacklist(mut self, value: &'static str) -> Self {
+        let mut index: Option<usize> = None;
+        for (i, item) in self.config.referer_blacklist.iter().enumerate() {
+            if value == *item {
+                index = Some(i);
+                break;
+            }
+        }
+        if let None = index {
+            self.config.referer_blacklist.push(value.to_string());
+        }
+        self
+    }
+
+    pub fn remove_from_referer_backlist(mut self, value: String) -> Self {
+        let mut index: Option<usize> = None;
+        for (i, item) in self.config.referer_blacklist.iter().enumerate() {
+            if value == *item {
+                index = Some(i);
+                break;
+            }
+        }
+        if let Some(index) = index {
+            self.config.referer_blacklist.remove(index);
+        }
+        self
+    }
+
+    fn config(&self) -> String {
+        let referer_list = {
+            if self.config.referer_list.len() > 0 {
+                Some(inner::RefererList {
+                    referer: Some({
+                        let mut referer: Vec<String> = Vec::new();
+                        for url in &self.config.referer_list {
+                            referer.push(url.to_string())
+                        }
+                        referer
+                    }),
+                })
+            } else {
+                None
+            }
+        };
+        let referer_blacklist = {
+            if self.config.referer_blacklist.len() > 0 {
+                Some(inner::RefererBlacklist {
+                    referer: Some({
+                        let mut referer: Vec<String> = Vec::new();
+                        for url in &self.config.referer_blacklist {
+                            referer.push(url.to_string())
+                        }
+                        referer
+                    }),
+                })
+            } else {
+                None
+            }
+        };
+        let config = inner::RefererConfiguration {
+            allow_empty_referer: self.config.allow_empty_referer,
+            allow_truncate_query_string: self.config.allow_truncate_query_string,
+            truncate_path: self.config.truncate_path,
+            referer_list,
+            referer_blacklist,
+        };
+        quick_xml::se::to_string(&config).unwrap()
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "referer";
+        let url = { format!("{}?{}", self.client.options.base_url(), res) };
+        let config = self.config();
+        let data = oss::Bytes::from(config);
+        let resp = self
+            .client
+            .request
+            .task()
+            .method(oss::Method::PUT)
+            .url(&url)
+            .resourse(&res)
+            .body(data)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+// --------------------------------------------------------------------------
+#[derive(Debug)]
+#[allow(unused)]
+pub struct PutBucketTagsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    tags: HashMap<&'a str, &'a str>,
+}
+
+#[allow(unused)]
+impl<'a> PutBucketTagsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            tags: HashMap::new(),
+        }
+    }
+
+    /// 添加tag
+    pub fn add_tag(mut self, key: &'a str, value: &'a str) -> Self {
+        self.tags.insert(key, value);
+        self
+    }
+
+    /// 移除tag
+    pub fn remove_tag(mut self, key: &'a str) -> Self {
+        self.tags.remove(key);
+        self
+    }
+
+    pub fn tagging(&self) -> Tagging {
+        let mut tags: Vec<Tag> = Vec::new();
+        for (key, value) in self.tags.clone() {
+            tags.push(Tag {
+                key: String::from(key),
+                value: String::from(value),
+            });
+        }
+        Tagging {
+            tag_set: TagSet { tag: tags },
+        }
+    }
+
+    pub fn tagging_xml(&self) -> String {
+        quick_xml::se::to_string(&self.tagging()).unwrap()
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "tagging";
+        let url = format!("{}?{}", self.client.options.base_url(), res);
+
+        let data = oss::Bytes::from(self.tagging_xml());
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::PUT)
+            .resourse(res)
+            .body(data)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
 }
 
 #[cfg(test)]

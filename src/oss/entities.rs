@@ -272,19 +272,19 @@ pub struct AccessControlPolicy {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tag {
-    #[serde(rename = "Key")]
+    #[serde(rename="Key")]
     pub key: String,
     #[serde(rename = "Value")]
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TagSet {
     #[serde(rename = "Tag")]
-    tag: Vec<Tag>,
+    pub(crate) tag: Vec<Tag>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Tagging {
     #[serde(rename = "TagSet")]
     pub tag_set: TagSet,
@@ -347,7 +347,19 @@ pub struct RefererConfiguration {
     #[serde(rename = "RefererList")]
     pub referer_list: Vec<String>,
     #[serde(rename = "RefererBlacklist")]
-    pub referer_blacklist: Vec<String>
+    pub referer_blacklist: Vec<String>,
+}
+
+impl Default for RefererConfiguration {
+    fn default() -> Self {
+        Self {
+            allow_empty_referer: false,
+            allow_truncate_query_string: true,
+            truncate_path: true,
+            referer_list: Default::default(),
+            referer_blacklist: Default::default(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -355,7 +367,7 @@ mod tests {
     use crate::oss::entities::{RefererConfiguration, Tag, TagSet, Tagging};
 
     #[test]
-    fn t1() {
+    fn tagging() {
         let tag = Tag {
             key: "key1".to_string(),
             value: "value1".to_string(),
@@ -388,9 +400,7 @@ mod tests {
 </Tagging>"#;
 
         let c: Tagging = quick_xml::de::from_str(&xml).unwrap();
-        for tag in c.tag_set.tag {
-            println!("{} = {}", tag.key, tag.value);
-        }
+        println!("{:#?}", c);
     }
 
     #[test]

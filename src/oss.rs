@@ -509,4 +509,39 @@ impl<'a> Client<'a> {
             .access_key_secret(options.access_key_secret);
         Self { options, request }
     }
+
+    pub fn options(&self) -> &oss::Options {
+        &self.options
+    }
+
+    pub fn region(mut self, value:&'a str) -> Self {
+        self.options.region = value;
+        self
+    }
+
+    pub fn bucket(mut self, value: &'a str) -> Self {
+        self.options.bucket = value;
+        self
+    }
+
+    pub fn internal(mut self, value: bool) -> Self {
+        self.options.internal = value;
+        self
+    }
+
+    pub fn cname(mut self, value: bool) -> Self {
+        self.options.cname = value;
+        self
+    }
+
+    pub fn secure(mut self, value: bool) -> Self {
+        self.options.secure = value;
+        self
+    }
+
+    pub fn timeout(mut self, value: u64) -> Self {
+        self.options.timeout = value;
+        self
+    }
+
 }

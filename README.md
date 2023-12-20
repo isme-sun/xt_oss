@@ -85,8 +85,8 @@
 
 ### Bucket 防盗链（Referer）
 
-- [ ] 34 ★ `PutBucketReferer`
-- [ ] 35 ★ `GetBucketReferer`
+- [X] 34 ★ `PutBucketReferer`
+- [X] 35 ★ `GetBucketReferer`
 
 ### Bucket 标签（Tags）
 
