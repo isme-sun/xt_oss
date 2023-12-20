@@ -90,9 +90,9 @@
 
 ### Bucket 标签（Tags）
 
-- [ ] 36 ★ `PutBucketTags`
-- [ ] 37 ★ `GetBucketTags`
-- [ ] 38 ★ `DeleteBucketTags`
+- [X] 36 ★ `PutBucketTags`
+- [X] 37 ★ `GetBucketTags`
+- [X] 38 ★ `DeleteBucketTags`
 
 ### Bucket 加密（Encryption）
 
