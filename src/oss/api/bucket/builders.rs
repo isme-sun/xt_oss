@@ -5,7 +5,7 @@ use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
     entities::{
-        inner, BucketInfo, BucketStat, ListBucketResult, ListBucketResult2, LocationConstraint,
+        BucketInfo, BucketStat, ListBucketResult, ListBucketResult2, LocationConstraint,
         RefererConfiguration, Tag, TagSet, Tagging,
     },
 };
@@ -956,43 +956,7 @@ impl<'a> PutBucketRefererBuilder<'a> {
     }
 
     fn config(&self) -> String {
-        let referer_list = {
-            if self.config.referer_list.len() > 0 {
-                Some(inner::RefererList {
-                    referer: Some({
-                        let mut referer: Vec<String> = Vec::new();
-                        for url in &self.config.referer_list {
-                            referer.push(url.to_string())
-                        }
-                        referer
-                    }),
-                })
-            } else {
-                None
-            }
-        };
-        let referer_blacklist = {
-            if self.config.referer_blacklist.len() > 0 {
-                Some(inner::RefererBlacklist {
-                    referer: Some({
-                        let mut referer: Vec<String> = Vec::new();
-                        for url in &self.config.referer_blacklist {
-                            referer.push(url.to_string())
-                        }
-                        referer
-                    }),
-                })
-            } else {
-                None
-            }
-        };
-        let config = inner::RefererConfiguration {
-            allow_empty_referer: self.config.allow_empty_referer,
-            allow_truncate_query_string: self.config.allow_truncate_query_string,
-            truncate_path: self.config.truncate_path,
-            referer_list,
-            referer_blacklist,
-        };
+        let config = self.config.to_inner();
         quick_xml::se::to_string(&config).unwrap()
     }
 

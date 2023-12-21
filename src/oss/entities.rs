@@ -15,7 +15,7 @@ pub(crate) mod inner {
         pub referer: Option<Vec<String>>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, Default)]
     pub struct RefererConfiguration {
         #[serde(rename = "AllowEmptyReferer")]
         pub allow_empty_referer: bool,
@@ -272,7 +272,7 @@ pub struct AccessControlPolicy {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tag {
-    #[serde(rename="Key")]
+    #[serde(rename = "Key")]
     pub key: String,
     #[serde(rename = "Value")]
     pub value: String,
@@ -362,9 +362,89 @@ impl Default for RefererConfiguration {
     }
 }
 
+#[allow(unused)]
+impl RefererConfiguration {
+    pub(crate) fn from_inner(config: inner::RefererConfiguration) -> Self {
+        let mut referer_list: Vec<String> = Vec::new();
+        let mut referer_blacklist: Vec<String> = Vec::new();
+
+        if let Some(inner_referer_list) = config.referer_list {
+            if let Some(referer) = inner_referer_list.referer {
+                for url in referer {
+                    referer_list.push(url);
+                }
+            }
+        }
+
+        if let Some(inner_referer_blacklist) = config.referer_blacklist {
+            if let Some(referer) = inner_referer_blacklist.referer {
+                for url in referer {
+                    referer_blacklist.push(url);
+                }
+            }
+        }
+
+        let config = RefererConfiguration {
+            allow_empty_referer: config.allow_empty_referer,
+            allow_truncate_query_string: config.allow_truncate_query_string,
+            truncate_path: config.truncate_path,
+            referer_list,
+            referer_blacklist,
+        };
+        config
+    }
+
+    pub(crate) fn to_inner(&self) -> inner::RefererConfiguration {
+        let referer_list = {
+            if self.referer_list.len() > 0 {
+                Some(inner::RefererList {
+                    referer: Some({
+                        let mut referer: Vec<String> = Vec::new();
+                        for url in &self.referer_list {
+                            referer.push(url.to_string())
+                        }
+                        referer
+                    }),
+                })
+            } else {
+                None
+            }
+        };
+        let referer_blacklist = {
+            if self.referer_blacklist.len() > 0 {
+                Some(inner::RefererBlacklist {
+                    referer: Some({
+                        let mut referer: Vec<String> = Vec::new();
+                        for url in &self.referer_blacklist {
+                            referer.push(url.to_string())
+                        }
+                        referer
+                    }),
+                })
+            } else {
+                None
+            }
+        };
+        let config = inner::RefererConfiguration {
+            allow_empty_referer: self.allow_empty_referer,
+            allow_truncate_query_string: self.allow_truncate_query_string,
+            truncate_path: self.truncate_path,
+            referer_list,
+            referer_blacklist,
+        };
+        config
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TransferAccelerationConfiguration {
+    #[serde(rename = "Enabled")]
+    pub enabled: bool,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::oss::entities::{RefererConfiguration, Tag, TagSet, Tagging};
+    use crate::oss::entities::{inner, Tag, TagSet, Tagging, TransferAccelerationConfiguration};
 
     #[test]
     fn tagging() {
@@ -424,7 +504,19 @@ mod tests {
   </RefererBlacklist>
 </RefererConfiguration>"#;
 
-        let object: RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
+        let object: inner::RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
         println!("{:#?}", object);
+    }
+
+    #[test]
+    fn transfer_acceleration_configuration() {
+        let xml = r#"<TransferAccelerationConfiguration>
+  <Enabled>true</Enabled>
+</TransferAccelerationConfiguration>"#;
+        let object1: TransferAccelerationConfiguration = quick_xml::de::from_str(&xml).unwrap();
+
+        let object2 = TransferAccelerationConfiguration { enabled: true };
+
+        assert_eq!(object1.enabled, object2.enabled)
     }
 }

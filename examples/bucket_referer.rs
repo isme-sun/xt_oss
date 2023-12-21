@@ -45,6 +45,6 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options).cname(false);
     println!("{:#?}", client.options());
-    put_referer(&client).await;
+    // put_referer(&client).await;
     get_referer(&client).await;
 }
