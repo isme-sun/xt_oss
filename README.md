@@ -40,8 +40,8 @@
 
 ### Bucket 传输加速（TransferAcceleration）
 
-- [ ] 20 ★ `PutBucketTransferAcceleration`
-- [ ] 21 ★ `GetBucketTransferAcceleration`
+- [X] 20 ★ `PutBucketTransferAcceleration`
+- [X] 21 ★ `GetBucketTransferAcceleration`
 
 ### Bucket 版本控制（Versioning）
 
