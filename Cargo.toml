@@ -18,7 +18,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 base64 = "0.21.5"
-chrono = "0.4.31"
+chrono = { version = "0.4.31" }
 hmac-sha1 = "0.2.1"
 rust-crypto = "0.2.36"
 serde_qs = "0.12.0"
@@ -26,7 +26,7 @@ bytes = "1.5.0"
 tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros"] }
 reqwest = { version = "0.11.22" }
 serde = { version = "1.0.192", features = ["serde_derive"] }
-quick-xml = {version = "0.31.0", features = ["serialize"]}
+quick-xml = { version = "0.31.0", features = ["serialize"] }
 
 [dev-dependencies]
 dotenv = "0.15.0"

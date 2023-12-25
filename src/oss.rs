@@ -15,6 +15,64 @@ pub(crate) mod api;
 pub mod arguments;
 pub mod entities;
 
+pub(crate) mod inner {
+    pub(crate) mod option_datetime_format {
+        use chrono::{DateTime, NaiveDateTime, Utc};
+        use serde::{self, Deserialize, Deserializer, Serializer};
+
+        pub fn serialize<S>(date: &Option<DateTime<Utc>>, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            match date {
+                Some(date) => {
+                    let s = format!("{}", date.format(crate::oss::GMT_DATE_FMT));
+                    serializer.serialize_str(&s)
+                }
+                None => serializer.serialize_str("null"),
+            }
+        }
+
+        pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let s = String::deserialize(deserializer)?;
+            let dt = NaiveDateTime::parse_from_str(&s, crate::oss::GMT_DATE_FMT)
+                .map_err(serde::de::Error::custom)?;
+
+            Ok(Some(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc)))
+        }
+    }
+
+    #[allow(unused)]
+    pub(crate) mod datetime_format {
+        use chrono::{DateTime, NaiveDateTime, Utc};
+        use serde::{self, Deserialize, Deserializer, Serializer};
+
+        pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let s = format!("{}", date.format(crate::oss::GMT_DATE_FMT));
+            serializer.serialize_str(&s)
+        }
+
+        pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let s = String::deserialize(deserializer)?;
+            let dt = NaiveDateTime::parse_from_str(&s, crate::oss::GMT_DATE_FMT)
+                .map_err(serde::de::Error::custom)?;
+
+            let x = DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc);
+
+            Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
+        }
+    }
+}
+
 // re-export
 pub use bytes::Bytes;
 pub use reqwest::header::HeaderMap;
@@ -57,7 +115,7 @@ pub struct Message {
     #[serde(rename = "StringToSign")]
     pub string_to_sign: Option<String>,
     #[serde(rename = "StringToSignBytes")]
-    pub string_to_sign_bytes: Option<String>
+    pub string_to_sign_bytes: Option<String>,
 }
 
 impl Display for Message {
@@ -514,7 +572,7 @@ impl<'a> Client<'a> {
         &self.options
     }
 
-    pub fn region(mut self, value:&'a str) -> Self {
+    pub fn region(mut self, value: &'a str) -> Self {
         self.options.region = value;
         self
     }
@@ -543,5 +601,4 @@ impl<'a> Client<'a> {
         self.options.timeout = value;
         self
     }
-
 }
