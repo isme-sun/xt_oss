@@ -442,9 +442,106 @@ pub struct TransferAccelerationConfiguration {
     pub enabled: bool,
 }
 
+// -----------------------------------------------------------------
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Not {
+    #[serde(rename = "Prefix")]
+    pub prefix: String,
+    #[serde(rename = "Tag")]
+    pub tag: Tag,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Filter {
+    #[serde(rename = "Not")]
+    pub not: Not,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AbortMultipartUpload {
+    #[serde(rename = "Days")]
+    pub days: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NoncurrentVersionTransition {
+    #[serde(rename = "NoncurrentDays", skip_serializing_if = "Option::is_none")]
+    pub noncurrent_days: Option<bool>,
+    #[serde(rename = "StorageClass")]
+    pub storage_class: StorageClass,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Transition {
+    #[serde(rename = "Days")]
+    pub days: i32,
+    #[serde(rename = "StorageClass")]
+    pub storage_class: StorageClass,
+    #[serde(rename = "IsAccessTime", skip_serializing_if = "Option::is_none")]
+    pub is_access_time: Option<bool>,
+    #[serde(
+        rename = "ReturnToStdWhenVisit",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub return_to_std_when_visit: Option<bool>,
+    #[serde(rename = "AllowSmallFile", skip_serializing_if = "Option::is_none")]
+    pub allow_small_file: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Expiration {
+    #[serde(rename = "Days", skip_serializing_if = "Option::is_none")]
+    pub days: Option<i32>,
+    #[serde(
+        rename = "ExpiredObjectDeleteMarker",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub expired_object_delete_marker: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct NoncurrentVersionExpiration {
+    #[serde(rename = "NoncurrentDays")]
+    pub noncurrent_days: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Rule {
+    #[serde(rename = "ID")]
+    pub id: String,
+    #[serde(rename = "Prefix")]
+    pub prefix: String,
+    #[serde(rename = "Status")]
+    pub status: String,
+    #[serde(rename = "Transition", skip_serializing_if = "Option::is_none")]
+    pub transition: Option<Vec<Transition>>,
+    #[serde(rename = "Filter", skip_serializing_if = "Option::is_none")]
+    pub filter: Option<Filter>,
+    #[serde(rename = "Expiration", skip_serializing_if = "Option::is_none")]
+    pub expiration: Option<Expiration>,
+    #[serde(
+        rename = "NoncurrentVersionExpiration",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub noncurrent_version_expiration: Option<NoncurrentVersionExpiration>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LifecycleConfiguration {
+    #[serde(rename = "Rule")]
+    pub rule: Vec<Rule>,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::oss::entities::{inner, Tag, TagSet, Tagging, TransferAccelerationConfiguration};
+
+    use crate::oss::entities::{
+        inner, Expiration, Filter, LifecycleConfiguration, NoncurrentVersionExpiration, Not,
+        StorageClass, Tag, TagSet, Tagging, TransferAccelerationConfiguration, Transition,
+    };
+
+    use super::Rule;
 
     #[test]
     fn tagging() {
@@ -518,5 +615,154 @@ mod tests {
         let object2 = TransferAccelerationConfiguration { enabled: true };
 
         assert_eq!(object1.enabled, object2.enabled)
+    }
+
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_1() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log/</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition></Rule></LifecycleConfiguration>"#;
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "log/".to_string(),
+            status: "Enabled".to_string(),
+            transition: Some(vec![Transition {
+                days: 30,
+                storage_class: StorageClass::IA,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            }]),
+            expiration: None,
+            filter: None,
+            noncurrent_version_expiration: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_2() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Expiration><Days>90</Days></Expiration></Rule></LifecycleConfiguration>"#;
+
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "log".to_string(),
+            status: "Enabled".to_string(),
+            transition: None,
+            expiration: Some(Expiration {
+                days: Some(90),
+                expired_object_delete_marker: None,
+            }),
+            filter: None,
+            noncurrent_version_expiration: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_3() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log/</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition><Transition><Days>60</Days><StorageClass>Archive</StorageClass></Transition><Expiration><Days>3600</Days></Expiration></Rule></LifecycleConfiguration>"#;
+
+        let transition = vec![
+            Transition {
+                days: 30,
+                storage_class: StorageClass::IA,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            },
+            Transition {
+                days: 60,
+                storage_class: StorageClass::Archive,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            },
+        ];
+
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "log/".to_string(),
+            status: "Enabled".to_string(),
+            transition: Some(transition),
+            expiration: Some(Expiration {
+                days: Some(3600),
+                expired_object_delete_marker: None,
+            }),
+            filter: None,
+            noncurrent_version_expiration: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_4() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix></Prefix><Status>Enabled</Status><Expiration><ExpiredObjectDeleteMarker>true</ExpiredObjectDeleteMarker></Expiration><NoncurrentVersionExpiration><NoncurrentDays>5</NoncurrentDays></NoncurrentVersionExpiration></Rule></LifecycleConfiguration>"#;
+
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "".to_string(),
+            status: "Enabled".to_string(),
+            transition: None,
+            expiration: Some(Expiration {
+                days: None,
+                expired_object_delete_marker: Some(true),
+            }),
+            filter: None,
+            noncurrent_version_expiration: Some(NoncurrentVersionExpiration { noncurrent_days: 5 }),
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    #[test]
+    fn lifecycle_configuration_5() {
+        let xml_origin = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix></Prefix><Status>Enabled</Status><Filter> <Not><Prefix>log</Prefix><Tag><Key>key1</Key><Value>value1</Value></Tag></Not></Filter><Transition> <Days>30</Days><StorageClass>Archive</StorageClass></Transition><Expiration><Days>100</Days></Expiration></Rule></LifecycleConfiguration>"#;
+
+        let rule = Rule {
+            id: String::from("rule"),
+            prefix: String::from(""),
+            status: String::from("Enabled"),
+            filter: Some(Filter {
+                not: Not {
+                    prefix: String::from("log"),
+                    tag: Tag {
+                        key: String::from("key1"),
+                        value: String::from("value1"),
+                    },
+                },
+            }),
+            transition: Some(vec![Transition {
+                days: 30,
+                storage_class: StorageClass::Archive,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            }]),
+            expiration: Some(Expiration {
+                days: Some(100),
+                expired_object_delete_marker: None,
+            }),
+            noncurrent_version_expiration: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+
+        let xml_gen = format!("{}", quick_xml::se::to_string(&config).unwrap());
+
+        assert_eq!(xml_gen, xml_origin);
     }
 }
