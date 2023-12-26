@@ -139,10 +139,10 @@
 
 ### Bucket 图片样式（Style）
 
-- [ ] 51 ★ `PutStyle`
-- [ ] 52 ★ `GetStyle`
-- [ ] 53 ★ `ListStyle`
-- [ ] 54 ★ `DeleteStyle`
+- [X] 51 ★ `PutStyle`
+- [X] 52 ★ `GetStyle`
+- [X] 53 ★ `ListStyle`
+- [X] 54 ★ `DeleteStyle`
 
 ### Bucket  安全传输层协议（TLS）
 

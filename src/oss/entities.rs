@@ -534,14 +534,14 @@ pub struct LifecycleConfiguration {
     pub rule: Vec<Rule>,
 }
 //------------------------------------------------------------------------------
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Style<'a> {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Style {
     #[serde(rename = "Name")]
-    pub name: &'a str,
+    pub name: String,
     #[serde(rename = "Content")]
-    pub content: &'a str,
+    pub content: String,
     #[serde(rename = "Category")]
-    pub category: Option<&'a str>,
+    pub category: Option<String>,
     #[serde(
         rename = "CreateTime",
         skip_serializing_if = "Option::is_none",
@@ -554,6 +554,12 @@ pub struct Style<'a> {
         with = "option_datetime_format"
     )]
     pub last_modify_time: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct StyleList {
+    #[serde(rename = "Style")]
+    pub style: Vec<Style>
 }
 
 #[cfg(test)]
@@ -794,9 +800,9 @@ mod tests {
         let xml_origin = r#"<Style><Name>imagestyle</Name><Content>image/resize,p_50</Content><Category>image</Category><CreateTime>Wed, 20 May 2020 12:07:15 GMT</CreateTime><LastModifyTime>Wed, 20 May 2020 12:07:15 GMT</LastModifyTime></Style>"#;
 
         let style = Style {
-            name: "imagestyle",
-            content: "image/resize,p_50",
-            category: Some("image"),
+            name: "imagestyle".to_string(),
+            content: "image/resize,p_50".to_string(),
+            category: Some("image".to_string()),
             create_time: None,
             last_modify_time: None,
         };
