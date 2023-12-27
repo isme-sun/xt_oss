@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::oss::{self, inner::option_datetime_format};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -28,6 +30,28 @@ pub(crate) mod inner {
         pub referer_list: Option<RefererList>,
         #[serde(rename = "RefererBlacklist")]
         pub referer_blacklist: Option<RefererBlacklist>,
+    }
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub enum ObjectACL {
+    #[default]
+    Default,
+    PublicReadWrite,
+    PublicRead,
+    Private
+}
+
+impl Display for ObjectACL {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Self::Default => "default",
+            Self::PublicReadWrite => "public-read-write",
+            Self::PublicRead => "public-read",
+            Self::Private => "private"
+        };
+        write!(f, "{}", value)
     }
 }
 

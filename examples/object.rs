@@ -34,7 +34,7 @@ async fn put_object() {
 
     match result {
         Ok(data) => println!("{:#?}", data.headers),
-        Err(message) => println!("{}", message),
+        Err(message) => println!("{:#?}", message),
     }
 }
 
@@ -75,6 +75,6 @@ async fn object_list2() {
 
 #[tokio::main]
 async fn main() {
-    object_list1().await;
-    // put_object().await;
+    // object_list1().await;
+    put_object().await;
 }

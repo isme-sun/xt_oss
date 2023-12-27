@@ -207,8 +207,8 @@
 
 ### Object 权限控制（ACL)
 
-- [ ] 71 ★ `PutObjectACL`
-- [ ] 72 ★ `GetObjectACL`
+- [X] 71 ★ `PutObjectACL`
+- [X] 72 ★ `GetObjectACL`
 
 ### Object 软链接（Symlink）
 
