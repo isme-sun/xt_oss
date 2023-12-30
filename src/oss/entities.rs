@@ -109,6 +109,22 @@ pub enum ContentEncoding {
     BR,
 }
 
+impl Display for ContentEncoding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::IDENTITY => "identity",
+                Self::GZIP => "gzip",
+                Self::COMPRESS => "compress",
+                Self::DEFLATE => "deflate",
+                Self::BR => "br"
+            }
+        )
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Buckets {
     #[serde(rename(deserialize = "Bucket"))]
