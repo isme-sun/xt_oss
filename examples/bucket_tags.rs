@@ -7,12 +7,14 @@ async fn main() {
     let client = oss::Client::new(options);
     // * 设置 *
     println!("{:#?}", client.options());
-    let result = client.PutBucketTags()
-                    .add_tag("version", "1.0.0")
-                    .add_tag("name", "xuetube-dev")
-                    .add_tag("env", "dev")
-                    .add_tag("desc", "职业教育")
-                    .send().await;
+    let result = client
+        .PutBucketTags()
+        .add_tag("version", "1.0.0")
+        .add_tag("name", "xuetube-dev")
+        .add_tag("env", "dev")
+        .add_tag("desc", "职业教育")
+        .send()
+        .await;
     println!("{:#?}", result);
 
     // * 获取*

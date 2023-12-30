@@ -1,14 +1,16 @@
 use dotenv;
-use xt_oss::{oss::{self, entities::ObjectACL}, utils};
+use xt_oss::{
+    oss::{self, entities::ObjectACL},
+    utils,
+};
 
 #[allow(unused)]
 async fn get_object_acl(client: oss::Client<'_>) {
-    
     let result = client.GetObjectACL("xtoss/example/settings.json").await;
     match result {
         Ok(result) => {
             println!("{:#?}", result.data);
-        },
+        }
         Err(message) => {
             println!("{:#?}", message);
         }
@@ -17,14 +19,15 @@ async fn get_object_acl(client: oss::Client<'_>) {
 
 #[allow(unused)]
 async fn put_object_acl(client: oss::Client<'_>) {
-    
-    let result = client.PutObjectACL("xtoss/example/settings.json")
-                       .acl(ObjectACL::PublicRead)
-                       .send().await;
+    let result = client
+        .PutObjectACL("xtoss/example/settings.json")
+        .acl(ObjectACL::PublicRead)
+        .send()
+        .await;
     match result {
         Ok(result) => {
             println!("{:#?}", result.data);
-        },
+        }
         Err(message) => {
             println!("{:#?}", message);
         }
