@@ -1,4 +1,11 @@
-use crate::oss::{self, entities::ObjectACL, Bytes};
+use chrono::{DateTime, Utc};
+
+use crate::oss::{
+    self,
+    arguments::StorageClass,
+    entities::{ObjectACL, ServerSideEncryption, Tag, Tagging},
+    Bytes,
+};
 
 pub struct PutObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
@@ -102,5 +109,97 @@ impl<'a> PutObjectACLBuilder<'a> {
             data: (),
         };
         Ok(result)
+    }
+}
+
+#[allow(unused)]
+pub struct AppendObjectBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: String,
+    position: u64,
+    cache_control: Option<String>,
+    content_disposition: Option<String>,
+    content_encoding: Option<String>,
+    content_md5: Option<String>,
+    expires: Option<DateTime<Utc>>,
+    server_side_encryption: Option<ServerSideEncryption>,
+    object_acl: Option<ObjectACL>,
+    storage_class: Option<StorageClass>,
+    meta: Option<Vec<String>>,
+    tagging: Option<Tagging>,
+}
+
+#[allow(unused)]
+impl<'a> AppendObjectBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+        Self {
+            client,
+            object: object.to_string(),
+            position: 0,
+            cache_control: None,
+            content_disposition: None,
+            content_encoding: None,
+            content_md5: None,
+            expires: None,
+            server_side_encryption: None,
+            object_acl: None,
+            storage_class: None,
+            meta: None,
+            tagging: None,
+        }
+    }
+
+    pub fn position(mut self, value: u64) -> Self {
+        self.position = value;
+        self
+    }
+
+    pub fn cache_control(mut self, value: &'a str) -> Self {
+        self.cache_control = Some(value.to_string());
+        self
+    }
+    pub fn content_disposition(mut self, value: &'a str) -> Self {
+        self.content_disposition = Some(value.to_string());
+        self
+    }
+    pub fn content_encoding(mut self, value: &str) -> Self {
+        self.content_encoding = Some(value.to_string());
+        self
+    }
+
+    pub fn expires(mut self, value: DateTime<Utc>) -> Self {
+        self.expires = Some(value);
+        self
+    }
+
+    pub fn server_side_encryption(mut self, value: ServerSideEncryption) -> Self {
+        self.server_side_encryption = Some(value);
+        self
+    }
+
+    pub fn object_acl(mut self, value: ObjectACL) -> Self {
+        self.object_acl = Some(value);
+        self
+    }
+
+    pub fn storage_class(mut self, value: StorageClass) -> Self {
+        self.storage_class = Some(value);
+        self
+    }
+
+    pub fn metas(mut self) -> Self {
+        self
+    }
+
+    pub fn add_meta(mut self) -> Self {
+        self
+    }
+
+    pub fn tagging(mut self) -> Self {
+        self
+    }
+
+    pub fn add_tag(mut self) -> Self {
+        self
     }
 }

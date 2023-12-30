@@ -33,14 +33,13 @@ pub(crate) mod inner {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub enum ObjectACL {
     #[default]
     Default,
     PublicReadWrite,
     PublicRead,
-    Private
+    Private,
 }
 
 impl Display for ObjectACL {
@@ -49,7 +48,7 @@ impl Display for ObjectACL {
             Self::Default => "default",
             Self::PublicReadWrite => "public-read-write",
             Self::PublicRead => "public-read",
-            Self::Private => "private"
+            Self::Private => "private",
         };
         write!(f, "{}", value)
     }
@@ -68,6 +67,46 @@ pub enum StorageClass {
     /// 归档存储
     #[serde(rename(deserialize = "Archive"))]
     Archive,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub enum ServerSideEncryption {
+    //使用OSS完全托管密钥进行加解密（SSE-OSS）。
+    #[default]
+    AES256,
+    // 使用KMS托管密钥进行加解密。
+    KMS,
+    // 国密SM4算法。
+    SM4,
+}
+
+#[derive(Default)]
+pub enum ContentDisposition<'a> {
+    #[default]
+    INLINE,
+    ATTACHMENT(Option<&'a str>),
+}
+
+impl<'a> Display for ContentDisposition<'a> {
+    // TODO 协议完善
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let content = match self {
+            Self::INLINE => "inline".to_string(),
+            Self::ATTACHMENT(Some(filename)) => format!("attachment;filename={}", filename),
+            Self::ATTACHMENT(None) => "attachment".to_string(),
+        };
+        write!(f, "{}", content)
+    }
+}
+
+#[derive(Default)]
+pub enum ContentEncoding {
+    #[default]
+    IDENTITY,
+    GZIP,
+    COMPRESS,
+    DEFLATE,
+    BR,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -583,7 +622,7 @@ pub struct Style {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct StyleList {
     #[serde(rename = "Style")]
-    pub style: Vec<Style>
+    pub style: Vec<Style>,
 }
 
 #[cfg(test)]
@@ -595,6 +634,9 @@ mod tests {
     };
 
     use super::Rule;
+
+    #[test]
+    fn temp() {}
 
     #[test]
     fn tagging() {
