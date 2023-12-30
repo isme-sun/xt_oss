@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use crate::oss::{
     self,
     arguments::StorageClass,
-    entities::{ObjectACL, ServerSideEncryption, Tag, Tagging},
+    entities::{ObjectACL, ServerSideEncryption, Tagging},
     Bytes,
 };
 
