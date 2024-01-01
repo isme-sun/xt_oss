@@ -33,7 +33,7 @@ pub(crate) mod inner {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
 pub enum SSEAlgorithm {
     KMS,
     #[default]
@@ -685,7 +685,7 @@ pub struct ApplyServerSideEncryptionByDefault {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ServerSideEncryptionRule {
     #[serde(rename = "ApplyServerSideEncryptionByDefault")]
-    apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault,
+    pub(crate) apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault,
 }
 
 #[cfg(test)]

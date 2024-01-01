@@ -5,8 +5,9 @@ use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
     entities::{
-        BucketInfo, BucketStat, ListBucketResult, ListBucketResult2, LocationConstraint,
-        RefererConfiguration, Style, Tag, TagSet, Tagging,
+        ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat, ListBucketResult,
+        ListBucketResult2, LocationConstraint, RefererConfiguration, SSEAlgorithm,
+        ServerSideEncryptionRule, Style, Tag, TagSet, Tagging,
     },
 };
 // --------------------------------------------------------------------------
@@ -357,6 +358,81 @@ impl<'a> CreateBucketBuilder<'a> {
         };
 
         let resp = builder.send().await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+#[allow(unused)]
+pub struct PutBucketEncryptionBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    algorithm: SSEAlgorithm,
+    data_encryption: Option<&'a str>,
+    master_key_id: Option<&'a str>,
+}
+
+#[allow(unused)]
+impl<'a> PutBucketEncryptionBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            algorithm: SSEAlgorithm::default(),
+            data_encryption: None,
+            master_key_id: None,
+        }
+    }
+
+    pub fn algorithm(mut self, value: SSEAlgorithm) -> Self {
+        self.algorithm = value;
+        self
+    }
+
+    pub fn data_encryption(mut self, value: &'a str) -> Self {
+        self.data_encryption = Some(value);
+        self
+    }
+
+    pub fn master_key_id(mut self, value: &'a str) -> Self {
+        self.master_key_id = Some(value);
+        self
+    }
+
+    async fn send(&self) -> oss::Result<()> {
+        let res = "encryption";
+        let url = format!("{}/?{}", self.client.options.base_url(), res);
+
+        let mut content = ServerSideEncryptionRule {
+            apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault {
+                sse_algorithm: self.algorithm,
+                kms_data_encryption: if let Some(enc) = self.data_encryption {
+                    Some(enc.to_string())
+                } else {
+                    None
+                },
+                kms_master_key_id: if let Some(key_id) = self.master_key_id {
+                    Some(key_id.to_string())
+                } else {
+                    None
+                },
+            },
+        };
+
+        let data = oss::Bytes::from(quick_xml::se::to_string(&content).unwrap());
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::PUT)
+            .body(data)
+            .send()
+            .await?;
 
         let result = oss::Data {
             status: resp.status,
