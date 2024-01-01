@@ -101,5 +101,4 @@ impl<'a> Client<'a> {
     pub async fn RestoreObject(&self) {
         todo!()
     }
-
 }

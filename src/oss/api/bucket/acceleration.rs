@@ -39,13 +39,7 @@ impl<'a> Client<'a> {
     ) -> oss::Result<TransferAccelerationConfiguration> {
         let res = "transferAcceleration";
         let url = format!("{}/?{}", self.options.base_url(), res);
-        let resp = self
-            .request
-            .task()
-            .url(&url)
-            .resourse(res)
-            .send()
-            .await?;
+        let resp = self.request.task().url(&url).resourse(res).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
         let data: TransferAccelerationConfiguration = quick_xml::de::from_str(&content).unwrap();

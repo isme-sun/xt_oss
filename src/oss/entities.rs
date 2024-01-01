@@ -955,6 +955,7 @@ mod tests {
             Some("SM4".to_string())
         )
     }
+
     #[test]
     fn server_side_encryption_rule2() {
         let object = ServerSideEncryptionRule {
@@ -969,6 +970,7 @@ mod tests {
         let right = quick_xml::se::to_string(&object).unwrap();
         assert_eq!(left, right)
     }
+
     #[test]
     fn server_side_encryption_rule3() {
         let object = ServerSideEncryptionRule {
@@ -983,6 +985,7 @@ mod tests {
         let right = quick_xml::se::to_string(&object).unwrap();
         assert_eq!(left, right)
     }
+
     #[test]
     fn server_side_encryption_rule4() {
         let object = ServerSideEncryptionRule {

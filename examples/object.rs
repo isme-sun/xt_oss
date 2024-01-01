@@ -88,7 +88,7 @@ async fn object_put_tagging() {
     match result {
         Ok(result) => {
             println!("{:#?}", result);
-        },
+        }
         Err(message) => {
             println!("{:#?}", message);
         }
@@ -101,13 +101,11 @@ async fn object_get_tagging() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let object = "xtoss/example/settings.json";
-    let result = client
-        .GetObjectTagging(object)
-        .await;
+    let result = client.GetObjectTagging(object).await;
     match result {
         Ok(result) => {
             println!("{:#?}", result);
-        },
+        }
         Err(message) => {
             println!("{:#?}", message);
         }
@@ -120,14 +118,11 @@ async fn object_delete_tagging() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let object = "xtoss/example/settings.json";
-    let result = client
-        .DeleteObjectTagging(object)
-        .send()
-        .await;
+    let result = client.DeleteObjectTagging(object).send().await;
     match result {
         Ok(result) => {
             println!("{:#?}", result);
-        },
+        }
         Err(message) => {
             println!("{:#?}", message);
         }

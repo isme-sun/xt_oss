@@ -1,12 +1,11 @@
 use crate::oss::api::bucket::builders::{DeleteBucketBuilder, ListObjectBuilder};
 #[allow(unused)]
-use crate::oss::{
-    self,
-    entities::BucketStat,
-    Client, Data, Method, Result,
-};
+use crate::oss::{self, entities::BucketStat, Client, Data, Method, Result};
 
-use super::builders::{BucketInfoBuilder, CreateBucketBuilder, ListObject2Builder, BucketStatBuilder, BucketLocationBuilder};
+use super::builders::{
+    BucketInfoBuilder, BucketLocationBuilder, BucketStatBuilder, CreateBucketBuilder,
+    ListObject2Builder,
+};
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {

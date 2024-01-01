@@ -68,10 +68,5 @@ pub struct WormConfiguration {
 mod tests {
 
     #[test]
-    fn t1() {
-        
-
-    }
-
+    fn t1() {}
 }
-

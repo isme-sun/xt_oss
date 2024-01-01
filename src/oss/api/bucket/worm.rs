@@ -1,11 +1,8 @@
 use crate::oss::arguments::WormConfiguration;
 #[allow(unused)]
-use crate::oss::{
-    self,
-    Client, Data, Method, Result,
-};
+use crate::oss::{self, Client, Data, Method, Result};
 
-use super::builders::{InitiateBucketWormBuilder, ExtendBucketWormBuilder};
+use super::builders::{ExtendBucketWormBuilder, InitiateBucketWormBuilder};
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
@@ -63,7 +60,7 @@ impl<'a> Client<'a> {
 
     /// ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。
     #[allow(non_snake_case)]
-    pub fn ExtendBucketWorm(&self) ->ExtendBucketWormBuilder {
+    pub fn ExtendBucketWorm(&self) -> ExtendBucketWormBuilder {
         ExtendBucketWormBuilder::new(self)
     }
 

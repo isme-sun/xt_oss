@@ -1,15 +1,11 @@
 use crate::oss::entities::Tagging;
 #[allow(unused)]
-use crate::oss::{
-    self, 
-    Client, Data, Method, Result,
-};
+use crate::oss::{self, Client, Data, Method, Result};
 
-use super::builders::{PutBucketTagsBuilder, DeleteBucketTagsBuilder};
+use super::builders::{DeleteBucketTagsBuilder, PutBucketTagsBuilder};
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
-
     pub fn PutBucketTags(&self) -> PutBucketTagsBuilder {
         PutBucketTagsBuilder::new(self)
     }
@@ -18,22 +14,15 @@ impl<'a> Client<'a> {
         let res = "tagging";
         let url = format!("{}?{}", self.options.base_url(), res);
 
-        let resp = self
-            .request
-            .task()
-            .url(&url)
-            .resourse(res)
-            .send()
-            .await?;
+        let resp = self.request.task().url(&url).resourse(res).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
         let tagging: Tagging = quick_xml::de::from_str(&content).unwrap();
 
-
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: tagging
+            data: tagging,
         };
         Ok(result)
     }

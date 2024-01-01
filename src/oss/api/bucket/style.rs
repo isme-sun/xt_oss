@@ -1,4 +1,8 @@
-use crate::oss::{self, entities::{StyleList, Style}, Client};
+use crate::oss::{
+    self,
+    entities::{Style, StyleList},
+    Client,
+};
 
 use super::builders::PutStyleBuilder;
 
@@ -21,8 +25,8 @@ impl<'a> Client<'a> {
             .resourse(query)
             .send()
             .await?;
-				let content = String::from_utf8_lossy(&resp.data);
-				let style_list:StyleList = quick_xml::de::from_str(&content).unwrap();
+        let content = String::from_utf8_lossy(&resp.data);
+        let style_list: StyleList = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             data: style_list,
             status: resp.status,
@@ -43,8 +47,8 @@ impl<'a> Client<'a> {
             .resourse(&query)
             .send()
             .await?;
-				let content = String::from_utf8_lossy(&resp.data);
-				let style:Style = quick_xml::de::from_str(&content).unwrap();
+        let content = String::from_utf8_lossy(&resp.data);
+        let style: Style = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             data: style,
             status: resp.status,

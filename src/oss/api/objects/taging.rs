@@ -22,7 +22,7 @@ impl<'a> Client<'a> {
         let resp = self.request.task().url(&url).resourse(res).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
-				println!("{}", content);
+        println!("{}", content);
         let tagging: Tagging = quick_xml::de::from_str(&content).unwrap();
 
         let result = oss::Data {

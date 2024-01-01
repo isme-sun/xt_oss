@@ -1,4 +1,8 @@
-use crate::oss::{self, entities::{RefererConfiguration, inner}, Client};
+use crate::oss::{
+    self,
+    entities::{inner, RefererConfiguration},
+    Client,
+};
 
 use super::builders::PutBucketRefererBuilder;
 #[allow(non_snake_case)]
@@ -22,8 +26,7 @@ impl<'a> Client<'a> {
 
         let content = String::from_utf8_lossy(&resp.data);
 
-        let config_inner: inner::RefererConfiguration =
-            quick_xml::de::from_str(&content).unwrap();
+        let config_inner: inner::RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
 
         let config = RefererConfiguration::from_inner(config_inner);
 
