@@ -1,26 +1,22 @@
-use xt_oss::{oss, utils};
+#[allow(unused)]
+use xt_oss::{
+    oss::{self, entities::SSEAlgorithm},
+    utils,
+};
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    // * 创建WORM规则 *
-    // let result = client.InitiateBucketWorm().days(1).send().await;
-    // match result {
-    //     Ok(data) => {
-    //         println!("{:#?}", data.headers);
-    //     }
-    //     Err(message) => {
-    //         println!("{}", message)
-    //     }
-    // }
 
-    // 7A4AFCD96C394FDBAF9CFF9107507750
-    // * CompleteBucketWorm用于锁定合规保留策略 *
+    // * PutBucketEncryption接口用于配置存储空间（Bucket）的加密规则。
     // let result = client
-    //     .CompleteBucketWorm("BC15D1A1AD0D48AD97EC096D87D705BD")
+    //     .PutBucketEncryption()
+    //     .algorithm(SSEAlgorithm::SM4)
+    //     .send()
     //     .await;
+
     // match result {
     //     Ok(data) => {
     //         println!("{:#?}", data.headers);
@@ -30,41 +26,26 @@ async fn main() {
     //     }
     // }
 
-    // GetBucketEncryption接口用于获取存储空间（Bucket）的加密规则。
-    let result = client.GetBucketEncryption().await;
-    match result {
-    	Ok(data) => {
-    		println!("{:#?}", data.headers);
-    	},
-    	Err(message) => {
-    		println!("{:#?}", message)
-    	}
-    }
-
-    // * 获取WORM规则 */
-    // let result = client.GetBucketWorm().await;
+    // * GetBucketEncryption接口用于获取存储空间（Bucket）的加密规则 *
+    // let result = client.GetBucketEncryption().await;
     // match result {
-    //     Ok(data) => {
-    //         println!("{:#?}", data.data);
-    //     }
-    //     Err(message) => {
-    //         println!("{}", message)
-    //     }
+    // 	Ok(data) => {
+    // 		println!("{:#?}", data);
+    // 	},
+    // 	Err(message) => {
+    // 		println!("{:#?}", message)
+    // 	}
     // }
 
-    // * ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。*
-    // let worm_id = "BC15D1A1AD0D48AD97EC096D87D705BD";
-    // let result = client.ExtendBucketWorm()
-    //                    .worm_id(worm_id)
-    //                    .days(2)
-    //                    .send()
-    //                    .await;
+    // * DeleteBucketEncryption接口用于删除Bucket加密规则 *
+    // let result = client.DeleteBucketEncryption().await;
     // match result {
-    //     Ok(data) => {
-    //         println!("{:#?}", data.data);
-    //     }
-    //     Err(message) => {
-    //         println!("{:#?}", message)
-    //     }
+    // 	Ok(data) => {
+    // 		println!("{:#?}", data);
+    // 	},
+    // 	Err(message) => {
+    // 		println!("{:#?}", message)
+    // 	}
     // }
+
 }

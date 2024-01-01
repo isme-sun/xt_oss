@@ -34,7 +34,23 @@ impl<'a> Client<'a> {
     }
 
     /// DeleteBucketEncryption接口用于删除Bucket加密规则。
-    pub fn DeleteBucketEncryption() {
-        todo!()
+    pub async fn DeleteBucketEncryption(&self) -> oss::Result<()> {
+        let res = "encryption";
+        let url = format!("{}/?{}", self.options.base_url(), res);
+        let resp = self
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::DELETE)
+            .resourse(res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: ()
+        };
+        Ok(result)
     }
 }

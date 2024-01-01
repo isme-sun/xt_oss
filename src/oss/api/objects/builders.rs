@@ -5,13 +5,14 @@ use crate::oss::{
     self,
     arguments::StorageClass,
     entities::{ObjectACL, ServerSideEncryption, Tag, TagSet, Tagging},
+    header::HeaderMap,
     Bytes,
 };
 
 pub struct PutObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
-    headers: oss::HeaderMap,
+    headers: HeaderMap,
     content: oss::Bytes,
 }
 
@@ -22,7 +23,7 @@ impl<'a> PutObjectBuilder<'a> {
             client,
             object,
             content: oss::Bytes::new(),
-            headers: oss::HeaderMap::new(),
+            headers: HeaderMap::new(),
         }
     }
 
@@ -31,7 +32,7 @@ impl<'a> PutObjectBuilder<'a> {
         self
     }
 
-    pub fn headers(mut self, headers: oss::HeaderMap) -> Self {
+    pub fn headers(mut self, headers: HeaderMap) -> Self {
         self.headers = headers;
         self
     }
@@ -90,7 +91,7 @@ impl<'a> PutObjectACLBuilder<'a> {
             format!("{}/{}?{}", base_url, self.object, query)
         };
 
-        let mut headers = oss::HeaderMap::new();
+        let mut headers = HeaderMap::new();
         headers.insert("x-oss-object-acl", self.acl.to_string().parse().unwrap());
 
         let resp = self

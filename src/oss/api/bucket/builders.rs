@@ -307,8 +307,8 @@ impl<'a> CreateBucketBuilder<'a> {
         self
     }
 
-    fn headers(&self) -> oss::HeaderMap {
-        let mut headers = oss::HeaderMap::default();
+    fn headers(&self) -> oss::header::HeaderMap {
+        let mut headers = oss::header::HeaderMap::default();
         if let Some(acl) = &self.acl {
             headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
         }
@@ -402,7 +402,7 @@ impl<'a> PutBucketEncryptionBuilder<'a> {
         self
     }
 
-    async fn send(&self) -> oss::Result<()> {
+    pub async fn send(&self) -> oss::Result<()> {
         let res = "encryption";
         let url = format!("{}/?{}", self.client.options.base_url(), res);
 
@@ -430,6 +430,7 @@ impl<'a> PutBucketEncryptionBuilder<'a> {
             .task()
             .url(&url)
             .method(oss::Method::PUT)
+            .resourse(res)
             .body(data)
             .send()
             .await?;
@@ -846,7 +847,7 @@ impl<'a> PutBucketAclBuilder<'a> {
             )
         };
 
-        let mut headers = oss::HeaderMap::new();
+        let mut headers = oss::header::HeaderMap::new();
         headers.insert("x-oss-acl", self.acl.to_string().parse().unwrap());
 
         let resp = self

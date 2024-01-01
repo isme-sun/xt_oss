@@ -38,7 +38,6 @@ async fn create_bucket() {
     let client = oss::Client::new(options);
     let result = client
         .PutBucket()
-        .name("xtoss-t1")
         .acl(OssAcl::PublicRead)
         .storage_class(StorageClass::Archive)
         .data_redundancy_type(DataRedundancyType::LRS)
@@ -59,14 +58,14 @@ async fn delete_bucket() {
     let result = client
         .DeleteBucket()
         // .name("xuetube-t12")
-        .name("xtoss-t1")
+        // .name("xtoss-t1")
         .send()
         .await;
 
     match result {
         Ok(_) => println!("{:#?}", result),
         Err(message) => {
-            println!("{}", message)
+            println!("{:#?}", message)
         }
     }
 }

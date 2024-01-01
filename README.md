@@ -96,9 +96,9 @@
 
 ### Bucket 加密（Encryption）
 
-- [ ] 39 ★ `PutBucketEncryption`
-- [ ] 40 ★ `GetBucketEncryption`
-- [ ] 41 ★ `DeleteBucketEncryption`
+- [X] 39 ★ `PutBucketEncryption`
+- [X] 40 ★ `GetBucketEncryption`
+- [X] 41 ★ `DeleteBucketEncryption`
 
 ### Bucket 请求者付费（RequestPayment）
 

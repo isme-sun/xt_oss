@@ -1,3 +1,10 @@
+// re-export
+pub use bytes::Bytes;
+pub use reqwest::header;
+// pub use reqwest::header::HeaderMap;
+// pub use reqwest::header::HeaderValue;
+pub use reqwest::Method;
+
 use super::oss;
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
@@ -73,12 +80,6 @@ pub(crate) mod inner {
     }
 }
 
-// re-export
-pub use bytes::Bytes;
-pub use reqwest::header::HeaderMap;
-pub use reqwest::header::HeaderValue;
-pub use reqwest::Method;
-
 pub const BASE_URL: &'static str = "aliyuncs.com";
 pub const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
 const USER_AGENT: &'static str = "xt oss/0.1";
@@ -90,7 +91,7 @@ const XML_DOCTYPE: &'static str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 #[derive(Debug, Default)]
 pub struct Data<T> {
     pub status: StatusCode,
-    pub headers: HeaderMap,
+    pub headers: self::header::HeaderMap,
     pub data: T,
 }
 
@@ -156,7 +157,7 @@ struct Authorization<'a> {
     sts_token: &'a str,
     bucket: Option<String>,
     object: Option<String>,
-    headers: &'a HeaderMap,
+    headers: &'a header::HeaderMap,
     method: &'a Method,
     date: &'a String,
     resourse: Option<&'a str>,
@@ -230,7 +231,7 @@ pub(crate) struct RequestTask<'a> {
     url: &'a str,
     resourse: Option<&'a str>,
     method: Method,
-    headers: HeaderMap,
+    headers: header::HeaderMap,
     body: Bytes,
 }
 
@@ -241,7 +242,7 @@ impl<'a> RequestTask<'a> {
             url: Default::default(),
             resourse: None,
             method: Method::GET,
-            headers: HeaderMap::new(),
+            headers: header::HeaderMap::new(),
             body: Bytes::new(),
         }
     }
@@ -256,7 +257,7 @@ impl<'a> RequestTask<'a> {
         self
     }
 
-    pub fn headers(mut self, value: HeaderMap) -> Self {
+    pub fn headers(mut self, value: header::HeaderMap) -> Self {
         self.headers = value;
         self
     }
@@ -274,7 +275,7 @@ impl<'a> RequestTask<'a> {
     pub async fn send(&self) -> super::oss::Result<Bytes> {
         let (_, bucket, object) = Self::parse_url(self.url);
         let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
-        let mut headers = HeaderMap::new();
+        let mut headers = header::HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
         headers.extend(self.headers.to_owned());
 
@@ -373,7 +374,7 @@ pub struct Request<'a> {
 
 impl<'a> Default for Request<'a> {
     fn default() -> Self {
-        let mut default_headers = HeaderMap::new();
+        let mut default_headers = header::HeaderMap::new();
         default_headers.insert(CONTENT_TYPE, oss::DEFAULT_CONTENT_TYPE.parse().unwrap());
         let client = reqwest::Client::builder()
             .default_headers(default_headers)
