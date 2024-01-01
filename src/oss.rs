@@ -305,6 +305,7 @@ impl<'a> RequestTask<'a> {
             .body(self.body.to_owned());
 
         let resp = request_builder.send().await.unwrap();
+
         let status = resp.status();
         let headers = resp.headers().to_owned();
         let data = resp.bytes().await.unwrap();

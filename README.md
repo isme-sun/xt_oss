@@ -107,9 +107,9 @@
 
 ### Bucket 跨域资源共享（CORS）
 
-- [ ] 43 ★ `PutBucketCors`
-- [ ] 44 ★ `GetBucketCors`
-- [ ] 45 ★ `DeleteBucketCors`
+- [X] 43 ★ `PutBucketCors`
+- [X] 44 ★ `GetBucketCors`
+- [X] 45 ★ `DeleteBucketCors`
 - [ ] `Options`
 
 ### Bucket 访问跟踪（AccessMonitor）

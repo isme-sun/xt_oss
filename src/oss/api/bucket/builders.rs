@@ -5,9 +5,9 @@ use crate::oss::{
     self,
     arguments::{DataRedundancyType, OssAcl, StorageClass},
     entities::{
-        ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat, ListBucketResult,
-        ListBucketResult2, LocationConstraint, RefererConfiguration, SSEAlgorithm,
-        ServerSideEncryptionRule, Style, Tag, TagSet, Tagging,
+        ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat, CORSConfiguration,
+        ListBucketResult, ListBucketResult2, LocationConstraint, RefererConfiguration,
+        SSEAlgorithm, ServerSideEncryptionRule, Style, Tag, TagSet, Tagging,
     },
 };
 // --------------------------------------------------------------------------
@@ -1121,6 +1121,53 @@ impl<'a> PutStyleBuilder<'a> {
 }
 
 // ----------------------------------------------------------------------
+
+#[allow(unused)]
+pub struct PutBucketCorsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    config: CORSConfiguration,
+}
+
+#[allow(unused)]
+impl<'a> PutBucketCorsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            config: CORSConfiguration::default(),
+        }
+    }
+
+    pub fn config(mut self, value: CORSConfiguration) -> Self {
+        self.config = value;
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "cors";
+        let url = format!("{}/?{}", self.client.options.base_url(), res);
+        let content = quick_xml::se::to_string(&self.config).unwrap();
+        let data = oss::Bytes::from(content);
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::PUT)
+            .resourse(res)
+            .body(data)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            data: (),
+            status: resp.status,
+            headers: resp.headers,
+        };
+        Ok(result)
+    }
+
+}
+
 #[allow(unused)]
 pub struct PutBucketTagsBuilder<'a> {
     client: &'a oss::Client<'a>,

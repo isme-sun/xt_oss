@@ -38,14 +38,14 @@ async fn main() {
     // }
 
     // * DeleteBucketEncryption接口用于删除Bucket加密规则 *
-    // let result = client.DeleteBucketEncryption().await;
-    // match result {
-    // 	Ok(data) => {
-    // 		println!("{:#?}", data);
-    // 	},
-    // 	Err(message) => {
-    // 		println!("{:#?}", message)
-    // 	}
-    // }
+    let result = client.DeleteBucketEncryption().await;
+    match result {
+    	Ok(data) => {
+    		println!("{:#?}", data);
+    	},
+    	Err(message) => {
+    		println!("{:#?}", message)
+    	}
+    }
 
 }
