@@ -217,9 +217,9 @@
 
 ### Object 标签（Tagging）
 
-- [ ] 75 ★ `PutObjectTagging`
-- [ ] 76 ★ `GetObjectTagging`
-- [ ] 77 ★ `DeleteObjectTagging`
+- [X] 75 ★ `PutObjectTagging`
+- [X] 76 ★ `GetObjectTagging`
+- [X] 77 ★ `DeleteObjectTagging`
 
 ### 关于LiveChannel的操作
 

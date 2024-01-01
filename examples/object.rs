@@ -73,8 +73,71 @@ async fn object_list2() {
     println!("{:#?}", result.data);
 }
 
+#[allow(unused)]
+async fn object_put_tagging() {
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let object = "xtoss/example/settings.json";
+    let result = client
+        .PutObjectTagging(object)
+        .add_tag("name", "设置文件")
+        .add_tag("version", "1.0")
+        .send()
+        .await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result);
+        },
+        Err(message) => {
+            println!("{:#?}", message);
+        }
+    }
+}
+
+#[allow(unused)]
+async fn object_get_tagging() {
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let object = "xtoss/example/settings.json";
+    let result = client
+        .GetObjectTagging(object)
+        .await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result);
+        },
+        Err(message) => {
+            println!("{:#?}", message);
+        }
+    }
+}
+
+#[allow(unused)]
+async fn object_delete_tagging() {
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let object = "xtoss/example/settings.json";
+    let result = client
+        .DeleteObjectTagging(object)
+        .send()
+        .await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result);
+        },
+        Err(message) => {
+            println!("{:#?}", message);
+        }
+    }
+}
 #[tokio::main]
 async fn main() {
     // object_list1().await;
-    put_object().await;
+    // put_object().await;
+    // object_put_tagging().await;
+    object_get_tagging().await;
+    // object_delete_tagging().await;
 }

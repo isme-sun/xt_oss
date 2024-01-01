@@ -25,7 +25,7 @@ async fn main() {
             for style in result.data.style {
                 println!("{} : {}", style.name, style.content)
             }
-        },
+        }
         Err(message) => {
             println!("{:#?}", message)
         }
@@ -50,5 +50,4 @@ async fn main() {
     //         println!("{:#?}", message)
     //     }
     // }
-        
 }

@@ -6,7 +6,7 @@ use xt_oss::utils;
 
 #[tokio::main]
 async fn main() {
-		dotenv::dotenv().ok();
+    dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client.DescribeRegions().send().await.unwrap();

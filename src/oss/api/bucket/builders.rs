@@ -794,8 +794,6 @@ impl<'a> PutBucketAclBuilder<'a> {
 }
 
 // --------------------------------------------------------------------------
-
-#[derive(Debug)]
 #[allow(unused)]
 pub struct DeleteBucketTagsBuilder<'a> {
     client: &'a oss::Client<'a>,
@@ -1045,7 +1043,7 @@ impl<'a> PutStyleBuilder<'a> {
     }
 }
 
-// ----------------------------------------------------------------------[derive(Debug)]
+// ----------------------------------------------------------------------
 #[allow(unused)]
 pub struct PutBucketTagsBuilder<'a> {
     client: &'a oss::Client<'a>,
@@ -1082,7 +1080,7 @@ impl<'a> PutBucketTagsBuilder<'a> {
             });
         }
         Tagging {
-            tag_set: TagSet { tag: tags },
+            tag_set: TagSet { tag: Some(tags) },
         }
     }
 

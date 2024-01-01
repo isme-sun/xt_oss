@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
+use std::collections::HashMap;
 
 use crate::oss::{
     self,
     arguments::StorageClass,
-    entities::{ObjectACL, ServerSideEncryption, Tagging},
+    entities::{ObjectACL, ServerSideEncryption, Tag, TagSet, Tagging},
     Bytes,
 };
 
@@ -201,5 +202,127 @@ impl<'a> AppendObjectBuilder<'a> {
 
     pub fn add_tag(mut self) -> Self {
         self
+    }
+}
+
+// ----------------------------------------------------------------------
+#[allow(unused)]
+pub struct PutObjectTaggingBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    tags: HashMap<&'a str, &'a str>,
+}
+
+#[allow(unused)]
+impl<'a> PutObjectTaggingBuilder<'a> {
+    pub fn new(client: &'a oss::Client, object: &'a str) -> Self {
+        Self {
+            client,
+            object,
+            tags: HashMap::new(),
+        }
+    }
+
+    /// 添加tag
+    pub fn add_tag(mut self, key: &'a str, value: &'a str) -> Self {
+        self.tags.insert(key, value);
+        self
+    }
+
+    /// 移除tag
+    pub fn remove_tag(mut self, key: &'a str) -> Self {
+        self.tags.remove(key);
+        self
+    }
+
+    pub fn tagging(&self) -> Tagging {
+        let mut tags: Vec<Tag> = Vec::new();
+        for (key, value) in self.tags.clone() {
+            tags.push(Tag {
+                key: String::from(key),
+                value: String::from(value),
+            });
+        }
+        Tagging {
+            tag_set: TagSet { tag: Some(tags) },
+        }
+    }
+
+    pub fn tagging_xml(&self) -> String {
+        quick_xml::se::to_string(&self.tagging()).unwrap()
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "tagging";
+        let url = format!("{}/{}?{}", self.client.options.base_url(), self.object, res);
+
+        let data = oss::Bytes::from(self.tagging_xml());
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::PUT)
+            .resourse(res)
+            .body(data)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+#[allow(unused)]
+pub struct DeleteObjectTaggingBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    version_id: Option<&'a str>,
+}
+
+#[allow(unused)]
+impl<'a> DeleteObjectTaggingBuilder<'a> {
+    pub fn new(client: &'a oss::Client, object: &'a str) -> Self {
+        Self {
+            client,
+            object,
+            version_id: None,
+        }
+    }
+
+    pub fn version_id(mut self, value: &'a str) -> Self {
+        self.version_id = Some(value);
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = if let Some(version_id) = self.version_id {
+            format!("tagging&versionId={}", version_id)
+        } else {
+            "tagging".to_string()
+        };
+        let url = { format!("{}/{}?{}", self.client.options.base_url(), self.object, res) };
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::DELETE)
+            .resourse(&res)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
     }
 }
