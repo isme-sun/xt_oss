@@ -10,16 +10,16 @@ use serde::{Deserialize, Serialize};
 /// - `Archive` 归档存储
 /// - `DeepColdArchive` 深度冷归档存储
 ///
-#[derive(Debug, Serialize, Deserialize, Default)]
-// #[serde(tag = "StorageClass")]
-pub enum StorageClass {
-    #[default]
-    Standard,
-    IA,
-    Archive,
-    ColdArchive,
-    DeepColdArchive,
-}
+// #[derive(Debug, Serialize, Deserialize, Default)]
+// // #[serde(tag = "StorageClass")]
+// pub enum StorageClass {
+//     #[default]
+//     Standard,
+//     IA,
+//     Archive,
+//     ColdArchive,
+//     DeepColdArchive,
+// }
 
 /// 指定存储空间的数据容灾类型
 #[derive(Debug, Serialize, Deserialize, Default)]

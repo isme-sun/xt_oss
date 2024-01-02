@@ -3,8 +3,7 @@ use std::collections::HashMap;
 
 use crate::oss::{
     self,
-    arguments::StorageClass,
-    entities::{ObjectACL, ServerSideEncryption, Tag, TagSet, Tagging},
+    entities::{ObjectACL, ServerSideEncryption, StorageClass, Tag, TagSet, Tagging},
     header::HeaderMap,
     Bytes,
 };

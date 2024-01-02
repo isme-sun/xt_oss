@@ -3,11 +3,11 @@ use std::{collections::HashMap, fmt};
 
 use crate::oss::{
     self,
-    arguments::{DataRedundancyType, OssAcl, StorageClass},
+    arguments::{DataRedundancyType, OssAcl},
     entities::{
         ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat, CORSConfiguration,
         ListBucketResult, ListBucketResult2, LocationConstraint, RefererConfiguration,
-        SSEAlgorithm, ServerSideEncryptionRule, Style, Tag, TagSet, Tagging,
+        SSEAlgorithm, ServerSideEncryptionRule, StorageClass, Style, Tag, TagSet, Tagging,
     },
 };
 // --------------------------------------------------------------------------
@@ -1165,7 +1165,6 @@ impl<'a> PutBucketCorsBuilder<'a> {
         };
         Ok(result)
     }
-
 }
 
 #[allow(unused)]
