@@ -1,7 +1,8 @@
 use xt_oss::{
     oss::{
         self,
-        arguments::{DataRedundancyType, OssAcl, StorageClass},
+        arguments::{DataRedundancyType, OssAcl},
+        entities::StorageClass
     },
     utils,
 };

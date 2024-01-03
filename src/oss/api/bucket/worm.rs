@@ -1,4 +1,4 @@
-use crate::oss::arguments::WormConfiguration;
+use crate::oss::entities::WormConfiguration;
 #[allow(unused)]
 use crate::oss::{self, Client, Data, Method, Result};
 

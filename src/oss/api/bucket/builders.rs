@@ -3,11 +3,10 @@ use std::{collections::HashMap, fmt};
 
 use crate::oss::{
     self,
-    arguments::{DataRedundancyType, OssAcl},
     entities::{
         ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat, CORSConfiguration,
         ListBucketResult, ListBucketResult2, LocationConstraint, RefererConfiguration,
-        SSEAlgorithm, ServerSideEncryptionRule, StorageClass, Style, Tag, TagSet, Tagging,
+        SSEAlgorithm, ServerSideEncryptionRule, StorageClass, Style, Tag, TagSet, Tagging, DataRedundancyType, OssAcl,
     },
 };
 // --------------------------------------------------------------------------
@@ -207,7 +206,7 @@ impl<'a> ListObject2Builder<'a> {
             .unwrap();
 
         let content = String::from_utf8_lossy(&resp.data);
-        println!("{}", content);
+
         let buckets: ListBucketResult2 = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
@@ -817,7 +816,7 @@ impl<'a> ExtendBucketWormBuilder<'a> {
 #[derive(Debug)]
 pub struct PutBucketAclBuilder<'a> {
     client: &'a oss::Client<'a>,
-    acl: oss::arguments::OssAcl,
+    acl: oss::entities::OssAcl,
 }
 
 #[allow(unused)]
@@ -825,11 +824,11 @@ impl<'a> PutBucketAclBuilder<'a> {
     pub fn new(client: &'a oss::Client) -> Self {
         Self {
             client,
-            acl: oss::arguments::OssAcl::Private,
+            acl: oss::entities::OssAcl::Private,
         }
     }
 
-    pub fn acl(mut self, value: oss::arguments::OssAcl) -> Self {
+    pub fn acl(mut self, value: oss::entities::OssAcl) -> Self {
         self.acl = value;
         self
     }
@@ -1240,7 +1239,7 @@ impl<'a> PutBucketTagsBuilder<'a> {
 #[cfg(test)]
 mod tests {
     use crate::oss::{
-        api::bucket::builders::CreateBucketConfiguration, arguments::DataRedundancyType,
+        api::bucket::builders::CreateBucketConfiguration, entities::DataRedundancyType,
     };
 
     #[test]

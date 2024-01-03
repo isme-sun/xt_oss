@@ -19,7 +19,6 @@ use std::fmt::{self, Display};
 use std::time::Duration;
 
 pub(crate) mod api;
-pub mod arguments;
 pub mod entities;
 
 pub(crate) mod inner {
