@@ -1,8 +1,7 @@
 use xt_oss::{
     oss::{
         self,
-        arguments::{DataRedundancyType, OssAcl},
-        entities::StorageClass
+        entities::{DataRedundancyType, OssAcl, StorageClass},
     },
     utils,
 };
@@ -26,9 +25,14 @@ async fn stat_bucket() {
     let client = oss::Client::new(options);
     let result = client.GetBucketStat().send().await;
     match result {
-        Ok(result) => println!("{}", serde_json::to_string_pretty(&result.data).unwrap()),
+        Ok(result) => {
+            println!("status: {}", result.status);
+            println!("headers: {:#?}", result.headers);
+            println!("data: {:#?}", result.data);
+            // let content = serde_json::to_string_pretty(&result.data).unwrap();
+        }
         Err(message) => {
-            println!("{}", message)
+            println!("{}", message);
         }
     }
 }
@@ -118,7 +122,7 @@ async fn put_acl_bucket() {
 async fn main() {
     dotenv::dotenv().ok();
     // info_bucket().await;
-    // stat_bucket().await;
+    stat_bucket().await;
     // location_bucket().await;
     // get_acl_bucket().await;
     // put_acl_bucket().await;

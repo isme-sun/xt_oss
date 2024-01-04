@@ -68,12 +68,11 @@ impl<'a> Client<'a> {
     #[allow(non_snake_case)]
     pub async fn GetBucketWorm(&self) -> oss::Result<WormConfiguration> {
         let res = "worm";
-        let url = format!("{}?{}", self.options.base_url(), res);
+        let url = format!("{}/?{}", self.options.base_url(), res);
 
         let resp = self
             .request
             .task()
-            .method(oss::Method::GET)
             .url(&url)
             .resourse(&res)
             .send()
