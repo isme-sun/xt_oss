@@ -684,6 +684,32 @@ pub struct CORSConfiguration {
 }
 
 // ----------------------------------------------------------------------
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum VersioningStatus {
+    Enabled,
+    Suspended,
+}
+
+impl fmt::Display for VersioningStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Enabled => "Enabled",
+                Self::Suspended => "Suspended",
+            }
+        )
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct VersioningConfiguration {
+    #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
+    pub status: Option<VersioningStatus>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct DeleteMarker {
     #[serde(rename = "Key")]

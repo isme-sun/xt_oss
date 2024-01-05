@@ -45,8 +45,8 @@
 
 ### Bucket 版本控制（Versioning）
 
-- [ ] 22 ★ `PutBucketVersioning`
-- [ ] 23 ★ `GetBucketVersioning`
+- [X] 22 ★ `PutBucketVersioning`
+- [X] 23 ★ `GetBucketVersioning`
 - [ ] 24 ★ `ListObjectVersions（GetBucketVersions）`
 
 ### Bucket 数据复制（Replication）

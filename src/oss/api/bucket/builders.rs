@@ -5,8 +5,9 @@ use crate::oss::{
     self,
     entities::{
         ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat, CORSConfiguration,
-        ListBucketResult, ListBucketResult2, LocationConstraint, RefererConfiguration,
-        SSEAlgorithm, ServerSideEncryptionRule, StorageClass, Style, Tag, TagSet, Tagging, DataRedundancyType, OssAcl,
+        DataRedundancyType, ListBucketResult, ListBucketResult2, LocationConstraint, OssAcl,
+        RefererConfiguration, SSEAlgorithm, ServerSideEncryptionRule, StorageClass, Style, Tag,
+        TagSet, Tagging, VersioningConfiguration, VersioningStatus,
     },
 };
 // --------------------------------------------------------------------------
@@ -1223,6 +1224,56 @@ impl<'a> PutBucketTagsBuilder<'a> {
             .url(&url)
             .method(oss::Method::PUT)
             .resourse(res)
+            .body(data)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            status: resp.status,
+            headers: resp.headers,
+            data: (),
+        };
+        Ok(result)
+    }
+}
+
+#[allow(unused)]
+pub struct PutBucketVersioningBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    status: VersioningStatus,
+}
+
+#[allow(unused)]
+impl<'a> PutBucketVersioningBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            status: VersioningStatus::Enabled,
+        }
+    }
+
+    pub fn status(mut self, value: VersioningStatus) -> Self {
+        self.status = value;
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "versioning";
+        let url = format!("{}/?{}", self.client.options.base_url(), res);
+
+        let config = VersioningConfiguration {
+            status: Some(self.status.clone()),
+        };
+
+        let data = oss::Bytes::from(quick_xml::se::to_string(&config).unwrap());
+
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::PUT)
+            .resourse(&res)
             .body(data)
             .send()
             .await?;
