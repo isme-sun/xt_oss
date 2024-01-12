@@ -10,5 +10,9 @@ async fn main() {
     let client = oss::Client::new(options);
     let rs = client.ListBuckets().send().await.unwrap();
 
-    println!("{}", serde_json::to_string_pretty(&rs.data).unwrap());
+    for bucket in &rs.data.buckets.bucket {
+        println!("{:#?}",bucket.creation_date);
+    }
+
+    // println!("{}", serde_json::to_string_pretty(&rs.data).unwrap());
 }

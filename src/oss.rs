@@ -21,64 +21,6 @@ use std::time::Duration;
 pub(crate) mod api;
 pub mod entities;
 
-pub(crate) mod inner {
-    pub(crate) mod option_datetime_format {
-        use chrono::{DateTime, NaiveDateTime, Utc};
-        use serde::{self, Deserialize, Deserializer, Serializer};
-
-        pub fn serialize<S>(date: &Option<DateTime<Utc>>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
-        {
-            match date {
-                Some(date) => {
-                    let s = format!("{}", date.format(crate::oss::GMT_DATE_FMT));
-                    serializer.serialize_str(&s)
-                }
-                None => serializer.serialize_str("null"),
-            }
-        }
-
-        pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            let s = String::deserialize(deserializer)?;
-            let dt = NaiveDateTime::parse_from_str(&s, crate::oss::GMT_DATE_FMT)
-                .map_err(serde::de::Error::custom)?;
-
-            Ok(Some(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc)))
-        }
-    }
-
-    #[allow(unused)]
-    pub(crate) mod datetime_format {
-        use chrono::{DateTime, NaiveDateTime, Utc};
-        use serde::{self, Deserialize, Deserializer, Serializer};
-
-        pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
-        {
-            let s = format!("{}", date.format(crate::oss::GMT_DATE_FMT));
-            serializer.serialize_str(&s)
-        }
-
-        pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            let s = String::deserialize(deserializer)?;
-            let dt = NaiveDateTime::parse_from_str(&s, crate::oss::GMT_DATE_FMT)
-                .map_err(serde::de::Error::custom)?;
-
-            let x = DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc);
-
-            Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
-        }
-    }
-}
-
 pub const BASE_URL: &'static str = "aliyuncs.com";
 pub const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
 const USER_AGENT: &'static str = "xt oss/0.1";

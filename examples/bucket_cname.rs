@@ -1,5 +1,4 @@
 use dotenv;
-use serde_json;
 
 use xt_oss::oss;
 use xt_oss::utils;
@@ -9,10 +8,16 @@ async fn get_cname() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.ListCname().await.unwrap();
-    println!("{:#?}", result);
-    let content = serde_json::to_string_pretty(&result.data).unwrap();
-    println!("{}", content);
+
+    let result = client.ListCname().await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result.data)
+        }
+        Err(message) => {
+            println!("{:#?}", message)
+        }
+    }
 }
 
 #[tokio::main]

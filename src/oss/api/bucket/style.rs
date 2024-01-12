@@ -26,6 +26,9 @@ impl<'a> Client<'a> {
             .send()
             .await?;
         let content = String::from_utf8_lossy(&resp.data);
+
+        println!("{}", content);
+
         let style_list: StyleList = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             data: style_list,

@@ -22,9 +22,7 @@ async fn main() {
     let result = client.ListStyle().await;
     match result {
         Ok(result) => {
-            for style in result.data.style {
-                println!("{} : {}", style.name, style.content)
-            }
+            println!("{:#?}", result.data)
         }
         Err(message) => {
             println!("{:#?}", message)

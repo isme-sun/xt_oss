@@ -1,8 +1,71 @@
 use std::fmt::{self, Display};
 
-use crate::oss::{self, inner::option_datetime_format};
+use crate::oss;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+pub(super) mod private {
+
+    pub(super) mod serde_date {
+
+        pub mod utc {
+            use chrono::{DateTime, Utc};
+            use serde::{self, Deserialize, Deserializer, Serializer};
+
+            const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S.000Z";
+
+            pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                let s = format!("{}", date.format(FORMAT));
+                serializer.serialize_str(&s)
+            }
+
+            pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                let s = String::deserialize(deserializer)?;
+                let dt = s.parse::<DateTime<Utc>>().unwrap();
+                Ok(dt)
+            }
+        }
+
+        pub mod gmt {
+            use chrono::{DateTime, NaiveDateTime, Utc};
+            use serde::{self, Deserialize, Deserializer, Serializer};
+
+            pub fn serialize<S>(
+                date: &Option<DateTime<Utc>>,
+                serializer: S,
+            ) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                match date {
+                    Some(date) => {
+                        let s = format!("{}", date.format(crate::oss::GMT_DATE_FMT));
+                        serializer.serialize_str(&s)
+                    }
+                    None => serializer.serialize_str("null"),
+                }
+            }
+
+            pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                let s = String::deserialize(deserializer)?;
+                let dt = NaiveDateTime::parse_from_str(&s, crate::oss::GMT_DATE_FMT)
+                    .unwrap()
+                    .and_utc();
+
+                Ok(Some(dt))
+            }
+        }
+    }
+}
 
 pub(crate) mod inner {
     use serde::{Deserialize, Serialize};
@@ -215,6 +278,8 @@ pub struct ListAllMyBucketsResult {
     pub owner: Owner,
     #[serde(rename(deserialize = "Buckets"))]
     pub buckets: Buckets,
+    // #[serde(rename(deserialize = "Buckets"))]
+    // pub buckets: Vec<Bucket>
 }
 
 impl From<oss::Bytes> for ListAllMyBucketsResult {
@@ -222,46 +287,6 @@ impl From<oss::Bytes> for ListAllMyBucketsResult {
         let content = String::from_utf8_lossy(&data);
         quick_xml::de::from_str::<Self>(&content).unwrap()
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct ListCnameResult {
-    #[serde(rename(deserialize = "Bucket"))]
-    pub bucket: String,
-    #[serde(rename(deserialize = "Owner"))]
-    pub owner: String,
-    #[serde(rename(deserialize = "Cname"))]
-    pub cname: Option<Cname>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Certificate {
-    #[serde(rename(deserialize = "Type"))]
-    pub r#type: String,
-    #[serde(rename(deserialize = "CertId"))]
-    pub cert_id: String,
-    #[serde(rename(deserialize = "Status"))]
-    pub status: String,
-    #[serde(rename(deserialize = "CreationDate"))]
-    pub creation_date: String,
-    #[serde(rename(deserialize = "Fingerprint"))]
-    pub fingerprint: String,
-    #[serde(rename(deserialize = "ValidStartDate"))]
-    pub valid_start_date: String,
-    #[serde(rename(deserialize = "ValidEndDate"))]
-    pub valid_end_date: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Cname {
-    #[serde(rename(deserialize = "Domain"))]
-    pub domain: String,
-    #[serde(rename(deserialize = "LastModified"))]
-    pub last_modified: String,
-    #[serde(rename(deserialize = "Status"))]
-    pub status: String,
-    #[serde(rename(deserialize = "Certificate"))]
-    pub certificate: Option<Certificate>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -362,8 +387,8 @@ pub struct AccessControlList {
 pub struct Bucket {
     #[serde(rename = "AccessMonitor")]
     pub access_monitor: Option<String>,
-    #[serde(rename = "CreationDate")]
-    pub creation_date: String,
+    #[serde(rename = "CreationDate", with = "private::serde_date::utc")]
+    pub creation_date: DateTime<Utc>,
     #[serde(rename = "ExtranetEndpoint")]
     pub extranet_endpoint: String,
     #[serde(rename = "IntranetEndpoint")]
@@ -385,7 +410,7 @@ pub struct Bucket {
     #[serde(rename = "AccessControlList")]
     pub access_control_list: Option<AccessControlList>,
     #[serde(rename = "Comment")]
-    pub comment: String,
+    pub comment: Option<String>,
     #[serde(rename = "BucketPolicy")]
     pub bucket_policy: Option<BucketPolicy>,
 }
@@ -614,13 +639,13 @@ pub struct Style {
     #[serde(
         rename = "CreateTime",
         skip_serializing_if = "Option::is_none",
-        with = "option_datetime_format"
+        with = "private::serde_date::gmt"
     )]
     pub create_time: Option<DateTime<Utc>>,
     #[serde(
         rename = "LastModifyTime",
         skip_serializing_if = "Option::is_none",
-        with = "option_datetime_format"
+        with = "private::serde_date::gmt"
     )]
     pub last_modify_time: Option<DateTime<Utc>>,
 }
@@ -768,7 +793,52 @@ pub struct ListVersionsResult {
     pub version: Vec<Version>,
 }
 
-// ----------------------------------------------------------------------
+// -------------------------------------------------------
+// bcuked_cname                                         //
+// -------------------------------------------------------
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct ListCnameResult {
+    #[serde(rename = "Bucket")]
+    pub bucket: String,
+    #[serde(rename = "Owner")]
+    pub owner: String,
+    #[serde(rename = "Cname")]
+    pub cname: Option<Vec<Cname>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Certificate {
+    #[serde(rename(deserialize = "Type"))]
+    pub r#type: String,
+    #[serde(rename(deserialize = "CertId"))]
+    pub cert_id: String,
+    #[serde(rename(deserialize = "Status"))]
+    pub status: String,
+    #[serde(rename(deserialize = "CreationDate"))]
+    pub creation_date: String,
+    #[serde(rename(deserialize = "Fingerprint"))]
+    pub fingerprint: String,
+    #[serde(rename(deserialize = "ValidStartDate"))]
+    pub valid_start_date: String,
+    #[serde(rename(deserialize = "ValidEndDate"))]
+    pub valid_end_date: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Cname {
+    #[serde(rename(deserialize = "Domain"))]
+    pub domain: String,
+    #[serde(rename(deserialize = "LastModified"))]
+    pub last_modified: String,
+    #[serde(rename(deserialize = "Status"))]
+    pub status: String,
+    #[serde(rename(deserialize = "Certificate"))]
+    pub certificate: Option<Certificate>,
+}
+
+// ---------------------------------------------------------
+// lifecyle
+// ---------------------------------------------------------
 
 pub mod lifecycle {
     use super::{StorageClass, Tag};
@@ -1165,6 +1235,13 @@ pub mod builder {
 #[cfg(test)]
 mod tests {
 
+    #[allow(unused)]
+    use chrono::{
+        DateTime::{self},
+        FixedOffset, Local, NaiveDateTime, TimeZone,
+        Utc::{self},
+    };
+
     use crate::oss::{
         self,
         entities::{
@@ -1176,15 +1253,60 @@ mod tests {
                 },
                 Expiration, LifecycleConfiguration, Rule, Transition,
             },
-            ListVersionsResult, StorageClass, Style, Tag, TagSet, Tagging,
+            ListCnameResult, ListVersionsResult, StorageClass, Style, Tag, TagSet, Tagging,
             TransferAccelerationConfiguration,
         },
     };
 
     use super::{
         builder::{CORSConfigurationBuilder, CORSRuleBuilder},
-        ApplyServerSideEncryptionByDefault, CORSConfiguration, ServerSideEncryptionRule,
+        ApplyServerSideEncryptionByDefault, CORSConfiguration, ListAllMyBucketsResult,
+        ServerSideEncryptionRule,
     };
+
+    #[test]
+    fn bucket() {
+        // include!()
+        let xml = r#"
+<ListAllMyBucketsResult>
+<Owner>
+    <ID>512**</ID>
+    <DisplayName>51264</DisplayName>
+</Owner>
+<Buckets>
+    <Bucket>
+        <CreationDate>2014-02-17T18:12:43.000Z</CreationDate>
+        <ExtranetEndpoint>oss-cn-shanghai.aliyuncs.com</ExtranetEndpoint>
+        <IntranetEndpoint>oss-cn-shanghai-internal.aliyuncs.com</IntranetEndpoint>
+        <Location>oss-cn-shanghai</Location>
+        <Name>app-base-oss</Name>
+        <Region>cn-shanghai</Region>
+        <StorageClass>Standard</StorageClass>
+    </Bucket>
+    <Bucket>
+        <CreationDate>2014-02-25T11:21:04.000Z</CreationDate>
+        <ExtranetEndpoint>oss-cn-hangzhou.aliyuncs.com</ExtranetEndpoint>
+        <IntranetEndpoint>oss-cn-hangzhou-internal.aliyuncs.com</IntranetEndpoint>
+        <Location>oss-cn-hangzhou</Location>
+        <Name>mybucket</Name>
+        <Region>cn-hangzhou</Region>
+        <StorageClass>IA</StorageClass>
+    </Bucket>
+</Buckets>
+</ListAllMyBucketsResult>
+"#;
+        let obj: ListAllMyBucketsResult = quick_xml::de::from_str(&xml).unwrap();
+        println!("{:#?}", &obj);
+    }
+
+    #[test]
+    fn datetime() {
+        let s = "2014-02-17T18:12:43.000Z";
+        let fmt = "%Y-%m-%dT%H:%M:%S.000Z";
+
+        let dt = s.parse::<DateTime<Utc>>().unwrap();
+        println!("{}", dt.format(fmt));
+    }
 
     #[test]
     fn tagging() {
@@ -1687,5 +1809,43 @@ mod tests {
         let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
 
         println!("{:#?}", object);
+    }
+
+    #[test]
+    fn list_cname_result() {
+        let xml_content = r#"<ListCnameResult> 
+<Bucket>targetbucket</Bucket>
+<Owner>testowner</Owner>
+<Cname>
+    <Domain>example.com</Domain>
+    <LastModified>2021-09-15T02:35:07.000Z</LastModified>
+    <Status>Enabled</Status>
+    <Certificate>
+    <Type>CAS</Type>
+    <CertId>493****-cn-hangzhou</CertId>
+    <Status>Enabled</Status>
+    <CreationDate>Wed, 15 Sep 2021 02:35:06 GMT</CreationDate>
+    <Fingerprint>DE:01:CF:EC:7C:A7:98:CB:D8:6E:FB:1D:97:EB:A9:64:1D:4E:**:**</Fingerprint>
+    <ValidStartDate>Wed, 12 Apr 2023 10:14:51 GMT</ValidStartDate>
+    <ValidEndDate>Mon, 4 May 2048 10:14:51 GMT</ValidEndDate>
+    </Certificate>
+</Cname>
+<Cname>
+    <Domain>example.org</Domain>
+    <LastModified>2021-09-15T02:34:58.000Z</LastModified>
+    <Status>Enabled</Status>
+</Cname>
+<Cname>
+    <Domain>example.edu</Domain>
+    <LastModified>2021-09-15T02:50:34.000Z</LastModified>
+    <Status>Enabled</Status>
+</Cname>
+</ListCnameResult>"#;
+
+        let result = quick_xml::de::from_str::<ListCnameResult>(&xml_content);
+        match &result {
+            Ok(obj) => println!("{:#?}", obj),
+            Err(error) => println!("{:#?}", error),
+        }
     }
 }

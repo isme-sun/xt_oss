@@ -60,6 +60,7 @@ impl<'a> ListBucketsBuilder<'a> {
         let resp = self.client.request.task().url(&url).send().await.unwrap();
 
         let data = String::from_utf8_lossy(&resp.data);
+
         let data = quick_xml::de::from_str(&data).unwrap();
         Ok(oss::Data {
             status: resp.status,
