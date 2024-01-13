@@ -1,6 +1,5 @@
 use crate::oss::entities::encryption::ServerSideEncryptionRule;
-#[allow(unused)]
-use crate::oss::{self, Client, Data, Method, Result};
+use crate::oss::{self, Client};
 
 use super::builders::PutBucketEncryptionBuilder;
 

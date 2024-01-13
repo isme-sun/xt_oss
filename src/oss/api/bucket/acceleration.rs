@@ -1,10 +1,5 @@
 use crate::oss::entities::TransferAccelerationConfiguration;
-#[allow(unused)]
-use crate::oss::{
-    self,
-    entities::{BucketInfo, BucketStat},
-    Client, Data, Method, Result,
-};
+use crate::oss::{self, Client};
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
