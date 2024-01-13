@@ -1,4 +1,4 @@
-use crate::oss::entities::VersioningConfiguration;
+use crate::oss::entities::version::VersioningConfiguration;
 #[allow(unused)]
 use crate::oss::{self, Client, Data, Method, Result};
 

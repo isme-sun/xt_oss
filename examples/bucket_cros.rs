@@ -2,7 +2,7 @@
 use xt_oss::{
     oss::{
         self,
-        entities::builder::{CORSConfigurationBuilder, CORSRuleBuilder},
+        entities::cors::builder::{CORSConfigurationBuilder, CORSRuleBuilder},
     },
     utils,
 };

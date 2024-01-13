@@ -1,4 +1,7 @@
-use xt_oss::{oss::{self, entities::VersioningStatus}, utils};
+use xt_oss::{
+    oss::{self, entities::version::VersioningStatus},
+    utils,
+};
 
 // * ex: * 调用PutBucketVersioning设置指定存储空间（Bucket）的版本控制状态
 #[allow(unused)]
@@ -7,11 +10,12 @@ async fn ex_put_bucket_versioning() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
 
-    let result = client.PutBucketVersioning()
-                    // .status(VersioningStatus::Suspended)
-                    .status(VersioningStatus::Enabled)
-                    .send()
-                    .await;
+    let result = client
+        .PutBucketVersioning()
+        // .status(VersioningStatus::Suspended)
+        .status(VersioningStatus::Enabled)
+        .send()
+        .await;
     match result {
         Ok(result) => {
             println!("status: {}", result.status);
@@ -31,8 +35,7 @@ async fn ex_get_bucket_versioning() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
 
-    let result = client
-        .GetBucketVersioning().await;
+    let result = client.GetBucketVersioning().await;
     match result {
         Ok(result) => {
             println!("status: {}", result.status);

@@ -1,8 +1,51 @@
-use crate::oss::entities::CORSConfiguration;
+use crate::oss::entities::cors::CORSConfiguration;
 #[allow(unused)]
 use crate::oss::{self, Client, Data, Method, Result};
 
-use super::builders::PutBucketCorsBuilder;
+#[allow(unused)]
+pub struct PutBucketCorsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    config: CORSConfiguration,
+}
+
+#[allow(unused)]
+impl<'a> PutBucketCorsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+        Self {
+            client,
+            config: CORSConfiguration::default(),
+        }
+    }
+
+    pub fn config(mut self, value: CORSConfiguration) -> Self {
+        self.config = value;
+        self
+    }
+
+    pub async fn send(&self) -> oss::Result<()> {
+        let res = "cors";
+        let url = format!("{}/?{}", self.client.options.base_url(), res);
+        let content = quick_xml::se::to_string(&self.config).unwrap();
+        let data = oss::Bytes::from(content);
+        let resp = self
+            .client
+            .request
+            .task()
+            .url(&url)
+            .method(oss::Method::PUT)
+            .resourse(res)
+            .body(data)
+            .send()
+            .await?;
+
+        let result = oss::Data {
+            data: (),
+            status: resp.status,
+            headers: resp.headers,
+        };
+        Ok(result)
+    }
+}
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
