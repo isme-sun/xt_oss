@@ -22,7 +22,8 @@ async fn main() {
     let result = client.ListStyle().await;
     match result {
         Ok(result) => {
-            println!("{:#?}", result.data)
+            // println!("{:#?}", result.data);
+            println!("{}", serde_json::to_string(&result.data).unwrap())
         }
         Err(message) => {
             println!("{:#?}", message)

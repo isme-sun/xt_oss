@@ -4,68 +4,6 @@ use crate::oss;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-pub(super) mod private {
-
-    pub(super) mod serde_date {
-
-        pub mod utc {
-            use chrono::{DateTime, Utc};
-            use serde::{self, Deserialize, Deserializer, Serializer};
-
-            const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S.000Z";
-
-            pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer,
-            {
-                let s = format!("{}", date.format(FORMAT));
-                serializer.serialize_str(&s)
-            }
-
-            pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                let s = String::deserialize(deserializer)?;
-                let dt = s.parse::<DateTime<Utc>>().unwrap();
-                Ok(dt)
-            }
-        }
-
-        pub mod gmt {
-            use chrono::{DateTime, NaiveDateTime, Utc};
-            use serde::{self, Deserialize, Deserializer, Serializer};
-
-            pub fn serialize<S>(
-                date: &Option<DateTime<Utc>>,
-                serializer: S,
-            ) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer,
-            {
-                match date {
-                    Some(date) => {
-                        let s = format!("{}", date.format(crate::oss::GMT_DATE_FMT));
-                        serializer.serialize_str(&s)
-                    }
-                    None => serializer.serialize_str("null"),
-                }
-            }
-
-            pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                let s = String::deserialize(deserializer)?;
-                let dt = NaiveDateTime::parse_from_str(&s, crate::oss::GMT_DATE_FMT)
-                    .unwrap()
-                    .and_utc();
-
-                Ok(Some(dt))
-            }
-        }
-    }
-}
 
 pub(crate) mod inner {
     use serde::{Deserialize, Serialize};
@@ -97,6 +35,9 @@ pub(crate) mod inner {
 }
 
 //----------------------------------------------------------------
+
+pub mod private;
+pub mod cname;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WormConfiguration {
@@ -639,13 +580,13 @@ pub struct Style {
     #[serde(
         rename = "CreateTime",
         skip_serializing_if = "Option::is_none",
-        with = "private::serde_date::gmt"
+        with = "private::serde_date::gmt_option"
     )]
     pub create_time: Option<DateTime<Utc>>,
     #[serde(
         rename = "LastModifyTime",
         skip_serializing_if = "Option::is_none",
-        with = "private::serde_date::gmt"
+        with = "private::serde_date::gmt_option"
     )]
     pub last_modify_time: Option<DateTime<Utc>>,
 }
@@ -791,49 +732,6 @@ pub struct ListVersionsResult {
     pub delete_marker: Option<Vec<DeleteMarker>>,
     #[serde(rename = "Version")]
     pub version: Vec<Version>,
-}
-
-// -------------------------------------------------------
-// bcuked_cname                                         //
-// -------------------------------------------------------
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct ListCnameResult {
-    #[serde(rename = "Bucket")]
-    pub bucket: String,
-    #[serde(rename = "Owner")]
-    pub owner: String,
-    #[serde(rename = "Cname")]
-    pub cname: Option<Vec<Cname>>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct Certificate {
-    #[serde(rename(deserialize = "Type"))]
-    pub r#type: String,
-    #[serde(rename(deserialize = "CertId"))]
-    pub cert_id: String,
-    #[serde(rename(deserialize = "Status"))]
-    pub status: String,
-    #[serde(rename(deserialize = "CreationDate"))]
-    pub creation_date: String,
-    #[serde(rename(deserialize = "Fingerprint"))]
-    pub fingerprint: String,
-    #[serde(rename(deserialize = "ValidStartDate"))]
-    pub valid_start_date: String,
-    #[serde(rename(deserialize = "ValidEndDate"))]
-    pub valid_end_date: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct Cname {
-    #[serde(rename(deserialize = "Domain"))]
-    pub domain: String,
-    #[serde(rename(deserialize = "LastModified"))]
-    pub last_modified: String,
-    #[serde(rename(deserialize = "Status"))]
-    pub status: String,
-    #[serde(rename(deserialize = "Certificate"))]
-    pub certificate: Option<Certificate>,
 }
 
 // ---------------------------------------------------------
@@ -1245,6 +1143,7 @@ mod tests {
     use crate::oss::{
         self,
         entities::{
+            cname::ListCnameResult,
             inner,
             lifecycle::{
                 builder::{
@@ -1253,7 +1152,7 @@ mod tests {
                 },
                 Expiration, LifecycleConfiguration, Rule, Transition,
             },
-            ListCnameResult, ListVersionsResult, StorageClass, Style, Tag, TagSet, Tagging,
+            ListVersionsResult, StorageClass, Style, Tag, TagSet, Tagging,
             TransferAccelerationConfiguration,
         },
     };

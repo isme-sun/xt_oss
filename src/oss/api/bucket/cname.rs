@@ -1,5 +1,5 @@
 // use ::{entities::ListCnameResult, util::Authorization, OssClient, OssData, OssResult};
-use crate::oss::{self, entities::ListCnameResult, Client};
+use crate::oss::{self, entities::cname::ListCnameResult, Client};
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
