@@ -203,8 +203,7 @@ impl<'a> ListObject2Builder<'a> {
             .url(&url)
             .method(oss::Method::GET)
             .send()
-            .await
-            .unwrap();
+            .await?;
 
         let content = String::from_utf8_lossy(&resp.data);
 

@@ -56,6 +56,18 @@ pub struct Cname {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct CnameToken {
+    #[serde(rename = "Bucket")]
+    pub bucket: String,
+    #[serde(rename = "Cname")]
+    pub cname: String,
+    #[serde(rename = "Token")]
+    pub token: String,
+    #[serde(rename = "ExpireTime", with = "super::private::serde_date::gmt")]
+    pub expire_time: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BucketCnameConfiguration {
     pub cname: Cname,
 }
@@ -74,9 +86,69 @@ pub struct CertificateConfiguration {
     pub force_delete_certificate: String,
 }
 
+pub mod builder {
+
+    use super::BucketCnameConfiguration;
+
+    #[derive(Debug, Default)]
+    pub struct BucketCnameConfigurationBuilder {
+        pub bucket_cname_configuration: BucketCnameConfiguration,
+    }
+
+    impl BucketCnameConfigurationBuilder {
+        pub fn new() -> Self {
+            BucketCnameConfigurationBuilder {
+                bucket_cname_configuration: BucketCnameConfiguration::default(),
+            }
+        }
+
+        pub fn with_domain(mut self, value: &str) -> Self {
+            self.bucket_cname_configuration.cname.domain = value.to_string();
+            self
+        }
+
+        // pub fn with_cert_id(mut self, value: &str) -> Self {
+        //     let certificate =
+        //         if let Some(mut certificate) = self.bucket_cname_configuration.cname.certificate {
+        //             certificate.cert_id = value.to_string();
+        //             certificate
+        //         } else {
+        //             let mut certificate = super::Certificate::default();
+        //             certificate.cert_id = value.to_string();
+        //             certificate
+        //         };
+        //     self.bucket_cname_configuration.cname.certificate = Some(certificate);
+        //     self
+        // }
+
+        pub fn config(&self) -> String {
+            quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::oss::entities::cname::ListCnameResult;
+    use super::builder::BucketCnameConfigurationBuilder;
+    use crate::oss::{
+        entities::cname::{CnameToken, ListCnameResult},
+        GMT_DATE_FMT,
+    };
+
+    #[test]
+    fn cname_token() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<CnameToken>
+	<Bucket>examplebucket</Bucket>
+	<Cname>example.com</Cname>;
+	<Token>be1d49d863dea9ffeff3df7d6455****</Token>
+	<ExpireTime>Wed, 23 Feb 2022 21:16:37 GMT</ExpireTime>
+</CnameToken>"#;
+        let obj = quick_xml::de::from_str::<CnameToken>(&xml).unwrap();
+        let left = "Wed, 23 Feb 2022 21:16:37 GMT";
+        let right = obj.expire_time.format(GMT_DATE_FMT).to_string();
+        assert_eq!(left, right);
+    }
 
     #[test]
     fn list_cname_result() {
@@ -113,5 +185,13 @@ mod tests {
         let cname = obj.cname.unwrap()[0].clone();
         let cert = cname.certificate.unwrap();
         assert_eq!("CAS", cert.r#type);
+    }
+
+    #[test]
+    fn bucket_cname_configuration_builder() {
+        let builder =
+            BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
+
+        print!("{}", builder.config());
     }
 }

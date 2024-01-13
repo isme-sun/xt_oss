@@ -131,11 +131,11 @@
 
 ### Bucket 自定义域名（CNAME）
 
-- [ ] 46 ★ `CreateCnameToken`
-- [ ] 47 ★ `GetCnameToken`
-- [ ] 48 ★ `PutCname`
+- [X] 46 ★ `CreateCnameToken`
+- [X] 47 ★ `GetCnameToken`
+- [X] 48 ★ `PutCname`
 - [X] 49 ★ `ListCname`
-- [ ] 50 ★ `DeleteCname`
+- [X] 50 ★ `DeleteCname`
 
 ### Bucket 图片样式（Style）
 

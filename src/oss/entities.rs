@@ -1,9 +1,7 @@
-use std::fmt::{self, Display};
-
 use crate::oss;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-
+use std::fmt::{self, Display};
 
 pub(crate) mod inner {
     use serde::{Deserialize, Serialize};
@@ -36,8 +34,8 @@ pub(crate) mod inner {
 
 //----------------------------------------------------------------
 
-pub mod private;
 pub mod cname;
+pub mod private;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WormConfiguration {
@@ -1710,41 +1708,4 @@ mod tests {
         println!("{:#?}", object);
     }
 
-    #[test]
-    fn list_cname_result() {
-        let xml_content = r#"<ListCnameResult> 
-<Bucket>targetbucket</Bucket>
-<Owner>testowner</Owner>
-<Cname>
-    <Domain>example.com</Domain>
-    <LastModified>2021-09-15T02:35:07.000Z</LastModified>
-    <Status>Enabled</Status>
-    <Certificate>
-    <Type>CAS</Type>
-    <CertId>493****-cn-hangzhou</CertId>
-    <Status>Enabled</Status>
-    <CreationDate>Wed, 15 Sep 2021 02:35:06 GMT</CreationDate>
-    <Fingerprint>DE:01:CF:EC:7C:A7:98:CB:D8:6E:FB:1D:97:EB:A9:64:1D:4E:**:**</Fingerprint>
-    <ValidStartDate>Wed, 12 Apr 2023 10:14:51 GMT</ValidStartDate>
-    <ValidEndDate>Mon, 4 May 2048 10:14:51 GMT</ValidEndDate>
-    </Certificate>
-</Cname>
-<Cname>
-    <Domain>example.org</Domain>
-    <LastModified>2021-09-15T02:34:58.000Z</LastModified>
-    <Status>Enabled</Status>
-</Cname>
-<Cname>
-    <Domain>example.edu</Domain>
-    <LastModified>2021-09-15T02:50:34.000Z</LastModified>
-    <Status>Enabled</Status>
-</Cname>
-</ListCnameResult>"#;
-
-        let result = quick_xml::de::from_str::<ListCnameResult>(&xml_content);
-        match &result {
-            Ok(obj) => println!("{:#?}", obj),
-            Err(error) => println!("{:#?}", error),
-        }
-    }
 }
