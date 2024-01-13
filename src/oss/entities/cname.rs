@@ -1,8 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-// -------------------------------------------------------
-// bcuked_cname                                         //
-// -------------------------------------------------------
+
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ListCnameResult {
     #[serde(rename = "Bucket")]

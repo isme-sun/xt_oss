@@ -36,8 +36,11 @@ pub(crate) mod inner {
 
 pub mod cname;
 pub mod cors;
+pub mod encryption;
 pub mod lifecycle;
 pub mod private;
+pub mod style;
+pub mod tag;
 pub mod version;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -85,25 +88,6 @@ impl Display for OssAcl {
 }
 
 //----------------------------------------------------------------
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
-pub enum SSEAlgorithm {
-    KMS,
-    #[default]
-    AES256,
-    SM4,
-}
-
-impl Display for SSEAlgorithm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let value = match self {
-            Self::KMS => "KMS",
-            Self::AES256 => "AES256",
-            Self::SM4 => "SM4",
-        };
-        write!(f, "{}", value)
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub enum ObjectACL {
@@ -395,26 +379,6 @@ pub struct AccessControlPolicy {
     pub access_control_list: AccessControlList,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Tag {
-    #[serde(rename = "Key")]
-    pub key: String,
-    #[serde(rename = "Value")]
-    pub value: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct TagSet {
-    #[serde(rename = "Tag")]
-    pub(crate) tag: Option<Vec<Tag>>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Tagging {
-    #[serde(rename = "TagSet")]
-    pub tag_set: TagSet,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommonPrefixes {
     #[serde(rename = "Prefix")]
@@ -570,65 +534,6 @@ pub struct TransferAccelerationConfiguration {
 // -----------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Style {
-    #[serde(rename = "Name")]
-    pub name: String,
-    #[serde(rename = "Content")]
-    pub content: String,
-    #[serde(rename = "Category")]
-    pub category: Option<String>,
-    #[serde(
-        rename = "CreateTime",
-        skip_serializing_if = "Option::is_none",
-        with = "private::serde_date::gmt_option"
-    )]
-    pub create_time: Option<DateTime<Utc>>,
-    #[serde(
-        rename = "LastModifyTime",
-        skip_serializing_if = "Option::is_none",
-        with = "private::serde_date::gmt_option"
-    )]
-    pub last_modify_time: Option<DateTime<Utc>>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct StyleList {
-    #[serde(rename = "Style")]
-    pub style: Vec<Style>,
-}
-
-// ----------------------------------------------------------
-
-/*
-<ServerSideEncryptionRule>
-  <ApplyServerSideEncryptionByDefault>
-    <SSEAlgorithm>KMS</SSEAlgorithm>
-    <KMSDataEncryption>SM4</KMSDataEncryption>
-    <KMSMasterKeyID></KMSMasterKeyID>
-  </ApplyServerSideEncryptionByDefault>
-</ServerSideEncryptionRule>
-*/
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct ApplyServerSideEncryptionByDefault {
-    #[serde(rename = "SSEAlgorithm")]
-    pub sse_algorithm: SSEAlgorithm,
-    #[serde(rename = "KMSDataEncryption", skip_serializing_if = "Option::is_none")]
-    pub kms_data_encryption: Option<String>,
-    #[serde(rename = "KMSMasterKeyID")]
-    pub kms_master_key_id: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct ServerSideEncryptionRule {
-    #[serde(rename = "ApplyServerSideEncryptionByDefault")]
-    pub(crate) apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault,
-}
-
-// ------------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -640,24 +545,12 @@ mod tests {
         Utc::{self},
     };
 
-    use crate::oss::{
-        self,
-        entities::{
-            inner,
-            lifecycle::{
-                builder::{
-                    ExpirationBuilder, LifecycleConfigurationBuilder, RuleBuilder,
-                    TransitionBuilder,
-                },
-                Expiration, LifecycleConfiguration, Rule, Transition,
-            },
-            StorageClass, Style, Tag, TagSet, Tagging, TransferAccelerationConfiguration,
-        },
+    use crate::oss::entities::{
+        inner,
+        TransferAccelerationConfiguration,
     };
 
-    use super::{
-        ApplyServerSideEncryptionByDefault, ListAllMyBucketsResult, ServerSideEncryptionRule,
-    };
+    use super::ListAllMyBucketsResult;
 
     #[test]
     fn bucket() {
@@ -692,52 +585,6 @@ mod tests {
 "#;
         let obj: ListAllMyBucketsResult = quick_xml::de::from_str(&xml).unwrap();
         println!("{:#?}", &obj);
-    }
-
-    #[test]
-    fn datetime() {
-        let s = "2014-02-17T18:12:43.000Z";
-        let fmt = "%Y-%m-%dT%H:%M:%S.000Z";
-
-        let dt = s.parse::<DateTime<Utc>>().unwrap();
-        println!("{}", dt.format(fmt));
-    }
-
-    #[test]
-    fn tagging() {
-        let tag = Tag {
-            key: "key1".to_string(),
-            value: "value1".to_string(),
-        };
-        let tag1 = Tag {
-            key: "key1".to_string(),
-            value: "value1".to_string(),
-        };
-
-        let tag_set = TagSet {
-            tag: Some(vec![tag, tag1]),
-        };
-
-        let tag_sets = Tagging { tag_set };
-        let content = quick_xml::se::to_string(&tag_sets).unwrap();
-        println!("{}", content);
-
-        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
-<Tagging>
-	<TagSet>
-		<Tag>
-			<Key>key1</Key>
-			<Value>value1</Value>
-		</Tag>
-		<Tag>
-			<Key>key2</Key>
-			<Value>value2</Value>
-		</Tag>
-	</TagSet>
-</Tagging>"#;
-
-        let c: Tagging = quick_xml::de::from_str(&xml).unwrap();
-        println!("{:#?}", c);
     }
 
     #[test]
@@ -777,202 +624,4 @@ mod tests {
         assert_eq!(object1.enabled, object2.enabled)
     }
 
-    // xml转换
-    #[test]
-    fn lifecycle_configuration_1() {
-        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log/</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition></Rule></LifecycleConfiguration>"#;
-        let rule = Rule {
-            id: "rule".to_string(),
-            prefix: "log/".to_string(),
-            status: "Enabled".to_string(),
-            transition: Some(vec![Transition {
-                days: Some(30),
-                storage_class: StorageClass::IA,
-                is_access_time: None,
-                return_to_std_when_visit: None,
-                allow_small_file: None,
-            }]),
-            expiration: None,
-            filter: None,
-            noncurrent_version_expiration: None,
-            abort_multipart_upload: None,
-        };
-
-        let config = LifecycleConfiguration { rule: vec![rule] };
-        let content = quick_xml::se::to_string(&config).unwrap();
-        assert_eq!(content, xml_content);
-    }
-
-    // xml转换
-    #[test]
-    fn lifecycle_configuration_2() {
-        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Expiration><Days>90</Days></Expiration></Rule></LifecycleConfiguration>"#;
-
-        let rule = Rule {
-            id: "rule".to_string(),
-            prefix: "log".to_string(),
-            status: "Enabled".to_string(),
-            transition: None,
-            expiration: Some(Expiration {
-                days: Some(90),
-                created_before_date: None,
-                expired_object_delete_marker: None,
-            }),
-            filter: None,
-            noncurrent_version_expiration: None,
-            abort_multipart_upload: None,
-        };
-
-        let config = LifecycleConfiguration { rule: vec![rule] };
-        let content = quick_xml::se::to_string(&config).unwrap();
-        assert_eq!(content, xml_content);
-    }
-
-    // xml转换
-    #[test]
-    fn lifecycle_configuration_3() {
-        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log/</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition><Transition><Days>60</Days><StorageClass>Archive</StorageClass></Transition><Expiration><Days>3600</Days></Expiration></Rule></LifecycleConfiguration>"#;
-
-        let transition = vec![
-            Transition {
-                days: Some(30),
-                storage_class: StorageClass::IA,
-                is_access_time: None,
-                return_to_std_when_visit: None,
-                allow_small_file: None,
-            },
-            Transition {
-                days: Some(60),
-                storage_class: StorageClass::Archive,
-                is_access_time: None,
-                return_to_std_when_visit: None,
-                allow_small_file: None,
-            },
-        ];
-
-        let rule = Rule {
-            id: "rule".to_string(),
-            prefix: "log/".to_string(),
-            status: "Enabled".to_string(),
-            transition: Some(transition),
-            expiration: Some(Expiration {
-                days: Some(3600),
-                created_before_date: None,
-                expired_object_delete_marker: None,
-            }),
-            filter: None,
-            noncurrent_version_expiration: None,
-            abort_multipart_upload: None,
-        };
-
-        let config = LifecycleConfiguration { rule: vec![rule] };
-        let content = quick_xml::se::to_string(&config).unwrap();
-        assert_eq!(content, xml_content);
-    }
-
-    #[test]
-    fn lifecycle_configuration_builder() {
-        let rule1 = RuleBuilder::new()
-            .id("RuleID")
-            .prefix("Prefix")
-            .status("status")
-            .expiration(
-                ExpirationBuilder::new()
-                    .days(23)
-                    .expired_object_delete_marker(false)
-                    .builder(),
-            )
-            .add_transition(
-                TransitionBuilder::new()
-                    .days(23)
-                    .standard_storage(StorageClass::Archive)
-                    .builder(),
-            )
-            .abort_multipart_upload(12)
-            .builder();
-
-        let config = LifecycleConfigurationBuilder::new()
-            .add_rule(rule1)
-            .builder();
-
-        println!("{:#?}", config);
-
-        println!("{}", quick_xml::se::to_string(&config).unwrap());
-    }
-
-    #[test]
-    fn style() {
-        let xml_origin = r#"<Style><Name>imagestyle</Name><Content>image/resize,p_50</Content><Category>image</Category><CreateTime>Wed, 20 May 2020 12:07:15 GMT</CreateTime><LastModifyTime>Wed, 20 May 2020 12:07:15 GMT</LastModifyTime></Style>"#;
-
-        let style = Style {
-            name: "imagestyle".to_string(),
-            content: "image/resize,p_50".to_string(),
-            category: Some("image".to_string()),
-            create_time: None,
-            last_modify_time: None,
-        };
-
-        let xml_gen = quick_xml::se::to_string(&style).unwrap();
-        println!("{}", xml_gen);
-
-        let style1 = quick_xml::de::from_str::<Style>(&xml_origin).unwrap();
-        println!("{:#?}", style1);
-    }
-
-    #[test]
-    fn server_side_encryption_rule1() {
-        let xml_conrtent = r#"<ServerSideEncryptionRule><ApplyServerSideEncryptionByDefault> <SSEAlgorithm>KMS</SSEAlgorithm><KMSDataEncryption>SM4</KMSDataEncryption> <KMSMasterKeyID></KMSMasterKeyID></ApplyServerSideEncryptionByDefault></ServerSideEncryptionRule>"#;
-
-        let object: ServerSideEncryptionRule = quick_xml::de::from_str(xml_conrtent).unwrap();
-        assert_eq!(
-            object
-                .apply_server_side_encryption_by_default
-                .kms_data_encryption,
-            Some("SM4".to_string())
-        )
-    }
-
-    #[test]
-    fn server_side_encryption_rule2() {
-        let object = ServerSideEncryptionRule {
-            apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault {
-                sse_algorithm: super::SSEAlgorithm::KMS,
-                kms_data_encryption: Some("9468da86-3509-4f8d-a61e-6eab1eac****".to_string()),
-                kms_master_key_id: None,
-            },
-        };
-        let left = r#"<ServerSideEncryptionRule><ApplyServerSideEncryptionByDefault><SSEAlgorithm>KMS</SSEAlgorithm><KMSDataEncryption>9468da86-3509-4f8d-a61e-6eab1eac****</KMSDataEncryption><KMSMasterKeyID/></ApplyServerSideEncryptionByDefault></ServerSideEncryptionRule>"#;
-
-        let right = quick_xml::se::to_string(&object).unwrap();
-        assert_eq!(left, right)
-    }
-
-    #[test]
-    fn server_side_encryption_rule3() {
-        let object = ServerSideEncryptionRule {
-            apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault {
-                sse_algorithm: super::SSEAlgorithm::SM4,
-                kms_data_encryption: None,
-                kms_master_key_id: None,
-            },
-        };
-        let left = r#"<ServerSideEncryptionRule><ApplyServerSideEncryptionByDefault><SSEAlgorithm>SM4</SSEAlgorithm><KMSMasterKeyID/></ApplyServerSideEncryptionByDefault></ServerSideEncryptionRule>"#;
-
-        let right = quick_xml::se::to_string(&object).unwrap();
-        assert_eq!(left, right)
-    }
-
-    #[test]
-    fn server_side_encryption_rule4() {
-        let object = ServerSideEncryptionRule {
-            apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault {
-                sse_algorithm: super::SSEAlgorithm::KMS,
-                kms_data_encryption: Some("SM4".to_string()),
-                kms_master_key_id: None,
-            },
-        };
-        let left = r#"<ServerSideEncryptionRule><ApplyServerSideEncryptionByDefault><SSEAlgorithm>KMS</SSEAlgorithm><KMSDataEncryption>SM4</KMSDataEncryption><KMSMasterKeyID/></ApplyServerSideEncryptionByDefault></ServerSideEncryptionRule>"#;
-        let right = quick_xml::se::to_string(&object).unwrap();
-        assert_eq!(left, right);
-    }
 }

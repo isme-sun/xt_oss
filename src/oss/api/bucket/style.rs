@@ -1,6 +1,6 @@
 use crate::oss::{
     self,
-    entities::{Style, StyleList},
+    entities::style::{Style, StyleList},
     Client,
 };
 

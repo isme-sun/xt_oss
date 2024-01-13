@@ -1,4 +1,4 @@
-use crate::oss::entities::Tagging;
+use crate::oss::entities::tag::Tagging;
 #[allow(unused)]
 use crate::oss::{self, Client, Data, Method, Result};
 

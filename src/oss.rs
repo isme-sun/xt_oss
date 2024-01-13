@@ -66,28 +66,6 @@ impl Display for Message {
     }
 }
 
-// #[derive(Debug, Default, Deserialize, Serialize)]
-// pub struct Error {
-//     #[serde(rename(deserialize = "Code"))]
-//     pub code: String,
-//     #[serde(rename(deserialize = "Message"))]
-//     pub message: String,
-//     #[serde(rename(deserialize = "RequestId"))]
-//     pub request_id: String,
-//     #[serde(rename(deserialize = "HostId"))]
-//     pub host_id: String,
-//     #[serde(rename(deserialize = "EC"))]
-//     pub ec: String,
-//     #[serde(rename(deserialize = "RecommendDoc"))]
-//     pub recommend_doc: String,
-// }
-
-// impl Display for Error {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         write!(f, "[{}]: {}", self.code, self.message)
-//     }
-// }
-
 type Result<T> = std::result::Result<Data<T>, Message>;
 
 #[derive(Debug)]

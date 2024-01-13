@@ -1,5 +1,5 @@
 use crate::oss::{
-    self, api::objects::builders::DeleteObjectTaggingBuilder, entities::Tagging, Client,
+    self, api::objects::builders::DeleteObjectTaggingBuilder, entities::tag::Tagging, Client,
 };
 
 use super::builders::PutObjectTaggingBuilder;

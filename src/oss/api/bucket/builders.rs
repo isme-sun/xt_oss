@@ -4,10 +4,12 @@ use std::{collections::HashMap, fmt};
 use crate::oss::{
     self,
     entities::{
-        ApplyServerSideEncryptionByDefault, BucketInfo, BucketStat,
-        DataRedundancyType, ListBucketResult, ListBucketResult2, LocationConstraint, OssAcl,
-        RefererConfiguration, SSEAlgorithm, ServerSideEncryptionRule, StorageClass, Style, Tag,
-        TagSet, Tagging, version::{VersioningConfiguration, VersioningStatus},
+        encryption::{ApplyServerSideEncryptionByDefault, SSEAlgorithm, ServerSideEncryptionRule},
+        style::Style,
+        tag::{Tag, TagSet, Tagging},
+        version::{VersioningConfiguration, VersioningStatus},
+        BucketInfo, BucketStat, DataRedundancyType, ListBucketResult, ListBucketResult2,
+        LocationConstraint, OssAcl, RefererConfiguration, StorageClass,
     },
 };
 // --------------------------------------------------------------------------
@@ -1120,7 +1122,6 @@ impl<'a> PutStyleBuilder<'a> {
 }
 
 // ----------------------------------------------------------------------
-
 
 #[allow(unused)]
 pub struct PutBucketTagsBuilder<'a> {

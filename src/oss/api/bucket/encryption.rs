@@ -1,4 +1,4 @@
-use crate::oss::entities::ServerSideEncryptionRule;
+use crate::oss::entities::encryption::ServerSideEncryptionRule;
 #[allow(unused)]
 use crate::oss::{self, Client, Data, Method, Result};
 

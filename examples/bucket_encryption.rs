@@ -1,6 +1,6 @@
 #[allow(unused)]
 use xt_oss::{
-    oss::{self, entities::SSEAlgorithm},
+    oss::{self, entities::encryption::SSEAlgorithm},
     utils,
 };
 

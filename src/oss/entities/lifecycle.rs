@@ -1,5 +1,4 @@
-
-use super::{StorageClass, Tag};
+use super::{tag::Tag, StorageClass};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -296,5 +295,133 @@ pub mod builder {
                 rule: self.rules.clone(),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::builder::*;
+    use super::*;
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_1() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log/</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition></Rule></LifecycleConfiguration>"#;
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "log/".to_string(),
+            status: "Enabled".to_string(),
+            transition: Some(vec![Transition {
+                days: Some(30),
+                storage_class: StorageClass::IA,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            }]),
+            expiration: None,
+            filter: None,
+            noncurrent_version_expiration: None,
+            abort_multipart_upload: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_2() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Expiration><Days>90</Days></Expiration></Rule></LifecycleConfiguration>"#;
+
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "log".to_string(),
+            status: "Enabled".to_string(),
+            transition: None,
+            expiration: Some(Expiration {
+                days: Some(90),
+                created_before_date: None,
+                expired_object_delete_marker: None,
+            }),
+            filter: None,
+            noncurrent_version_expiration: None,
+            abort_multipart_upload: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    // xml转换
+    #[test]
+    fn lifecycle_configuration_3() {
+        let xml_content = r#"<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log/</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition><Transition><Days>60</Days><StorageClass>Archive</StorageClass></Transition><Expiration><Days>3600</Days></Expiration></Rule></LifecycleConfiguration>"#;
+
+        let transition = vec![
+            Transition {
+                days: Some(30),
+                storage_class: StorageClass::IA,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            },
+            Transition {
+                days: Some(60),
+                storage_class: StorageClass::Archive,
+                is_access_time: None,
+                return_to_std_when_visit: None,
+                allow_small_file: None,
+            },
+        ];
+
+        let rule = Rule {
+            id: "rule".to_string(),
+            prefix: "log/".to_string(),
+            status: "Enabled".to_string(),
+            transition: Some(transition),
+            expiration: Some(Expiration {
+                days: Some(3600),
+                created_before_date: None,
+                expired_object_delete_marker: None,
+            }),
+            filter: None,
+            noncurrent_version_expiration: None,
+            abort_multipart_upload: None,
+        };
+
+        let config = LifecycleConfiguration { rule: vec![rule] };
+        let content = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(content, xml_content);
+    }
+
+    #[test]
+    fn lifecycle_configuration_builder() {
+        let rule1 = RuleBuilder::new()
+            .id("RuleID")
+            .prefix("Prefix")
+            .status("status")
+            .expiration(
+                ExpirationBuilder::new()
+                    .days(23)
+                    .expired_object_delete_marker(false)
+                    .builder(),
+            )
+            .add_transition(
+                TransitionBuilder::new()
+                    .days(23)
+                    .standard_storage(StorageClass::Archive)
+                    .builder(),
+            )
+            .abort_multipart_upload(12)
+            .builder();
+
+        let config = LifecycleConfigurationBuilder::new()
+            .add_rule(rule1)
+            .builder();
+
+        println!("{:#?}", config);
+
+        println!("{}", quick_xml::se::to_string(&config).unwrap());
     }
 }
