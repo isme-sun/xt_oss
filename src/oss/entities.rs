@@ -32,8 +32,6 @@ pub(crate) mod inner {
     }
 }
 
-//----------------------------------------------------------------
-
 pub mod cname;
 pub mod cors;
 pub mod encryption;
@@ -54,8 +52,6 @@ pub struct WormConfiguration {
     #[serde(rename = "CreationDate")]
     pub creation_date: String,
 }
-
-//----------------------------------------------------------------
 
 /// 指定存储空间的数据容灾类型
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -86,8 +82,6 @@ impl Display for OssAcl {
         write!(f, "{}", desc)
     }
 }
-
-//----------------------------------------------------------------
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub enum ObjectACL {
@@ -531,10 +525,6 @@ pub struct TransferAccelerationConfiguration {
     pub enabled: bool,
 }
 
-// -----------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-
 #[cfg(test)]
 mod tests {
 
@@ -545,10 +535,7 @@ mod tests {
         Utc::{self},
     };
 
-    use crate::oss::entities::{
-        inner,
-        TransferAccelerationConfiguration,
-    };
+    use crate::oss::entities::{inner, TransferAccelerationConfiguration};
 
     use super::ListAllMyBucketsResult;
 
@@ -623,5 +610,4 @@ mod tests {
 
         assert_eq!(object1.enabled, object2.enabled)
     }
-
 }

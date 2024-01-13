@@ -7,11 +7,11 @@
 ### 关于Service/Region操作
 
 - [X] 01 ★ `ListBuckets（GetService）`
-- [X] 02 ★ `DescribeRegions` 
+- [X] 02 ★ `DescribeRegions`
 
 ### Bucket - 基础操作
 
-- [X] 03 ★ `PutBucket` 
+- [X] 03 ★ `PutBucket`
 - [X] 04 ★ `DeleteBucket`
 - [X] 05 ★ `ListObjects`
 - [X] 06 ★ `ListObjectsV2`
