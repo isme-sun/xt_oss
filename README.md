@@ -212,8 +212,8 @@
 
 ### Object 软链接（Symlink）
 
-- [ ] 73 ★ `PutSymlink`
-- [ ] 74 ★ `GetSymlink`
+- [X] 73 ★ `PutSymlink`
+- [X] 74 ★ `GetSymlink`
 
 ### Object 标签（Tagging）
 

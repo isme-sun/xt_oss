@@ -10,7 +10,7 @@ use xt_oss::{
 async fn info_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketInfo().name("xtoss-t1").send().await;
+    let result = client.GetBucketInfo().send().await;
     match result {
         Ok(result) => println!("{}", serde_json::to_string_pretty(&result.data).unwrap()),
         Err(message) => {
@@ -26,10 +26,10 @@ async fn stat_bucket() {
     let result = client.GetBucketStat().send().await;
     match result {
         Ok(result) => {
-            println!("status: {}", result.status);
-            println!("headers: {:#?}", result.headers);
-            println!("data: {:#?}", result.data);
-            // let content = serde_json::to_string_pretty(&result.data).unwrap();
+            // println!("status: {}", result.status);
+            // println!("headers: {:#?}", result.headers);
+            // println!("data: {:#?}", result.data);
+            println!("{}", serde_json::to_string_pretty(&result.data).unwrap());
         }
         Err(message) => {
             println!("{}", message);
@@ -79,7 +79,7 @@ async fn delete_bucket() {
 async fn location_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketLocation().name("xtoss-dev1").send().await;
+    let result = client.GetBucketLocation().send().await;
 
     match result {
         Ok(result) => println!("{}", serde_json::to_string_pretty(&result.data).unwrap()),
@@ -121,8 +121,8 @@ async fn put_acl_bucket() {
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    // info_bucket().await;
-    stat_bucket().await;
+    info_bucket().await;
+    // stat_bucket().await;
     // location_bucket().await;
     // get_acl_bucket().await;
     // put_acl_bucket().await;

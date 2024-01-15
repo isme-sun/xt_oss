@@ -13,26 +13,20 @@ pub struct ListCnameResult {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Certificate {
-    #[serde(rename(deserialize = "Type"))]
+    #[serde(rename = "Type")]
     pub r#type: String,
-    #[serde(rename(deserialize = "CertId"))]
+    #[serde(rename = "CertId")]
     pub cert_id: String,
-    #[serde(rename(deserialize = "Status"))]
+    #[serde(rename = "Status")]
     pub status: String,
-    #[serde(rename(deserialize = "CreationDate"))]
+    #[serde(rename = "CreationDate")]
     pub creation_date: String,
-    #[serde(rename(deserialize = "Fingerprint"))]
+    #[serde(rename = "Fingerprint")]
     pub fingerprint: String,
-    #[serde(
-        rename(deserialize = "ValidStartDate"),
-        with = "super::private::serde_date::gmt"
-    )]
-    pub valid_start_date: DateTime<Utc>,
-    #[serde(
-        rename(deserialize = "ValidEndDate",),
-        with = "super::private::serde_date::gmt"
-    )]
-    pub valid_end_date: DateTime<Utc>,
+    #[serde(rename = "ValidStartDate")]
+    pub valid_start_date: String,
+    #[serde(rename = "ValidEndDate")]
+    pub valid_end_date: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -47,9 +41,11 @@ pub struct Cname {
     pub last_modified: Option<DateTime<Utc>>,
     #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
+    #[serde(rename = "IsPurgeCdnCache", skip_serializing_if = "Option::is_none")]
+    pub is_purge_cdn_cache: Option<bool>,
     #[serde(rename = "Certificate", skip_serializing_if = "Option::is_none")]
     pub certificate: Option<Certificate>,
-    #[serde(rename = "Certificate", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "CertificateConfiguration", skip_serializing_if = "Option::is_none")]
     pub certificate_configuration: Option<CertificateConfiguration>,
 }
 
@@ -61,12 +57,13 @@ pub struct CnameToken {
     pub cname: String,
     #[serde(rename = "Token")]
     pub token: String,
-    #[serde(rename = "ExpireTime", with = "super::private::serde_date::gmt")]
-    pub expire_time: DateTime<Utc>,
+    #[serde(rename = "ExpireTime")]
+    pub expire_time: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BucketCnameConfiguration {
+    #[serde(rename = "Cname")]
     pub cname: Cname,
 }
 
@@ -80,8 +77,11 @@ pub struct CertificateConfiguration {
     pub private_key: String,
     #[serde(rename = "PreviousCertId")]
     pub previous_cert_id: String,
-    #[serde(rename = "ForceDeleteCertificate")]
-    pub force_delete_certificate: String,
+    #[serde(rename = "Force")]
+    pub force: bool,
+    #[serde(rename = "DeleteCertificate")]
+    pub delete_certificate: bool,
+
 }
 
 pub mod builder {
@@ -128,10 +128,7 @@ pub mod builder {
 #[cfg(test)]
 mod tests {
     use super::builder::BucketCnameConfigurationBuilder;
-    use crate::oss::{
-        entities::cname::{CnameToken, ListCnameResult},
-        GMT_DATE_FMT,
-    };
+    use crate::oss::entities::cname::{CnameToken, ListCnameResult};
 
     #[test]
     fn cname_token() {
@@ -144,7 +141,7 @@ mod tests {
 </CnameToken>"#;
         let obj = quick_xml::de::from_str::<CnameToken>(&xml).unwrap();
         let left = "Wed, 23 Feb 2022 21:16:37 GMT";
-        let right = obj.expire_time.format(GMT_DATE_FMT).to_string();
+        let right = obj.expire_time;
         assert_eq!(left, right);
     }
 
@@ -180,9 +177,39 @@ mod tests {
 	</Cname>
 </ListCnameResult>"#;
         let obj: ListCnameResult = quick_xml::de::from_str(&xml).unwrap();
+
+        println!("{:#?}", obj);
+
         let cname = obj.cname.unwrap()[0].clone();
         let cert = cname.certificate.unwrap();
         assert_eq!("CAS", cert.r#type);
+    }
+
+    #[test]
+    fn list_cname_result2() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+			<ListCnameResult>
+			<Bucket>xuetube-dev</Bucket>
+			<Owner>1508492296054765</Owner>
+			<Cname>
+				<Domain>dev-cdn.xuetube.com</Domain>
+				<LastModified>2023-06-29T02:49:16.000Z</LastModified>
+				<Status>Enabled</Status>
+				<IsPurgeCdnCache>false</IsPurgeCdnCache>
+				<Certificate>
+					<Type>CAS</Type>
+					<CertId>10542783-cn-hangzhou</CertId>
+					<Status>Enabled</Status>
+					<CreationDate>Thu, 29 Jun 2023 02:49:14 GMT</CreationDate>
+					<Fingerprint>AD:34:E3:12:D2:4F:46:23:9C:92:A6:7C:16:59:AE:AD:27:1F:29:C7</Fingerprint>
+					<ValidStartDate>Thu, 29 Jun 2023 02:49:14 GMT</ValidStartDate>
+					<ValidEndDate>Thu, 29 Jun 2023 02:49:14 GMT</ValidEndDate>
+				</Certificate>
+			</Cname>
+		</ListCnameResult>"#;
+        let obj: ListCnameResult = quick_xml::de::from_str(&xml).unwrap();
+
+        println!("{:#?}", obj);
     }
 
     #[test]
