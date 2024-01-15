@@ -1,6 +1,9 @@
 use crate::oss::{
     self,
-    entities::{ListAllMyBucketsResult, RegionInfo, RegionInfoList},
+    entities::{
+        bucket::ListAllMyBucketsResult,
+        region::{RegionInfo, RegionInfoList},
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;

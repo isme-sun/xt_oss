@@ -1,8 +1,8 @@
-use crate::oss::{self, entities::AccessControlPolicy, Client};
+use crate::oss::{self, entities::AccessControlPolicy};
 
 use super::builders::PutBucketAclBuilder;
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
+impl<'a> oss::Client<'a> {
     /// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）。
     pub fn PutBucketAcl(&self) -> PutBucketAclBuilder {
         PutBucketAclBuilder::new(&self)

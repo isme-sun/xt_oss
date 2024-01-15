@@ -183,7 +183,7 @@
 ### Object 基础操作 Stand
 
 - [X] 55 ★ `PutObject`
-- [ ] 56 ★ `GetObject`
+- [X] 56 ★ `GetObject`
 - [ ] 57 ★ `CopyObject`
 - [ ] 58 ★ `AppendObject`
 - [ ] 59 ★ `DeleteObject`

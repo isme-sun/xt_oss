@@ -1,8 +1,7 @@
-#[allow(unused)]
-use crate::oss::{self, Client, Data, Method, Result};
+use crate::oss;
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
+impl<'a> oss::Client<'a> {
     pub fn PutBucketPolicy() {
         todo!()
     }

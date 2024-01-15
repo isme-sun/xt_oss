@@ -81,7 +81,7 @@ pub(crate) mod serde_date {
         }
     }
 
-    pub mod gmt_option {
+    pub(crate) mod gmt_option {
         use chrono::{DateTime, NaiveDateTime, Utc};
         use serde::{self, Deserialize, Deserializer, Serializer};
 

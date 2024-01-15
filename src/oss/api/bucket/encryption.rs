@@ -1,5 +1,4 @@
-use crate::oss::entities::encryption::ServerSideEncryptionRule;
-use crate::oss::{self, Client};
+use crate::oss::{self, entities::encryption::ServerSideEncryptionRule, Client};
 
 use super::builders::PutBucketEncryptionBuilder;
 
@@ -14,20 +13,14 @@ impl<'a> Client<'a> {
     pub async fn GetBucketEncryption(&self) -> oss::Result<ServerSideEncryptionRule> {
         let res = "encryption";
         let url = format!("{}/?{}", self.options.base_url(), res);
-        let resp = self
-            .request
-            .task()
-            .url(&url)
-            .resourse(res)
-            .send()
-            .await?;
+        let resp = self.request.task().url(&url).resourse(res).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
-        let rule: ServerSideEncryptionRule= quick_xml::de::from_str(&content).unwrap();
+        let rule: ServerSideEncryptionRule = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: rule
+            data: rule,
         };
         Ok(result)
     }
@@ -48,7 +41,7 @@ impl<'a> Client<'a> {
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: ()
+            data: (),
         };
         Ok(result)
     }

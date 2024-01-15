@@ -1,14 +1,13 @@
-#[allow(unused)]
 use crate::oss::{
     self,
     entities::{BucketInfo, BucketStat, ListBucketResult},
-    Client, Data, Method, Result,
+    Data, Method, Result,
 };
 
 use super::builders::{CreateBucketBuilder, ListObject2Builder};
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
+impl<'a> oss::Client<'a> {
     /// 定的过期时间，自动转换与规则相匹配文件（Object）的存储类型或将其删除。
     #[allow(non_snake_case)]
     pub fn PutBucketLifecycle() {

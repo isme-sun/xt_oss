@@ -1,6 +1,4 @@
-use crate::oss::entities::cors::CORSConfiguration;
-#[allow(unused)]
-use crate::oss::{self, Client, Data, Method, Result};
+use crate::oss::{self, entities::cors::CORSConfiguration, Client, Method};
 
 #[allow(unused)]
 pub struct PutBucketCorsBuilder<'a> {

@@ -1,8 +1,7 @@
-use crate::oss::entities::TransferAccelerationConfiguration;
-use crate::oss::{self, Client};
+use crate::oss::{self, entities::acceleration::TransferAccelerationConfiguration};
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
+impl<'a> oss::Client<'a> {
     /// 接口用于为存储空间（Bucket）配置传输加速。开启传输加速后，可提升全球各地用户对OSS的访问速度，适用于远距离数据传输、GB或TB级大文件上传和下载的场景。
     pub async fn PutBucketTransferAcceleration(&self, value: bool) -> oss::Result<()> {
         let res = "transferAcceleration";

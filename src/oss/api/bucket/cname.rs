@@ -154,8 +154,6 @@ impl<'a> oss::Client<'a> {
         let mut config = BucketCnameConfiguration::default();
         config.cname.domain = cname.to_string();
         let config_content = quick_xml::se::to_string(&config).unwrap();
-        println!("{}", config_content);
-        println!("------------------");
         let data = oss::Bytes::from(config_content);
 
         let resp = self

@@ -1,6 +1,5 @@
+use crate::oss;
 use crate::oss::api::bucket::builders::{DeleteBucketBuilder, ListObjectBuilder};
-#[allow(unused)]
-use crate::oss::{self, entities::BucketStat, Client, Data, Method, Result};
 
 use super::builders::{
     BucketInfoBuilder, BucketLocationBuilder, BucketStatBuilder, CreateBucketBuilder,
@@ -8,7 +7,7 @@ use super::builders::{
 };
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
+impl<'a> oss::Client<'a> {
     pub fn PutBucket(&self) -> CreateBucketBuilder {
         CreateBucketBuilder::new(&self)
     }
