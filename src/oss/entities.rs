@@ -12,20 +12,13 @@ pub mod private;
 pub mod referer;
 pub mod region;
 pub mod style;
+pub mod object;
 pub mod tag;
+pub mod acl;
+pub mod worm;
+pub mod log;
 pub mod version;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WormConfiguration {
-    #[serde(rename = "WormId")]
-    pub worm_id: String,
-    #[serde(rename = "State")]
-    pub state: String,
-    #[serde(rename = "RetentionPeriodInDays")]
-    pub retention_period_in_days: i32,
-    #[serde(rename = "CreationDate")]
-    pub creation_date: String,
-}
 
 /// 指定存储空间的数据容灾类型
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -160,39 +153,5 @@ impl Display for ContentEncoding {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Object {
-    #[serde(rename(deserialize = "Key"))]
-    pub key: String,
-    #[serde(rename(deserialize = "LastModified"))]
-    pub last_modified: String,
-    #[serde(rename(deserialize = "ETag"))]
-    pub etag: String,
-    #[serde(rename(deserialize = "Size"))]
-    pub size: i32,
-    #[serde(rename(deserialize = "StorageClass"))]
-    pub storage_class: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Owner {
-    #[serde(rename = "ID")]
-    pub id: String,
-    #[serde(rename = "DisplayName")]
-    pub display_name: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct AccessControlList {
-    #[serde(rename(deserialize = "Grant"))]
-    pub grant: Vec<String>,
-}
 
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AccessControlPolicy {
-    #[serde(rename = "Owner")]
-    pub owner: Owner,
-    #[serde(rename = "AccessControlList")]
-    pub access_control_list: AccessControlList,
-}

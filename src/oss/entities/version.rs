@@ -1,4 +1,4 @@
-use super::{Owner, StorageClass};
+use super::{StorageClass, bucket::Owner};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

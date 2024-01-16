@@ -1,11 +1,9 @@
-use crate::oss::entities::WormConfiguration;
-#[allow(unused)]
-use crate::oss::{self, Client, Data, Method, Result};
+use crate::oss::{self, entities::worm::WormConfiguration};
 
 use super::builders::{ExtendBucketWormBuilder, InitiateBucketWormBuilder};
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
+impl<'a> oss::Client<'a> {
     /// 调用InitiateBucketWorm接口新建一条合规保留策略。
     #[allow(non_snake_case)]
     pub fn InitiateBucketWorm(&self) -> InitiateBucketWormBuilder {
@@ -70,13 +68,7 @@ impl<'a> Client<'a> {
         let res = "worm";
         let url = format!("{}/?{}", self.options.base_url(), res);
 
-        let resp = self
-            .request
-            .task()
-            .url(&url)
-            .resourse(&res)
-            .send()
-            .await?;
+        let resp = self.request.task().url(&url).resourse(&res).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
         let config: WormConfiguration = quick_xml::de::from_str(&content).unwrap();

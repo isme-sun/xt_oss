@@ -1,6 +1,14 @@
-use super::{oss, oss::entities::Object, AccessControlList, Owner, StorageClass};
+use super::{acl::AccessControlList, object::Object, oss, StorageClass};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Owner {
+    #[serde(rename = "ID")]
+    pub id: String,
+    #[serde(rename = "DisplayName")]
+    pub display_name: String,
+}
 
 /// Bucket所在的地域
 #[derive(Debug, Serialize, Deserialize)]

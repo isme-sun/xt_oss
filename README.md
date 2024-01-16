@@ -73,9 +73,9 @@
 
 ### Bucket 日志管理（Logging）
 
-- [ ] 28 ★ `PutBucketLogging`
-- [ ] 29 ★ `GetBucketLogging`
-- [ ] 30 ★ `DeleteBucketLogging`
+- [X] 28 ★ `PutBucketLogging`
+- [X] 29 ★ `GetBucketLogging`
+- [X] 30 ★ `DeleteBucketLogging`
 
 ### Bucket 静态网站（Website）
 

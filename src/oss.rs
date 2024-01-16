@@ -1,8 +1,6 @@
 // re-export
 pub use bytes::Bytes;
 pub use reqwest::header;
-// pub use reqwest::header::HeaderMap;
-// pub use reqwest::header::HeaderValue;
 pub use reqwest::Method;
 
 use super::oss;

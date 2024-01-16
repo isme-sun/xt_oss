@@ -1,4 +1,4 @@
-use crate::oss::{self, entities::AccessControlPolicy, Client};
+use crate::oss::{self, entities::acl::AccessControlPolicy, Client};
 
 use super::builders::PutObjectACLBuilder;
 
