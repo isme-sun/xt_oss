@@ -34,9 +34,9 @@
 
 ### Bucket 生命周期（Lifecycle）
 
-- [ ] 17 ★ `PutBucketLifecycle`
-- [ ] 18 ★ `GetBucketLifecycle`
-- [ ] 19 ★ `DeleteBucketLifecycle`
+- [X] 17 ★ `PutBucketLifecycle`
+- [X] 18 ★ `GetBucketLifecycle`
+- [X] 19 ★ `DeleteBucketLifecycle`
 
 ### Bucket 传输加速（TransferAcceleration）
 

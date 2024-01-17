@@ -4,6 +4,7 @@ pub(crate) mod builders;
 pub(crate) mod cname;
 pub(crate) mod cors;
 pub(crate) mod encryption;
+pub(crate) mod lifecycle;
 pub(crate) mod log;
 pub(crate) mod policy;
 pub(crate) mod referer;

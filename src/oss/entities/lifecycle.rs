@@ -1,6 +1,7 @@
 use super::{tag::Tag, StorageClass};
 use serde::{Deserialize, Serialize};
 
+// todo FilterBuild 
 pub mod builder {
     use crate::oss::entities::StorageClass;
 
@@ -8,6 +9,20 @@ pub mod builder {
         AbortMultipartUpload, Expiration, Filter, LifecycleConfiguration,
         NoncurrentVersionExpiration, Rule, Transition,
     };
+
+
+    pub struct FilterBuilder {
+    }
+
+    impl FilterBuilder {
+        pub fn new() -> Self {
+            Self{}
+        }
+        
+        pub fn build() -> Filter {
+            Filter::default()
+        }
+    }
 
     #[derive(Default)]
     #[allow(unused)]
@@ -213,10 +228,17 @@ pub struct Not {
     pub tag: Tag,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Filter {
-    #[serde(rename = "Not")]
-    pub not: Not,
+    #[serde(rename = "Not", skip_serializing_if = "Option::is_none")]
+    pub not: Option<Not>,
+    #[serde(
+        rename = "ObjectSizeGreaterThan",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub object_size_greater_than: Option<i32>,
+    #[serde(rename = "ObjectSizeLessThan", skip_serializing_if = "Option::is_none")]
+    pub object_size_less_than: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
