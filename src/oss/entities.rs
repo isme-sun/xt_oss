@@ -3,22 +3,36 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 
 pub mod acceleration;
+pub mod acl;
 pub mod bucket;
 pub mod cname;
 pub mod cors;
 pub mod encryption;
 pub mod lifecycle;
+pub mod log;
+pub mod object;
 pub mod private;
 pub mod referer;
 pub mod region;
 pub mod style;
-pub mod object;
 pub mod tag;
-pub mod acl;
-pub mod worm;
-pub mod log;
 pub mod version;
+pub mod worm;
 
+pub enum Status {
+    Enabled,
+    Disabled,
+}
+
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let desc = match self {
+            Self::Enabled => "Enabled",
+            Self::Disabled => "Disabled",
+        };
+        write!(f, "{}", desc)
+    }
+}
 
 /// 指定存储空间的数据容灾类型
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -152,6 +166,3 @@ impl Display for ContentEncoding {
         )
     }
 }
-
-
-
