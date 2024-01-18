@@ -1,4 +1,32 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub enum RedirectType {
+    #[default]
+    /// 镜像回源
+    Mirror,
+    /// 外部跳转，即OSS会返回一个3xx请求，指定跳转到另外一个地址
+    External,
+    /// 阿里云CDN跳转，主要用于阿里云的CDN。与External不同的是，OSS会额外添加
+    /// 一个Header。 阿里云CDN识别到此Header后会主动跳转到指定的地址，返回给用
+    /// 户获取到的数据，而不是将3xx跳转请求返回给用户
+    AliCDN,
+}
+
+impl fmt::Display for RedirectType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Mirror => "Mirror",
+                Self::External => "External",
+                Self::AliCDN => "AliCDN",
+            }
+        )
+    }
+}
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Set {
@@ -10,62 +38,79 @@ pub struct Set {
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct MirrorHeaders {
-    #[serde(rename = "PassAll")]
-    pub pass_all: bool,
-    #[serde(rename = "Pass")]
-    pub pass: String,
-    #[serde(rename = "Remove")]
-    pub remove: String,
-    #[serde(rename = "Set")]
-    pub set: Set,
-    #[serde(rename = "Protocol")]
-    pub protocol: String,
-    #[serde(rename = "HostName")]
-    pub host_name: String,
-    #[serde(rename = "ReplaceKeyPrefixWith")]
-    pub replace_key_prefix_with: String,
-    #[serde(rename = "EnableReplacePrefix")]
-    pub enable_replace_prefix: bool,
-    #[serde(rename = "ReplaceKeyWith")]
-    pub replace_key_with: String,
+    #[serde(rename = "PassAll", skip_serializing_if = "Option::is_none")]
+    pub pass_all: Option<bool>,
+    #[serde(rename = "Pass", skip_serializing_if = "Option::is_none")]
+    pub pass: Option<Vec<String>>,
+    #[serde(rename = "Remove", skip_serializing_if = "Option::is_none")]
+    pub remove: Option<Vec<String>>,
+    #[serde(rename = "Set", skip_serializing_if = "Option::is_none")]
+    pub set: Option<Vec<Set>>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Redirect {
     #[serde(rename = "RedirectType")]
-    pub redirect_type: String,
-    #[serde(rename = "PassQueryString")]
-    pub pass_query_string: String,
-    #[serde(rename = "MirrorURL")]
-    pub mirror_url: String,
-    #[serde(rename = "MirrorPassQueryString")]
-    pub mirror_pass_query_string: bool,
-    #[serde(rename = "MirrorFollowRedirect")]
-    pub mirror_follow_redirect: bool,
-    #[serde(rename = "MirrorCheckMd5")]
-    pub mirror_check_md5: bool,
-    #[serde(rename = "MirrorHeaders")]
-    pub mirror_headers: MirrorHeaders,
+    pub redirect_type: RedirectType,
+    #[serde(rename = "Protocol", skip_serializing_if = "Option::is_none")]
+    pub protocol: Option<String>,
+    #[serde(rename = "PassQueryString", skip_serializing_if = "Option::is_none")]
+    pub pass_query_string: Option<String>,
+    #[serde(rename = "ReplaceKeyWith", skip_serializing_if = "Option::is_none")]
+    pub replace_key_with: Option<String>,
+    #[serde(rename = "MirrorURL", skip_serializing_if = "Option::is_none")]
+    pub mirror_url: Option<String>,
+    #[serde(
+        rename = "MirrorPassQueryString",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub mirror_pass_query_string: Option<bool>,
+    #[serde(
+        rename = "MirrorFollowRedirect",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub mirror_follow_redirect: Option<bool>,
+    #[serde(rename = "MirrorCheckMd5", skip_serializing_if = "Option::is_none")]
+    pub mirror_check_md5: Option<bool>,
+    #[serde(rename = "MirrorHeaders", skip_serializing_if = "Option::is_none")]
+    pub mirror_headers: Option<MirrorHeaders>,
+    #[serde(
+        rename = "EnableReplacePrefix",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub enable_replace_prefix: Option<bool>,
+    #[serde(rename = "HttpRedirectCode", skip_serializing_if = "Option::is_none")]
+    pub http_redirect_code: Option<u16>,
+    #[serde(
+        rename = "ReplaceKeyPrefixWith",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub replace_key_prefix_with: Option<String>,
+    #[serde(rename = "HostName", skip_serializing_if = "Option::is_none")]
+    pub host_name: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct IncludeHeader {
     #[serde(rename = "Key")]
     pub key: String,
-    #[serde(rename = "Equals")]
-    pub equals: String,
+    #[serde(rename = "Equals", skip_serializing_if = "Option::is_none")]
+    pub equals: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Condition {
-    #[serde(rename = "KeyPrefixEquals")]
-    pub key_prefix_equals: String,
-    #[serde(rename = "HttpErrorCodeReturnedEquals")]
-    pub http_error_code_returned_equals: String,
-    #[serde(rename = "IncludeHeader")]
-    pub include_header: IncludeHeader,
-    #[serde(rename = "KeySuffixEquals")]
-    pub key_suffix_equals: String,
+    #[serde(rename = "KeyPrefixEquals", skip_serializing_if = "Option::is_none")]
+    pub key_prefix_equals: Option<String>,
+    #[serde(
+        rename = "HttpErrorCodeReturnedEquals",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub http_error_code_returned_equals: Option<u16>,
+    #[serde(rename = "IncludeHeader", skip_serializing_if = "Option::is_none")]
+    pub include_header: Option<IncludeHeader>,
+    #[serde(rename = "KeySuffixEquals", skip_serializing_if = "Option::is_none")]
+    pub key_suffix_equals: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -80,18 +125,35 @@ pub struct RoutingRule {
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct RoutingRules {
-    #[serde(rename = "RoutingRule")]
+    #[serde(rename = "RoutingRule", skip_serializing_if = "Option::is_none")]
     pub routing_rule: Option<Vec<RoutingRule>>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
+/// 默认主页的容器
 pub struct IndexDocument {
     #[serde(rename = "Suffix")]
-    // 设置默认主页后，如果访问以正斜线（/）结尾的Object，则OSS都会返回此默认主页
+    /// 设置默认主页后，如果访问以正斜线（/）结尾的Object，则OSS都会返回此默认主页。
     pub suffix: String,
-    #[serde(rename = "SupportSubDir")]
-    pub support_sub_dir: Option<String>,
-    #[serde(rename = "Type")]
+    #[serde(rename = "SupportSubDir", skip_serializing_if = "Option::is_none")]
+    /// 访问子目录时，是否支持跳转到子目录下的默认主页。取值范围如下：
+    ///
+    /// - true：转到子目录下的默认主页。
+    /// - false（默认）：不转到子目录下的默认主页，而是转到根目录下的默认主页。
+    ///
+    /// 假设默认主页为index.html，
+    /// 要访问bucket.oss-cn-hangzhou.aliyuncs.com/subdir/，如果设置SupportSubDir为false，则转
+    /// 到bucket.oss-cn-hangzhou.aliyuncs.com/index.html；如果设置SupportSubDir为true，
+    /// 则转到bucket.oss-cn-hangzhou.aliyuncs.com/subdir/index.html。
+    pub support_sub_dir: Option<bool>,
+    #[serde(rename = "Type", skip_serializing_if = "Option::is_none")]
+    /// 设置默认主页后，访问以非正斜线（/）结尾的Object，且该Object不存在时的行为。
+    /// 只有设置SupportSubDir为true时才生效，且生效的顺序在RoutingRule之后、ErrorFile之前。
+    /// 假设默认主页为index.html，要访问的文件路径为bucket.oss-cn-hangzhou.aliyuncs.com/abc，
+    /// 且abc这个Object不存在，此时Type的不同取值对应的行为如下：
+    /// - `0`（默认）：检查abc/index.html是否存在（即Object + 正斜线（/）+ 主页的形式），如果存在则返回302，Location头为/abc/的URL编码（即正斜线（/） + Object + 正斜线（/）的形式），如果不存在则返回404，继续检查ErrorFile。
+    /// - `1`：直接返回404，报错NoSuchKey，继续检查ErrorFile。
+    /// - `2`：检查abc/index.html是否存在，如果存在则返回该Object的内容；如果不存在则返回404，继续检查ErrorFile。
     pub r#type: Option<u8>,
 }
 
@@ -99,20 +161,177 @@ pub struct IndexDocument {
 pub struct ErrorDocument {
     #[serde(rename = "Key")]
     pub key: String,
-    #[serde(rename = "HttpStatus")]
-    pub http_status: Option<String>,
+    #[serde(rename = "HttpStatus", skip_serializing_if = "Option::is_none")]
+    pub http_status: Option<u16>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct WebsiteConfiguration {
     // 默认主页的容器
-    #[serde(rename = "IndexDocument")]
+    #[serde(rename = "IndexDocument", skip_serializing_if = "Option::is_none")]
     pub index_document: Option<IndexDocument>,
-    #[serde(rename = "ErrorDocument")]
+    #[serde(rename = "ErrorDocument", skip_serializing_if = "Option::is_none")]
     pub error_document: Option<ErrorDocument>,
-    #[serde(rename = "RoutingRules")]
-		pub routing_rules: Option<RoutingRules>
+    #[serde(rename = "RoutingRules", skip_serializing_if = "Option::is_none")]
+    pub routing_rules: Option<RoutingRules>,
 }
 
 #[cfg(test)]
-pub mod tests {}
+pub mod tests {
+    use crate::oss::entities::website::WebsiteConfiguration;
+
+    #[test]
+    fn website_configuration_parse_1() {
+        let xml_content = r#"<WebsiteConfiguration>
+<IndexDocument>
+    <Suffix>index.html</Suffix>
+    <SupportSubDir>true</SupportSubDir>
+    <Type>0</Type>
+</IndexDocument>
+<ErrorDocument>
+    <Key>error.html</Key>
+    <HttpStatus>404</HttpStatus>
+</ErrorDocument>
+<RoutingRules>
+    <RoutingRule>
+    <RuleNumber>1</RuleNumber>
+    <Condition>
+        <KeyPrefixEquals>abc/</KeyPrefixEquals>
+        <HttpErrorCodeReturnedEquals>404</HttpErrorCodeReturnedEquals>
+    </Condition>
+    <Redirect>
+        <RedirectType>Mirror</RedirectType>
+        <PassQueryString>true</PassQueryString>
+        <MirrorURL>http://example.com/</MirrorURL>   
+        <MirrorPassQueryString>true</MirrorPassQueryString>
+        <MirrorFollowRedirect>true</MirrorFollowRedirect>
+        <MirrorCheckMd5>false</MirrorCheckMd5>
+        <MirrorHeaders>
+        <PassAll>true</PassAll>
+        <Pass>myheader-key1</Pass>
+        <Pass>myheader-key2</Pass>
+        <Remove>myheader-key3</Remove>
+        <Remove>myheader-key4</Remove>
+        <Set>
+            <Key>myheader-key5</Key>
+            <Value>myheader-value5</Value>
+        </Set>
+        </MirrorHeaders>
+    </Redirect>
+    </RoutingRule>
+    <RoutingRule>
+    <RuleNumber>2</RuleNumber>
+    <Condition>
+        <KeyPrefixEquals>abc/</KeyPrefixEquals>
+        <HttpErrorCodeReturnedEquals>404</HttpErrorCodeReturnedEquals>
+        <IncludeHeader>
+        <Key>host</Key>
+        <Equals>test.oss-cn-beijing-internal.aliyuncs.com</Equals>
+        </IncludeHeader>
+    </Condition>
+    <Redirect>
+        <RedirectType>AliCDN</RedirectType>
+        <Protocol>http</Protocol>
+        <HostName>example.com</HostName>
+        <PassQueryString>false</PassQueryString>
+        <ReplaceKeyWith>prefix/${key}.suffix</ReplaceKeyWith>
+        <HttpRedirectCode>301</HttpRedirectCode>
+    </Redirect>
+    </RoutingRule>
+    <RoutingRule>
+    <Condition>
+        <HttpErrorCodeReturnedEquals>404</HttpErrorCodeReturnedEquals>
+    </Condition>
+    <RuleNumber>3</RuleNumber>
+    <Redirect>
+        <ReplaceKeyWith>prefix/${key}</ReplaceKeyWith>
+        <HttpRedirectCode>302</HttpRedirectCode>
+        <EnableReplacePrefix>false</EnableReplacePrefix>
+        <PassQueryString>false</PassQueryString>
+        <Protocol>http</Protocol>
+        <HostName>example.com</HostName>
+        <RedirectType>External</RedirectType>
+    </Redirect>
+    </RoutingRule>
+</RoutingRules>
+</WebsiteConfiguration>
+"#;
+
+        let object: WebsiteConfiguration = quick_xml::de::from_str(&xml_content).unwrap();
+
+        // let json_str = serde_json::to_string_pretty(&object).unwrap();
+        // println!("{}", json_str);
+        let left = "index.html";
+        let right = object.index_document.unwrap().suffix;
+        assert_eq!(left, right)
+    }
+
+    #[test]
+    fn website_configuration_parse_2() {
+        let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+<WebsiteConfiguration>
+  <IndexDocument>
+    <Suffix>index.html</Suffix>
+  </IndexDocument>
+  <ErrorDocument>
+    <Key>error.html</Key>
+    <HttpStatus>404</HttpStatus>
+  </ErrorDocument>
+  <RoutingRules>
+    <RoutingRule>
+      <RuleNumber>1</RuleNumber>
+      <Condition>
+        <KeyPrefixEquals>abc/</KeyPrefixEquals>
+        <HttpErrorCodeReturnedEquals>404</HttpErrorCodeReturnedEquals>
+      </Condition>
+      <Redirect>
+        <RedirectType>Mirror</RedirectType>
+        <PassQueryString>true</PassQueryString>
+        <MirrorURL>http://example.com/</MirrorURL>  
+        <MirrorPassQueryString>true</MirrorPassQueryString>
+        <MirrorFollowRedirect>true</MirrorFollowRedirect>
+        <MirrorCheckMd5>false</MirrorCheckMd5>
+        <MirrorHeaders>
+          <PassAll>true</PassAll>
+          <Pass>myheader-key1</Pass>
+          <Pass>myheader-key2</Pass>
+          <Remove>myheader-key3</Remove>
+          <Remove>myheader-key4</Remove>
+          <Set>
+            <Key>myheader-key5</Key>
+            <Value>myheader-value5</Value>
+          </Set>
+        </MirrorHeaders>
+      </Redirect>
+    </RoutingRule>
+    <RoutingRule>
+      <RuleNumber>2</RuleNumber>
+      <Condition>
+        <IncludeHeader>
+          <Key>host</Key>
+          <Equals>test.oss-cn-beijing-internal.aliyuncs.com</Equals>
+        </IncludeHeader>
+        <KeyPrefixEquals>abc/</KeyPrefixEquals>
+        <HttpErrorCodeReturnedEquals>404</HttpErrorCodeReturnedEquals>
+      </Condition>
+      <Redirect>
+        <RedirectType>AliCDN</RedirectType>
+        <Protocol>http</Protocol>
+        <HostName>example.com</HostName>
+        <PassQueryString>false</PassQueryString>
+        <ReplaceKeyWith>prefix/${key}.suffix</ReplaceKeyWith>
+        <HttpRedirectCode>301</HttpRedirectCode>
+      </Redirect>
+    </RoutingRule>
+  </RoutingRules>
+</WebsiteConfiguration>"#;
+
+        let object: WebsiteConfiguration = quick_xml::de::from_str(&xml_content).unwrap();
+
+        let json_str = serde_json::to_string_pretty(&object).unwrap();
+        println!("{}", json_str);
+        // let left = "index.html";
+        // let right = object.index_document.unwrap().suffix;
+        // assert_eq!(left, right)
+    }
+}
