@@ -4,7 +4,68 @@ use crate::oss::{
     Client,
 };
 
-use super::builders::PutStyleBuilder;
+use self::builder::PutStyleBuilder;
+
+pub mod builder {
+    use crate::oss::{self, entities::style::Style};
+
+    pub struct PutStyleBuilder<'a> {
+        client: &'a oss::Client<'a>,
+        style: Style,
+    }
+
+    impl<'a> PutStyleBuilder<'a> {
+        pub fn new(client: &'a oss::Client<'a>) -> Self {
+            Self {
+                client,
+                style: Style::default(),
+            }
+        }
+
+        pub fn name(mut self, value: &'a str) -> Self {
+            self.style.name = value.to_string();
+            self
+        }
+
+        pub fn content(mut self, value: &'a str) -> Self {
+            self.style.content = value.to_string();
+            self
+        }
+
+        pub fn category(mut self, value: &'a str) -> Self {
+            self.style.category = Some(value.to_string());
+            self
+        }
+
+        pub fn style(&self) -> String {
+            quick_xml::se::to_string(&self.style).unwrap()
+        }
+
+        pub async fn send(&self) -> oss::Result<()> {
+            let query = format!("style&styleName={}", self.style.name);
+            let url = { format!("{}?{}", self.client.options.base_url(), query) };
+
+            let data = oss::Bytes::from(self.style());
+            let resp = self
+                .client
+                .request
+                .task()
+                .url(&url)
+                .method(oss::Method::PUT)
+                .resourse(&query)
+                .body(data)
+                .send()
+                .await?;
+
+            let result = oss::Data {
+                data: (),
+                status: resp.status,
+                headers: resp.headers,
+            };
+            Ok(result)
+        }
+    }
+}
 
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {

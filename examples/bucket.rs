@@ -10,7 +10,7 @@ use xt_oss::{
 async fn info_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketInfo().send().await;
+    let result = client.GetBucketInfo().await;
     match result {
         Ok(result) => println!("{}", serde_json::to_string_pretty(&result.data).unwrap()),
         Err(message) => {
@@ -23,7 +23,7 @@ async fn info_bucket() {
 async fn stat_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketStat().send().await;
+    let result = client.GetBucketStat().await;
     match result {
         Ok(result) => {
             // println!("status: {}", result.status);
@@ -60,12 +60,7 @@ async fn create_bucket() {
 async fn delete_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client
-        .DeleteBucket()
-        // .name("xuetube-t12")
-        // .name("xtoss-t1")
-        .send()
-        .await;
+    let result = client.DeleteBucket().await;
 
     match result {
         Ok(_) => println!("{:#?}", result),
@@ -79,7 +74,7 @@ async fn delete_bucket() {
 async fn location_bucket() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
-    let result = client.GetBucketLocation().send().await;
+    let result = client.GetBucketLocation().await;
 
     match result {
         Ok(result) => println!("{}", serde_json::to_string_pretty(&result.data).unwrap()),

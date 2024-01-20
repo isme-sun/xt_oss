@@ -216,11 +216,11 @@ impl<'a> oss::Client<'a> {
 
         let content = String::from_utf8_lossy(&resp.data);
 
-        let cnames: ListCnameResult = quick_xml::de::from_str(&content).unwrap();
+        let cnames = quick_xml::de::from_str(&content).unwrap();
         let result = oss::Data {
             status: resp.status,
             headers: resp.headers,
-            data: cnames.clone(),
+            data: cnames
         };
         Ok(result)
     }

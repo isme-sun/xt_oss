@@ -12,7 +12,6 @@ pub mod builder {
         },
     };
 
-    #[allow(unused)]
     pub struct PutBucketWebsiteBuilder<'a> {
         client: &'a oss::Client<'a>,
         index_document: Option<IndexDocument>,
@@ -20,7 +19,6 @@ pub mod builder {
         routing_rules: Option<Vec<RoutingRule>>,
     }
 
-    #[allow(unused)]
     impl<'a> PutBucketWebsiteBuilder<'a> {
         pub(crate) fn new(client: &'a oss::Client) -> Self {
             Self {
@@ -48,6 +46,7 @@ pub mod builder {
             self
         }
 
+        #[allow(unused)]
         pub fn add_routing_rule(mut self, value: RoutingRule) -> Self {
             self
         }

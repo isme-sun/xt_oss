@@ -1,6 +1,164 @@
 use crate::oss::{self, entities::worm::WormConfiguration};
 
-use super::builders::{ExtendBucketWormBuilder, InitiateBucketWormBuilder};
+use self::builder::{ExtendBucketWormBuilder, InitiateBucketWormBuilder};
+
+pub mod builder {
+    use serde::{Deserialize, Serialize};
+
+    use crate::oss;
+    #[derive(Debug, Serialize, Deserialize)]
+    pub(crate) struct InitiateWormConfiguration {
+        #[serde(rename = "RetentionPeriodInDays")]
+        retention_period_in_days: i32,
+    }
+
+    impl Default for InitiateWormConfiguration {
+        fn default() -> Self {
+            Self {
+                retention_period_in_days: 1,
+            }
+        }
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub(crate) struct ExtendWormConfiguration {
+        #[serde(rename = "RetentionPeriodInDays")]
+        pub(crate) retention_period_in_days: i32,
+    }
+
+    impl Default for ExtendWormConfiguration {
+        fn default() -> Self {
+            Self {
+                retention_period_in_days: 1,
+            }
+        }
+    }
+
+    pub struct InitiateBucketWormBuilder<'a> {
+        client: &'a oss::Client<'a>,
+        days: i32,
+    }
+
+    impl<'a> InitiateBucketWormBuilder<'a> {
+        pub fn new(client: &'a oss::Client) -> Self {
+            Self { client, days: 1 }
+        }
+
+        pub fn days(mut self, value: i32) -> Self {
+            self.days = value;
+            self
+        }
+
+        fn config(&self) -> String {
+            let config = InitiateWormConfiguration {
+                retention_period_in_days: self.days,
+            };
+            quick_xml::se::to_string(&config).unwrap()
+        }
+
+        pub async fn send(&self) -> oss::Result<()> {
+            let bucket = self.client.options.bucket;
+            let res = "worm";
+            let url = {
+                format!(
+                    "{}://{}.{}?{}",
+                    self.client.options.schema(),
+                    bucket,
+                    self.client.options.host(),
+                    res
+                )
+            };
+
+            let config = self.config();
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .method(oss::Method::POST)
+                .url(&url)
+                .body(oss::Bytes::from(config))
+                .resourse(&res)
+                .send()
+                .await?;
+
+            let result = oss::Data {
+                status: resp.status,
+                headers: resp.headers,
+                data: (),
+            };
+            Ok(result)
+        }
+    }
+
+    #[allow(unused)]
+    pub struct ExtendBucketWormBuilder<'a> {
+        client: &'a oss::Client<'a>,
+        worm_id: Option<&'a str>,
+        days: i32,
+    }
+
+    #[allow(unused)]
+    impl<'a> ExtendBucketWormBuilder<'a> {
+        pub fn new(client: &'a oss::Client) -> Self {
+            Self {
+                client,
+                days: 1,
+                worm_id: None,
+            }
+        }
+
+        pub fn worm_id(mut self, value: &'a str) -> Self {
+            self.worm_id = Some(value);
+            self
+        }
+
+        pub fn days(mut self, value: i32) -> Self {
+            self.days = value;
+            self
+        }
+
+        fn config(&self) -> String {
+            let config = ExtendWormConfiguration {
+                retention_period_in_days: self.days,
+            };
+            quick_xml::se::to_string(&config).unwrap()
+        }
+
+        pub async fn send(&self) -> oss::Result<()> {
+            let bucket = self.client.options.bucket;
+            let res = {
+                format!(
+                    "wormExtend&wormId={}",
+                    match self.worm_id {
+                        Some(worm_id) => worm_id,
+                        None => "",
+                    }
+                )
+            };
+            let url = { format!("{}/?{}", self.client.options.base_url(), res) };
+            let config = self.config();
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .method(oss::Method::POST)
+                .url(&url)
+                .body(oss::Bytes::from(config))
+                .resourse(&res)
+                .send()
+                .await?;
+
+            let result = oss::Data {
+                status: resp.status,
+                headers: resp.headers,
+                data: (),
+            };
+            Ok(result)
+        }
+    }
+}
 
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
@@ -71,7 +229,7 @@ impl<'a> oss::Client<'a> {
         let resp = self.request.task().url(&url).resourse(&res).send().await?;
 
         let content = String::from_utf8_lossy(&resp.data);
-        let config: WormConfiguration = quick_xml::de::from_str(&content).unwrap();
+        let config = quick_xml::de::from_str(&content).unwrap();
 
         let result = oss::Data {
             status: resp.status,
