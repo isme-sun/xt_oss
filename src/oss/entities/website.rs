@@ -1,5 +1,162 @@
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+
+pub mod builder {
+
+    use super::*;
+
+    #[derive(Debug, Default)]
+    #[allow(unused)]
+    struct MirrorHeadersBuilder<'a> {
+        pass_all: bool,
+        pass: Vec<&'a str>,
+        remove: Vec<&'a str>,
+        set: Vec<(&'a str, &'a str)>,
+    }
+
+    #[allow(unused)]
+    impl<'a> MirrorHeadersBuilder<'a> {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_pass_all(mut self, value: bool) -> Self {
+            self.pass_all = value;
+            self
+        }
+
+        pub fn with_pass(mut self, value: Vec<&'a str>) -> Self {
+            self.pass = value;
+            self
+        }
+
+        pub fn with_remove(mut self, value: Vec<&'a str>) -> Self {
+            self.remove = value;
+            self
+        }
+
+        pub fn with_set(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.set = value;
+            self
+        }
+
+        pub fn build(&self) -> MirrorHeaders {
+            MirrorHeaders {
+                pass_all: Some(self.pass_all),
+                pass: if self.pass.is_empty() {
+                    None
+                } else {
+                    Some(self.pass.iter().map(|value| value.to_string()).collect())
+                },
+                remove: if self.remove.is_empty() {
+                    None
+                } else {
+                    Some(self.remove.iter().map(|value| value.to_string()).collect())
+                },
+                set: if self.set.is_empty() {
+                    None
+                } else {
+                    Some({
+                        self.set
+                            .iter()
+                            .map(|item| Set {
+                                key: item.0.to_string(),
+                                value: item.1.to_string(),
+                            })
+                            .collect()
+                    })
+                },
+            }
+        }
+    }
+
+    #[test]
+    fn test_mirror_headers_builder() {
+        let obj = MirrorHeadersBuilder::new()
+            .with_pass(["abcd", "edf"].to_vec())
+            .with_remove(["addf", "asd"].to_vec())
+            .with_pass_all(true)
+            .with_set([("name", "sjy"), ("age", "18")].to_vec())
+            .build();
+        println!("{:#?}", obj);
+    }
+
+    #[allow(unused)]
+    struct RedirectBuilder {}
+
+    #[allow(unused)]
+    struct ConditionBuilder {}
+
+    #[allow(unused)]
+    #[derive(Debug, Default)]
+    struct IndexDocumentBuilder<'a> {
+        suffix: &'a str,
+        support_sub_dir: bool,
+        r#type: u16,
+    }
+
+    #[allow(unused)]
+    impl<'a> IndexDocumentBuilder<'a> {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_suffix(mut self, value: &'a str) -> Self {
+            self.suffix = value;
+            self
+        }
+
+        pub fn with_support_sub_dir(mut self, value: bool) -> Self {
+            self.support_sub_dir = value;
+            self
+        }
+
+        pub fn with_type(mut self, value: u16) -> Self {
+            self.r#type = value;
+            self
+        }
+
+        pub fn build(&self) -> IndexDocument {
+            IndexDocument {
+                suffix: self.suffix.to_string(),
+                support_sub_dir: Some(self.support_sub_dir),
+                r#type: Some(self.r#type),
+            }
+        }
+    }
+
+    #[allow(unused)]
+    #[derive(Debug, Default)]
+    struct ErrorDocumentBuilder<'a> {
+        key: &'a str,
+        http_status: StatusCode,
+    }
+
+    #[allow(unused)]
+    impl<'a> ErrorDocumentBuilder<'a> {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_key(mut self, value: &'a str) -> Self {
+            self.key = value;
+            self
+        }
+
+        pub fn with_http_status(mut self, value: StatusCode) -> Self {
+            self.http_status = value;
+            self
+        }
+
+        pub fn build(&self) -> ErrorDocument {
+            ErrorDocument {
+                key: self.key.to_string(),
+                http_status: Some(self.http_status.as_u16()),
+            }
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum RedirectType {
@@ -129,7 +286,7 @@ pub struct RoutingRules {
     pub routing_rule: Option<Vec<RoutingRule>>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// 默认主页的容器
 pub struct IndexDocument {
     #[serde(rename = "Suffix")]
@@ -154,15 +311,34 @@ pub struct IndexDocument {
     /// - `0`（默认）：检查abc/index.html是否存在（即Object + 正斜线（/）+ 主页的形式），如果存在则返回302，Location头为/abc/的URL编码（即正斜线（/） + Object + 正斜线（/）的形式），如果不存在则返回404，继续检查ErrorFile。
     /// - `1`：直接返回404，报错NoSuchKey，继续检查ErrorFile。
     /// - `2`：检查abc/index.html是否存在，如果存在则返回该Object的内容；如果不存在则返回404，继续检查ErrorFile。
-    pub r#type: Option<u8>,
+    pub r#type: Option<u16>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+impl Default for IndexDocument {
+    fn default() -> Self {
+        Self {
+            suffix: "index.html".to_string(),
+            support_sub_dir: Some(true),
+            r#type: Some(0),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDocument {
     #[serde(rename = "Key")]
     pub key: String,
     #[serde(rename = "HttpStatus", skip_serializing_if = "Option::is_none")]
     pub http_status: Option<u16>,
+}
+
+impl Default for ErrorDocument {
+    fn default() -> Self {
+        Self {
+            key: "error.html".to_string(),
+            http_status: Some(StatusCode::NOT_FOUND.as_u16()),
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
