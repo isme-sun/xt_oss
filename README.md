@@ -79,9 +79,9 @@
 
 ### Bucket 静态网站（Website）
 
-- [ ] 31 ★ `PutBucketWebsite`
-- [ ] 32 ★ `GetBucketWebsite`
-- [ ] 33 ★ `DeleteBucketWebsite`
+- [X] 31 ★ `PutBucketWebsite`
+- [X] 32 ★ `GetBucketWebsite`
+- [X] 33 ★ `DeleteBucketWebsite`
 
 ### Bucket 防盗链（Referer）
 
