@@ -20,6 +20,24 @@ pub mod version;
 pub mod website;
 pub mod worm;
 
+pub enum Directive {
+    COPY,
+    REPLACE,
+}
+
+impl fmt::Display for Directive {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::COPY => "COPY",
+                Self::REPLACE => "REPLACE",
+            }
+        )
+    }
+}
+
 #[derive(Default, Debug)]
 pub enum ContentEncoding {
     /// 表示Object未经过压缩或编码

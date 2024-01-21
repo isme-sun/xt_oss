@@ -310,6 +310,29 @@ pub mod builder {
             todo!()
         }
     }
+
+    #[allow(unused)]
+    #[derive(Debug, Default)]
+    pub struct CopyObjectBuilder<'a> {
+        from_bucket: &'a str,
+        form_object: &'a str,
+        to_bucket: &'a str,
+        to_object: &'a str,
+        source_version_id: Option<&'a str>,
+        version_id: Option<&'a str>,
+        forbid_overwrite: Option<bool>,
+        if_match: Option<&'a str>,
+        if_none_match: Option<&'a str>,
+        if_unmodified_since: Option<DateTime<Utc>>,
+        if_modified_since: Option<DateTime<Utc>>,
+        metadata_directive: (),
+        encryption: Option<ServerSideEncryption>,
+        enc_key_id: Option<&'a str>,
+        object_acl: Option<ObjectACL>,
+        storage_class: Option<StorageClass>,
+        oss_tagging: Option<Tagging>,
+        tagging_directive: (),
+    }
 }
 
 /// 基础操作
