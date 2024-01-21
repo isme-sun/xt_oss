@@ -1,13 +1,11 @@
-
-
 use xt_oss::oss;
 use xt_oss::utils;
 
 #[allow(unused)]
 async fn put_cname() {
-	let options = utils::options_from_env();
-	let client = oss::Client::new(options);
-	let s = r#"-----BEGIN CERTIFICATE-----
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let s = r#"-----BEGIN CERTIFICATE-----
 MIIF9DCCBNygAwIBAgIQAr+RKfEX6fTDyAKWUi3NYTANBgkqhkiG9w0BAQsFADBu
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 d3cuZGlnaWNlcnQuY29tMS0wKwYDVQQDEyRFbmNyeXB0aW9uIEV2ZXJ5d2hlcmUg
@@ -70,7 +68,7 @@ n2hcLrfZSbynEC/pSw/ET7H5nWwckjmAJ1l9fcnbqkU/pf6uMQmnfl0JQjJNSg==
 -----END CERTIFICATE-----
 "#;
 
-	let s2 = r#"-----BEGIN RSA PRIVATE KEY-----
+    let s2 = r#"-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAsA9HkThnadRNa7bG6AHALg3nZ3nqvuAgOwH4QKHw9gnNdrxi
 RuotUgV27g+EyK0svnuGTULadpbazedYJEkmZudQBcKsb50009t+ijiS3aMglzSV
 K+MQU4SYOjIaLxoLmar7ukw55xGgaY/9f9Lsp6lD6TAMTBklDsEWhhXsxD9Qhack
@@ -99,100 +97,100 @@ Jk0y1rAW6oYpD00ElFLRv4wUPBADGS2bQoG6idp9SKuW8uJ+gx4T0w==
 -----END RSA PRIVATE KEY-----
 "#;
 
-	let result = client
-		.PutCname()
-		.with_domain("cdn.k12tube.com")
-		.with_cert_id("12211799-cn-hangzhou")
-		.with_certificate(s)
-		.with_private_key(s2)
-		.with_previous_cert_id("12211799-cn-hangzhou")
-		.with_force(true)
-		.with_delete_certificate(false)
-		.send()
-		.await;
-	match result {
-		Ok(result) => {
-			println!("{:#?}", result);
-		}
-		Err(message) => {
-			println!("{:#?}", message);
-		}
-	}
+    let result = client
+        .PutCname()
+        .with_domain("cdn.k12tube.com")
+        .with_cert_id("12211799-cn-hangzhou")
+        .with_certificate(s)
+        .with_private_key(s2)
+        .with_previous_cert_id("12211799-cn-hangzhou")
+        .with_force(true)
+        .with_delete_certificate(false)
+        .send()
+        .await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result);
+        }
+        Err(message) => {
+            println!("{:#?}", message);
+        }
+    }
 }
 
 #[allow(unused)]
 async fn get_cname_token() {
-	let options = utils::options_from_env();
-	let client = oss::Client::new(options);
-	let result = client.GetCnameToken("cdn.k12tube.com").await;
-	match result {
-		Ok(result) => {
-			println!("{:#?}", result);
-		}
-		Err(message) => {
-			println!("{:#?}", message);
-		}
-	}
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let result = client.GetCnameToken("cdn.k12tube.com").await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result);
+        }
+        Err(message) => {
+            println!("{:#?}", message);
+        }
+    }
 }
 
 #[allow(unused)]
 async fn create_cname_token() {
-	let options = utils::options_from_env();
-	let client = oss::Client::new(options);
-	let result = client.CreateCnameToken("cdn.k12tube.com").await;
-	match result {
-		Ok(result) => {
-			println!("{:#?}", result);
-		}
-		Err(message) => {
-			println!("{:#?}", message);
-		}
-	}
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let result = client.CreateCnameToken("cdn.k12tube.com").await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", result);
+        }
+        Err(message) => {
+            println!("{:#?}", message);
+        }
+    }
 }
 
 #[allow(unused)]
 /// 获取cname信息
 async fn get_cname() {
-	let options = utils::options_from_env();
-	let client = oss::Client::new(options);
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
 
-	let result = client.ListCname().await;
-	match result {
-		Ok(result) => {
-			println!("{:#?}", &result.data);
-			println!("{}", serde_json::to_string_pretty(&result.data).unwrap());
-		}
-		Err(message) => {
-			println!("{:#?}", message)
-		}
-	}
+    let result = client.ListCname().await;
+    match result {
+        Ok(result) => {
+            println!("{:#?}", &result.data);
+            println!("{}", serde_json::to_string_pretty(&result.data).unwrap());
+        }
+        Err(message) => {
+            println!("{:#?}", message)
+        }
+    }
 }
 
 #[allow(unused)]
 /// 获取cname信息
 async fn list_cname() {
-	let options = utils::options_from_env();
-	let client = oss::Client::new(options);
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
 
-	let result = client.ListCname().await;
-	match result {
-		Ok(result) => {
-			// println!("{:#?}", &result.data);
-			println!("{}", serde_json::to_string_pretty(&result.data).unwrap());
-		}
-		Err(message) => {
-			println!("{:#?}", message)
-		}
-	}
+    let result = client.ListCname().await;
+    match result {
+        Ok(result) => {
+            // println!("{:#?}", &result.data);
+            println!("{}", serde_json::to_string_pretty(&result.data).unwrap());
+        }
+        Err(message) => {
+            println!("{:#?}", message)
+        }
+    }
 }
 
 #[tokio::main]
 async fn main() {
-	dotenv::dotenv().ok();
-	// get_cname().await;
-	// create_cname_token().await;
-	// get_cname_token().await;
-	put_cname().await;
-	// list_cname().await;
-	// 74d0f7d6d98b5d02a95e1658b96bed1e
+    dotenv::dotenv().ok();
+    // get_cname().await;
+    // create_cname_token().await;
+    // get_cname_token().await;
+    put_cname().await;
+    // list_cname().await;
+    // 74d0f7d6d98b5d02a95e1658b96bed1e
 }
