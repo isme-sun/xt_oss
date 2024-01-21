@@ -55,7 +55,7 @@ pub mod builder {
 			let config = WebsiteConfiguration {
 				index_document: self.index_document.clone(),
 				error_document: self.error_documnet.clone(),
-				routing_rules: if let None = self.routing_rules {
+				routing_rules: if self.routing_rules.is_none() {
 					None
 				} else {
 					let rules = RoutingRules {

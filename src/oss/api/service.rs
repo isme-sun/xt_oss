@@ -7,6 +7,6 @@ use super::builders::ListBucketsBuilder;
 impl<'a> Client<'a> {
 	// #[allow(private_interfaces)]
 	pub fn ListBuckets(&self) -> ListBucketsBuilder {
-		ListBucketsBuilder::new(&self)
+		ListBucketsBuilder::new(self)
 	}
 }

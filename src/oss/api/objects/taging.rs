@@ -10,7 +10,7 @@ impl<'a> Client<'a> {
 	/// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
 	/// 初始化一个Multipart Upload事件
 	pub fn PutObjectTagging(&self, object: &'a str) -> PutObjectTaggingBuilder {
-		PutObjectTaggingBuilder::new(&self, object)
+		PutObjectTaggingBuilder::new(self, object)
 	}
 
 	/// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）
@@ -35,6 +35,6 @@ impl<'a> Client<'a> {
 
 	/// 调用DeleteObjectTagging接口删除指定对象（Object）的标签（Tagging）信息。
 	pub fn DeleteObjectTagging(&self, object: &'a str) -> DeleteObjectTaggingBuilder {
-		DeleteObjectTaggingBuilder::new(&self, object)
+		DeleteObjectTaggingBuilder::new(self, object)
 	}
 }

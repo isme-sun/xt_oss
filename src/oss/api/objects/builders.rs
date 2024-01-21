@@ -105,7 +105,7 @@ impl<'a> PutObjectACLBuilder<'a> {
 			.url(&url)
 			.method(oss::Method::PUT)
 			.headers(headers)
-			.resourse(&query)
+			.resourse(query)
 			.send()
 			.await?;
 

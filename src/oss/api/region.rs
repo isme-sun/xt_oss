@@ -6,6 +6,6 @@ use super::builders::DescribeRegionsBuilder;
 /// 关于Service操作
 impl<'a> Client<'a> {
 	pub fn DescribeRegions(&self) -> DescribeRegionsBuilder {
-		DescribeRegionsBuilder::new(&self)
+		DescribeRegionsBuilder::new(self)
 	}
 }

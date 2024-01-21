@@ -92,8 +92,8 @@ pub mod builder {
 					break;
 				}
 			}
-			if let None = index {
-				self.config.referer_blacklist.push(value.to_string());
+			if index.is_none() {
+				self.config.referer_blacklist.push(value.into());
 			}
 			self
 		}

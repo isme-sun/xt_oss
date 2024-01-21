@@ -10,11 +10,12 @@ pub mod builder {
 		NoncurrentVersionExpiration, Rule, Transition,
 	};
 
+	#[derive(Default)]
 	pub struct FilterBuilder {}
 
 	impl FilterBuilder {
 		pub fn new() -> Self {
-			Self {}
+			Self::default()
 		}
 
 		pub fn build() -> Filter {

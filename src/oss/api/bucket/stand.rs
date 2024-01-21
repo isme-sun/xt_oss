@@ -199,12 +199,9 @@ pub mod builder {
 		}
 
 		fn config(&self) -> Option<oss::Bytes> {
-			let data = if let Some(config) = &self.config {
-				Some(oss::Bytes::from(config.to_xml()))
-			} else {
-				None
-			};
-			data
+			self.config
+				.as_ref()
+				.map(|config| oss::Bytes::from(config.to_xml()))
 		}
 
 		/// 调用PutBucket接口创建存储空间（Bucket）。

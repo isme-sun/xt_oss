@@ -37,11 +37,11 @@ pub mod builder {
 
 		pub async fn send(&self) -> oss::Result<()> {
 			let res = "tagging";
-			let query = if self.keys.len() > 0 {
+			let query = if !self.keys.is_empty() {
 				let keys = self.keys.join(",");
 				format!("{}={}", res, keys)
 			} else {
-				format!("{}", res)
+				res.to_string()
 			};
 			let url = { format!("{}/?{}", self.client.options.base_url(), query) };
 

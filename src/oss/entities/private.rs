@@ -5,7 +5,7 @@ pub(crate) mod serde_date {
 		use chrono::{DateTime, Utc};
 		use serde::{self, Deserialize, Deserializer, Serializer};
 
-		const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S.000Z";
+		const FORMAT: &str = "%Y-%m-%dT%H:%M:%S.000Z";
 
 		pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
 		where
@@ -29,7 +29,7 @@ pub(crate) mod serde_date {
 		use chrono::{DateTime, Utc};
 		use serde::{self, Deserialize, Deserializer, Serializer};
 
-		const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S.000Z";
+		const FORMAT: &str = "%Y-%m-%dT%H:%M:%S.000Z";
 
 		pub fn serialize<S>(date: &Option<DateTime<Utc>>, serializer: S) -> Result<S::Ok, S::Error>
 		where

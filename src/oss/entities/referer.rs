@@ -77,19 +77,18 @@ impl RefererConfiguration {
 			}
 		}
 
-		let config = RefererConfiguration {
+		RefererConfiguration {
 			allow_empty_referer: config.allow_empty_referer,
 			allow_truncate_query_string: config.allow_truncate_query_string,
 			truncate_path: config.truncate_path,
 			referer_list,
 			referer_blacklist,
-		};
-		config
+		}
 	}
 
 	pub(crate) fn to_inner(&self) -> inner::RefererConfiguration {
 		let referer_list = {
-			if self.referer_list.len() > 0 {
+			if !self.referer_list.is_empty() {
 				Some(inner::RefererList {
 					referer: Some({
 						let mut referer: Vec<String> = Vec::new();
@@ -104,7 +103,7 @@ impl RefererConfiguration {
 			}
 		};
 		let referer_blacklist = {
-			if self.referer_blacklist.len() > 0 {
+			if !self.referer_blacklist.is_empty() {
 				Some(inner::RefererBlacklist {
 					referer: Some({
 						let mut referer: Vec<String> = Vec::new();
@@ -118,14 +117,13 @@ impl RefererConfiguration {
 				None
 			}
 		};
-		let config = inner::RefererConfiguration {
+		inner::RefererConfiguration {
 			allow_empty_referer: self.allow_empty_referer,
 			allow_truncate_query_string: self.allow_truncate_query_string,
 			truncate_path: self.truncate_path,
 			referer_list,
 			referer_blacklist,
-		};
-		config
+		}
 	}
 }
 

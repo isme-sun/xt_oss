@@ -78,7 +78,7 @@ pub mod builder {
 				.method(oss::Method::POST)
 				.url(&url)
 				.body(oss::Bytes::from(config))
-				.resourse(&res)
+				.resourse(res)
 				.send()
 				.await?;
 
@@ -130,10 +130,7 @@ pub mod builder {
 			let res = {
 				format!(
 					"wormExtend&wormId={}",
-					match self.worm_id {
-						Some(worm_id) => worm_id,
-						None => "",
-					}
+					self.worm_id.unwrap_or("")
 				)
 			};
 			let url = { format!("{}/?{}", self.client.options.base_url(), res) };
@@ -165,7 +162,7 @@ impl<'a> oss::Client<'a> {
 	/// 调用InitiateBucketWorm接口新建一条合规保留策略。
 	#[allow(non_snake_case)]
 	pub fn InitiateBucketWorm(&self) -> InitiateBucketWormBuilder {
-		InitiateBucketWormBuilder::new(&self)
+		InitiateBucketWormBuilder::new(self)
 	}
 
 	/// AbortBucketWorm用于删除未锁定的合规保留策略。
@@ -179,7 +176,7 @@ impl<'a> oss::Client<'a> {
 			.task()
 			.method(oss::Method::DELETE)
 			.url(&url)
-			.resourse(&res)
+			.resourse(res)
 			.send()
 			.await?;
 
@@ -226,7 +223,7 @@ impl<'a> oss::Client<'a> {
 		let res = "worm";
 		let url = format!("{}/?{}", self.options.base_url(), res);
 
-		let resp = self.request.task().url(&url).resourse(&res).send().await?;
+		let resp = self.request.task().url(&url).resourse(res).send().await?;
 
 		let content = String::from_utf8_lossy(&resp.data);
 		let config = quick_xml::de::from_str(&content).unwrap();

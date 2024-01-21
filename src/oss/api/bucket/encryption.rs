@@ -50,16 +50,8 @@ pub mod builder {
 			let mut content = ServerSideEncryptionRule {
 				apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault {
 					sse_algorithm: self.algorithm,
-					kms_data_encryption: if let Some(enc) = self.data_encryption {
-						Some(enc.to_string())
-					} else {
-						None
-					},
-					kms_master_key_id: if let Some(key_id) = self.master_key_id {
-						Some(key_id.to_string())
-					} else {
-						None
-					},
+					kms_data_encryption: self.data_encryption.map(|enc| enc.into()),
+					kms_master_key_id: self.master_key_id.map(|key_id| key_id.into()),
 				},
 			};
 

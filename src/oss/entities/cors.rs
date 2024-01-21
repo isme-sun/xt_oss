@@ -14,7 +14,7 @@ pub struct CORSRule {
 	pub max_age_seconds: Option<i32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct CORSConfiguration {
 	#[serde(rename = "CORSRule")]
 	pub cors_rule: Vec<CORSRule>,
@@ -78,15 +78,14 @@ pub mod builder {
 		}
 	}
 
+	#[derive(Default, Debug)]
 	pub struct CORSConfigurationBuilder {
 		pub cors_configuration: CORSConfiguration,
 	}
 
 	impl CORSConfigurationBuilder {
 		pub fn new() -> Self {
-			Self {
-				cors_configuration: CORSConfiguration::default(),
-			}
+			Self::default()
 		}
 
 		pub fn add_rule(mut self, value: CORSRule) -> Self {

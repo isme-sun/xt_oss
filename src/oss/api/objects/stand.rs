@@ -7,7 +7,7 @@ use super::builders::PutObjectBuilder;
 impl<'a> Client<'a> {
 	/// 调用PutObject接口上传文件（Object）
 	pub fn PutObject(&self, object: &'a str) -> PutObjectBuilder {
-		PutObjectBuilder::new(&self, object)
+		PutObjectBuilder::new(self, object)
 	}
 
 	/// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限

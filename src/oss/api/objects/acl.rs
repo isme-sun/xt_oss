@@ -20,7 +20,7 @@ impl<'a> Client<'a> {
 			format!("{}/{}?{}", base_url, object, res)
 		};
 
-		let resp = self.request.task().url(&url).resourse(&res).send().await?;
+		let resp = self.request.task().url(&url).resourse(res).send().await?;
 		let content = String::from_utf8_lossy(&resp.data);
 		let data: AccessControlPolicy = quick_xml::de::from_str(&content).unwrap();
 

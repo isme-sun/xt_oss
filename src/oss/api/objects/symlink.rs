@@ -79,7 +79,7 @@ pub mod builder {
 				.url(&url)
 				.headers(headers)
 				.method(oss::Method::PUT)
-				.resourse(&query)
+				.resourse(query)
 				.send()
 				.await?;
 
@@ -150,7 +150,7 @@ pub mod builder {
 				.request
 				.task()
 				.url(&url)
-				.resourse(&query)
+				.resourse(query)
 				.send()
 				.await?;
 
@@ -170,12 +170,12 @@ impl<'a> Client<'a> {
 	/// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
 	/// 初始化一个Multipart Upload事件
 	pub fn PutSymlink(&self) -> PutSymlinkBuilder<'_> {
-		PutSymlinkBuilder::new(&self)
+		PutSymlinkBuilder::new(self)
 	}
 
 	/// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）
 	/// 上传数据
 	pub fn GetSymlink(&self) -> GetSymlinkBuilder<'_> {
-		GetSymlinkBuilder::new(&self)
+		GetSymlinkBuilder::new(self)
 	}
 }
