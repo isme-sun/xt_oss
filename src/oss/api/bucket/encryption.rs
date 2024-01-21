@@ -82,7 +82,7 @@ pub mod builder {
 impl<'a> Client<'a> {
 	/// PutBucketEncryption接口用于配置存储空间（Bucket）的加密规则。
 	pub fn PutBucketEncryption(&self) -> PutBucketEncryptionBuilder {
-		PutBucketEncryptionBuilder::new(&self)
+		PutBucketEncryptionBuilder::new(self)
 	}
 
 	/// GetBucketEncryption接口用于获取存储空间（Bucket）的加密规则。

@@ -19,13 +19,13 @@ use std::time::Duration;
 pub(crate) mod api;
 pub mod entities;
 
-pub const BASE_URL: &'static str = "aliyuncs.com";
-pub const DEFAULT_REGION: &'static str = "oss-cn-hangzhou";
-const USER_AGENT: &'static str = "xt oss/0.1";
-const DEFAULT_CONTENT_TYPE: &'static str = "application/octet-stream";
+pub const BASE_URL: &str = "aliyuncs.com";
+pub const DEFAULT_REGION: &str = "oss-cn-hangzhou";
+const USER_AGENT: &str = "xt oss/0.1";
+const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
 const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
-const GMT_DATE_FMT: &'static str = "%a, %d %b %Y %H:%M:%S GMT";
-const XML_DOCTYPE: &'static str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
+const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
+const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
 #[derive(Debug, Default)]
 pub struct Data<T> {
@@ -107,7 +107,7 @@ impl<'a> Authorization<'a> {
 
 		let value = format!(
 			"{VERB}\n\n{ContentType}\n{Date}\n{Header}{Resource}",
-			VERB = self.method.to_string(),
+			VERB = self.method,
 			Header = header_str,
 			ContentType = oss::DEFAULT_CONTENT_TYPE,
 			Date = self.date,
@@ -137,7 +137,7 @@ impl<'a> Authorization<'a> {
 		if let Some(res) = self.resourse {
 			format!("{}?{}", res_path, res)
 		} else {
-			format!("{}", res_path)
+			res_path.to_string()
 		}
 	}
 }
@@ -239,18 +239,16 @@ impl<'a> RequestTask<'a> {
 			if content.len() > 0 {
 				let message: Message = quick_xml::de::from_str(&content).unwrap();
 				Err(message)
-			} else {
-				if headers.contains_key("x-oss-err") {
-					let error_info = headers.get("x-oss-err").unwrap();
-					let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
-					let content = String::from_utf8_lossy(&error_info);
-					let message: Message = quick_xml::de::from_str(&content).unwrap();
-					Err(message)
-				} else {
-					let message = Message::default();
-					Err(message)
-				}
-			}
+			} else if headers.contains_key("x-oss-err") {
+   					let error_info = headers.get("x-oss-err").unwrap();
+   					let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
+   					let content = String::from_utf8_lossy(&error_info);
+   					let message: Message = quick_xml::de::from_str(&content).unwrap();
+   					Err(message)
+   				} else {
+   					let message = Message::default();
+   					Err(message)
+   				}
 		}
 	}
 
@@ -270,7 +268,7 @@ impl<'a> RequestTask<'a> {
 				_ => (None, Some(fragment.to_string())),
 			};
 			let object = url.path().trim_start_matches('/');
-			let object = if object == "" {
+			let object = if object.is_empty() {
 				None
 			} else {
 				Some(object.to_string())

@@ -88,38 +88,38 @@ impl From<oss::Bytes> for ListAllMyBucketsResult {
 pub struct BucketStat {
 	/// Bucket的总存储量，单位字节。
 	#[serde(rename(deserialize = "Storage"))]
-	pub storage: String,
+	pub storage: u64,
 	/// Bucket中总的Object数量
 	#[serde(rename(deserialize = "ObjectCount"))]
-	pub object_count: String,
+	pub object_count: u64,
 	#[serde(rename(deserialize = "MultipartUploadCount"))]
-	pub multipart_upload_count: String,
+	pub multipart_upload_count: u64,
 	#[serde(rename(deserialize = "LiveChannelCount"))]
-	pub live_channel_count: String,
+	pub live_channel_count: u64,
 	#[serde(rename(deserialize = "LastModifiedTime"))]
-	pub last_modified_time: String,
+	pub last_modified_time: u64,
 	#[serde(rename(deserialize = "StandardStorage"))]
-	pub standard_storage: String,
+	pub standard_storage: u64,
 	#[serde(rename(deserialize = "StandardObjectCount"))]
-	pub standard_object_count: String,
+	pub standard_object_count: u64,
 	#[serde(rename(deserialize = "InfrequentAccessStorage"))]
-	pub infrequent_access_storage: String,
+	pub infrequent_access_storage: u64,
 	#[serde(rename(deserialize = "InfrequentAccessRealStorage"))]
-	pub infrequent_access_real_storage: String,
+	pub infrequent_access_real_storage: u64,
 	#[serde(rename(deserialize = "InfrequentAccessObjectCount"))]
-	pub infrequent_access_object_count: String,
+	pub infrequent_access_object_count: u64,
 	#[serde(rename(deserialize = "ArchiveStorage"))]
-	pub archive_storage: String,
+	pub archive_storage: u64,
 	#[serde(rename(deserialize = "ArchiveRealStorage"))]
-	pub archive_real_storage: String,
+	pub archive_real_storage: u64,
 	#[serde(rename(deserialize = "ArchiveObjectCount"))]
-	pub archive_object_count: String,
+	pub archive_object_count: u64,
 	#[serde(rename(deserialize = "ColdArchiveStorage"))]
-	pub cold_archive_storage: String,
+	pub cold_archive_storage: u64,
 	#[serde(rename(deserialize = "ColdArchiveRealStorage"))]
-	pub cold_archive_real_storage: String,
+	pub cold_archive_real_storage: u64,
 	#[serde(rename(deserialize = "ColdArchiveObjectCount"))]
-	pub cold_archive_object_count: String,
+	pub cold_archive_object_count: u64,
 }
 
 #[allow(non_snake_case)]
@@ -224,7 +224,7 @@ pub mod test {
 </Buckets>
 </ListAllMyBucketsResult>
 "#;
-		let obj: ListAllMyBucketsResult = quick_xml::de::from_str(&xml).unwrap();
+		let obj: ListAllMyBucketsResult = quick_xml::de::from_str(xml).unwrap();
 		println!("{:#?}", &obj);
 	}
 }

@@ -64,7 +64,7 @@ pub mod builder {
 					break;
 				}
 			}
-			if let None = index {
+			if index.is_none() {
 				self.config.referer_list.push(value.to_string());
 			}
 			self
@@ -128,7 +128,7 @@ pub mod builder {
 				.task()
 				.method(oss::Method::PUT)
 				.url(&url)
-				.resourse(&res)
+				.resourse(res)
 				.body(data)
 				.send()
 				.await?;
@@ -178,6 +178,6 @@ impl<'a> oss::Client<'a> {
 
 	/// 调用PutBucketReferer接口设置存储空间（Bucket）级别的Referer访问白名单以及黑名单
 	pub fn PutBucketReferer(&self) -> PutBucketRefererBuilder {
-		PutBucketRefererBuilder::new(&self)
+		PutBucketRefererBuilder::new(self)
 	}
 }

@@ -368,7 +368,7 @@ pub mod builder {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
 	pub fn PutBucket(&self) -> PutBucketBuilder {
-		PutBucketBuilder::new(&self)
+		PutBucketBuilder::new(self)
 	}
 
 	/// 调用DeleteBucket删除某个存储空间（Bucket）。
@@ -396,13 +396,13 @@ impl<'a> oss::Client<'a> {
 	/// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
 	#[allow(private_interfaces)]
 	pub fn ListObjects(&self) -> ListObjectBuilder {
-		ListObjectBuilder::new(&self)
+		ListObjectBuilder::new(self)
 	}
 
 	// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
 	#[allow(private_interfaces)]
 	pub fn ListObjectsV2(&self) -> ListObjectsV2Builder {
-		ListObjectsV2Builder::new(&self)
+		ListObjectsV2Builder::new(self)
 	}
 
 	// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
@@ -414,7 +414,7 @@ impl<'a> oss::Client<'a> {
 			.request
 			.task()
 			.url(&url)
-			.resourse(&query)
+			.resourse(query)
 			.send()
 			.await
 			.unwrap();
@@ -439,7 +439,7 @@ impl<'a> oss::Client<'a> {
 			.request
 			.task()
 			.url(&url)
-			.resourse(&query)
+			.resourse(query)
 			.send()
 			.await?;
 
@@ -461,7 +461,7 @@ impl<'a> oss::Client<'a> {
 			.request
 			.task()
 			.url(&url)
-			.resourse(&query)
+			.resourse(query)
 			.send()
 			.await?;
 

@@ -44,7 +44,7 @@ pub mod builder {
 				.task()
 				.url(&url)
 				.method(oss::Method::PUT)
-				.resourse(&res)
+				.resourse(res)
 				.body(data)
 				.send()
 				.await?;
@@ -62,13 +62,13 @@ pub mod builder {
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
 	pub fn PutBucketVersioning(&self) -> PutBucketVersioningBuilder {
-		PutBucketVersioningBuilder::new(&self)
+		PutBucketVersioningBuilder::new(self)
 	}
 
 	pub async fn GetBucketVersioning(&self) -> oss::Result<VersioningConfiguration> {
 		let res = "versioning";
 		let url = format!("{}/?{}", self.options.base_url(), res);
-		let resp = self.request.task().url(&url).resourse(&res).send().await?;
+		let resp = self.request.task().url(&url).resourse(res).send().await?;
 
 		let content = String::from_utf8_lossy(&resp.data);
 		let config = quick_xml::de::from_str(&content).unwrap();

@@ -10,7 +10,7 @@ impl<'a> oss::Client<'a> {
 		let res = "policy";
 		let url = format!("{}/?{}", self.options.base_url(), res);
 
-		let resp = self.request.task().url(&url).resourse(&res).send().await?;
+		let resp = self.request.task().url(&url).resourse(res).send().await?;
 
 		let content = String::from_utf8_lossy(&resp.data);
 

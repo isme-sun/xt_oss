@@ -141,7 +141,7 @@ mod tests {
 	<Token>be1d49d863dea9ffeff3df7d6455****</Token>
 	<ExpireTime>Wed, 23 Feb 2022 21:16:37 GMT</ExpireTime>
 </CnameToken>"#;
-		let obj = quick_xml::de::from_str::<CnameToken>(&xml).unwrap();
+		let obj = quick_xml::de::from_str::<CnameToken>(xml).unwrap();
 		let left = "Wed, 23 Feb 2022 21:16:37 GMT";
 		let right = obj.expire_time;
 		assert_eq!(left, right);
@@ -178,7 +178,7 @@ mod tests {
 		<Status>Enabled</Status>
 	</Cname>
 </ListCnameResult>"#;
-		let obj: ListCnameResult = quick_xml::de::from_str(&xml).unwrap();
+		let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
 
 		println!("{:#?}", obj);
 
@@ -209,7 +209,7 @@ mod tests {
 				</Certificate>
 			</Cname>
 		</ListCnameResult>"#;
-		let obj: ListCnameResult = quick_xml::de::from_str(&xml).unwrap();
+		let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
 
 		println!("{:#?}", obj);
 	}

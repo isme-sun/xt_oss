@@ -19,7 +19,7 @@ impl<'a> PutBucketLoggingBuilder<'a> {
 	}
 
 	pub fn with_enabled(mut self, value: bool) -> Self {
-		if value == true {
+		if value {
 			let bucket = self.client.options.bucket.to_string();
 			let mut loggin_enabled = match self.bucket_logging_status.logging_enabled {
 				Some(mut loggin_status) => {
@@ -83,7 +83,7 @@ impl<'a> oss::Client<'a> {
 	/// 可将OSS的访问日志按照固定命名规则，以小时为单位生成日志文件写入您
 	/// 指定的Bucket。
 	pub fn PutBucketLogging(&self) -> PutBucketLoggingBuilder {
-		PutBucketLoggingBuilder::new(&self)
+		PutBucketLoggingBuilder::new(self)
 	}
 
 	/// GetBucketLogging接口用于查看存储空间（Bucket）的访问日志配置。

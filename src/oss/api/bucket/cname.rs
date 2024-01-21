@@ -160,7 +160,7 @@ impl<'a> oss::Client<'a> {
 			.task()
 			.url(&url)
 			.method(oss::Method::POST)
-			.resourse(&query)
+			.resourse(query)
 			.body(data)
 			.send()
 			.await?;

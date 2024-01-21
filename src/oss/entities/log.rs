@@ -27,7 +27,7 @@ pub mod tests {
 		<TargetPrefix>MyLog-</TargetPrefix>
 	</LoggingEnabled>
 </BucketLoggingStatus>"#;
-		let obj = quick_xml::de::from_str::<BucketLoggingStatus>(&xml).unwrap();
+		let obj = quick_xml::de::from_str::<BucketLoggingStatus>(xml).unwrap();
 		let left = "MyLog-";
 		let right = obj.logging_enabled.unwrap().target_prefix.unwrap();
 		assert_eq!(left, right);

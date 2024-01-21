@@ -116,8 +116,8 @@ async fn put_acl_bucket() {
 #[tokio::main]
 async fn main() {
 	dotenv::dotenv().ok();
-	info_bucket().await;
-	// stat_bucket().await;
+	// info_bucket().await;
+	stat_bucket().await;
 	// location_bucket().await;
 	// get_acl_bucket().await;
 	// put_acl_bucket().await;

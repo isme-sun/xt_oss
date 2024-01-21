@@ -131,7 +131,7 @@ pub mod tests {
   <ResponseVary>false</ResponseVary>
 </CORSConfiguration>"#;
 
-		let object = quick_xml::de::from_str::<CORSConfiguration>(&xml_content).unwrap();
+		let object = quick_xml::de::from_str::<CORSConfiguration>(xml_content).unwrap();
 		assert_eq!(object.cors_rule[0].allowed_origin[0], "*");
 	}
 
@@ -159,7 +159,7 @@ pub mod tests {
 			.response_vary(false)
 			.builder();
 
-		let left = format!("{}", quick_xml::se::to_string(&config).unwrap());
+		let left = quick_xml::se::to_string(&config).unwrap().to_string();
 
 		let right = r#"<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>PUT</AllowedMethod><AllowedMethod>GET</AllowedMethod><AllowedHeader>authorization</AllowedHeader><ExposeHeader/><MaxAgeSeconds/></CORSRule><CORSRule><AllowedOrigin>http://example.com</AllowedOrigin><AllowedOrigin>http://example.net</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedHeader>authorization</AllowedHeader><ExposeHeader>x-oss-test</ExposeHeader><ExposeHeader>x-oss-test1</ExposeHeader><MaxAgeSeconds/></CORSRule><ResponseVary>false</ResponseVary></CORSConfiguration>"#;
 

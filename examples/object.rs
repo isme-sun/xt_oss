@@ -3,7 +3,7 @@
 use std::fs::File;
 use std::io::Read;
 
-use dotenv;
+
 use xt_oss::oss;
 use xt_oss::utils;
 
@@ -130,9 +130,9 @@ async fn object_delete_tagging() {
 }
 #[tokio::main]
 async fn main() {
-	// object_list1().await;
+	object_list1().await;
 	// put_object().await;
 	// object_put_tagging().await;
-	object_get_tagging().await;
+	// object_get_tagging().await;
 	// object_delete_tagging().await;
 }

@@ -151,7 +151,7 @@ pub mod tests {
   </RefererBlacklist>
 </RefererConfiguration>"#;
 
-		let object: inner::RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
+		let object: inner::RefererConfiguration = quick_xml::de::from_str(content).unwrap();
 		println!("{:#?}", object);
 	}
 }

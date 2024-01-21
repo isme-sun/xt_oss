@@ -138,7 +138,7 @@ mod tests {
 </Version>
 </ListVersionsResult>"#;
 
-		let object = quick_xml::de::from_str::<ListVersionsResult>(&xml_content).unwrap();
+		let object = quick_xml::de::from_str::<ListVersionsResult>(xml_content).unwrap();
 		let left = "example-object-1.jpg";
 		let right = object.version[0].key.to_string();
 		assert_eq!(left, right);
@@ -195,7 +195,7 @@ mod tests {
     </Version>
 </ListVersionsResult>"#;
 
-		let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: ListVersionsResult = quick_xml::de::from_str(xml_content).unwrap();
 
 		let left = "example";
 		let right = object.delete_marker.unwrap()[0].key.to_string();
@@ -255,7 +255,7 @@ mod tests {
     </Version>
 </ListVersionsResult>"#;
 
-		let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: ListVersionsResult = quick_xml::de::from_str(xml_content).unwrap();
 
 		println!("{:#?}", object);
 	}

@@ -49,7 +49,7 @@ impl<'a> PutBucketCorsBuilder<'a> {
 impl<'a> Client<'a> {
 	/// 调用PutBucketCors接口为指定的存储空间（Bucket）设置跨域资源共享CORS（Cross-Origin Resource Sharing）规则
 	pub fn PutBucketCors(&self) -> PutBucketCorsBuilder {
-		PutBucketCorsBuilder::new(&self)
+		PutBucketCorsBuilder::new(self)
 	}
 
 	/// GetBucketCors接口用于获取指定存储空间（Bucket）当前的跨域资源共享CORS（Cross-Origin Resource Sharing）规则。

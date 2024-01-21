@@ -361,7 +361,7 @@ mod tests {
   </Transition>
  </Rule>
 </LifecycleConfiguration>"#;
-		let object: LifecycleConfiguration = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: LifecycleConfiguration = quick_xml::de::from_str(xml_content).unwrap();
 
 		// let json_str = serde_json::to_string_pretty(&object).unwrap();
 		// println!("{}", json_str);
@@ -400,7 +400,7 @@ mod tests {
      <AtimeBase>1631698332</AtimeBase>
   </Rule>
 </LifecycleConfiguration>"#;
-		let object: LifecycleConfiguration = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: LifecycleConfiguration = quick_xml::de::from_str(xml_content).unwrap();
 
 		let json_str = serde_json::to_string_pretty(&object).unwrap();
 		println!("{}", json_str);

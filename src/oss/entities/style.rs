@@ -47,7 +47,7 @@ mod tests {
 		let xml_gen = quick_xml::se::to_string(&style).unwrap();
 		println!("{}", xml_gen);
 
-		let style1 = quick_xml::de::from_str::<Style>(&xml_origin).unwrap();
+		let style1 = quick_xml::de::from_str::<Style>(xml_origin).unwrap();
 		println!("{:#?}", style1);
 	}
 }

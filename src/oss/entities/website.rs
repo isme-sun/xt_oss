@@ -433,7 +433,7 @@ pub mod tests {
 </WebsiteConfiguration>
 "#;
 
-		let object: WebsiteConfiguration = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: WebsiteConfiguration = quick_xml::de::from_str(xml_content).unwrap();
 
 		// let json_str = serde_json::to_string_pretty(&object).unwrap();
 		// println!("{}", json_str);
@@ -502,7 +502,7 @@ pub mod tests {
   </RoutingRules>
 </WebsiteConfiguration>"#;
 
-		let object: WebsiteConfiguration = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: WebsiteConfiguration = quick_xml::de::from_str(xml_content).unwrap();
 
 		let json_str = serde_json::to_string_pretty(&object).unwrap();
 		println!("{}", json_str);

@@ -44,7 +44,7 @@ impl<'a> PutBucketAclBuilder<'a> {
 			.method(oss::Method::PUT)
 			.headers(headers)
 			.url(&url)
-			.resourse(&res)
+			.resourse(res)
 			.send()
 			.await?;
 
@@ -61,7 +61,7 @@ impl<'a> PutBucketAclBuilder<'a> {
 impl<'a> oss::Client<'a> {
 	/// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）。
 	pub fn PutBucketAcl(&self) -> PutBucketAclBuilder {
-		PutBucketAclBuilder::new(&self)
+		PutBucketAclBuilder::new(self)
 	}
 
 	/// GetBucketAcl接口用于获取某个存储空间（Bucket）的访问权限（ACL）。只有Bucket的拥有者才能获取Bucket的访问权限。

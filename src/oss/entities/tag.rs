@@ -55,7 +55,7 @@ mod tests {
 	</TagSet>
 </Tagging>"#;
 
-		let c: Tagging = quick_xml::de::from_str(&xml).unwrap();
+		let c: Tagging = quick_xml::de::from_str(xml).unwrap();
 		println!("{:#?}", c);
 	}
 }

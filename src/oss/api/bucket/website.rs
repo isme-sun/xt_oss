@@ -80,7 +80,7 @@ pub mod builder {
 				.task()
 				.url(&url)
 				.method(oss::Method::PUT)
-				.resourse(&query)
+				.resourse(query)
 				.body(data)
 				.send()
 				.await?;
@@ -125,7 +125,7 @@ impl<'a> Client<'a> {
 	/// }
 	/// ```
 	pub fn PutBucketWebsite(&self) -> PutBucketWebsiteBuilder {
-		PutBucketWebsiteBuilder::new(&self)
+		PutBucketWebsiteBuilder::new(self)
 	}
 
 	pub async fn GetBucketWebsite(&self) -> oss::Result<WebsiteConfiguration> {
@@ -136,7 +136,7 @@ impl<'a> Client<'a> {
 			.request
 			.task()
 			.url(&url)
-			.resourse(&query)
+			.resourse(query)
 			.send()
 			.await?;
 
@@ -160,7 +160,7 @@ impl<'a> Client<'a> {
 			.task()
 			.url(&url)
 			.method(oss::Method::DELETE)
-			.resourse(&query)
+			.resourse(query)
 			.send()
 			.await?;
 
