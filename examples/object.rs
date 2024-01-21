@@ -22,9 +22,9 @@ async fn put_object() {
     let client = oss::Client::new(options);
 
     let result = client
-        .PutObject("xtoss/example/settings.json")
-        .content({
-            let filename = String::from("settings.json");
+        .PutObject("xtoss/example/123.dmg")
+        .with_content({
+            let filename = String::from("123.dmg");
             let content = read_assets_file(filename);
             oss::Bytes::from(content)
         })
@@ -129,8 +129,8 @@ async fn object_delete_tagging() {
 }
 #[tokio::main]
 async fn main() {
-    object_list1().await;
-    // put_object().await;
+    // object_list1().await;
+    put_object().await;
     // object_put_tagging().await;
     // object_get_tagging().await;
     // object_delete_tagging().await;

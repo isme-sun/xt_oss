@@ -1,6 +1,60 @@
 use crate::oss::{self, entities::acl::AccessControlPolicy, Client};
+use builders::PutObjectACLBuilder;
 
-use super::builders::PutObjectACLBuilder;
+pub mod builders {
+    use crate::oss::{self, entities::ObjectACL, header::HeaderMap};
+
+    pub struct PutObjectACLBuilder<'a> {
+        client: &'a oss::Client<'a>,
+        object: &'a str,
+        acl: ObjectACL,
+    }
+
+    #[allow(unused)]
+    impl<'a> PutObjectACLBuilder<'a> {
+        pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+            Self {
+                client,
+                object,
+                acl: ObjectACL::Default,
+            }
+        }
+
+        pub fn acl(mut self, acl: ObjectACL) -> Self {
+            self.acl = acl;
+            self
+        }
+
+        pub async fn send(&self) -> oss::Result<()> {
+            let query = "acl";
+            let url = {
+                let base_url = &self.client.options.base_url();
+                format!("{}/{}?{}", base_url, self.object, query)
+            };
+
+            let mut headers = HeaderMap::new();
+            headers.insert("x-oss-object-acl", self.acl.to_string().parse().unwrap());
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .url(&url)
+                .method(oss::Method::PUT)
+                .headers(headers)
+                .resourse(query)
+                .send()
+                .await?;
+
+            let result = oss::Data {
+                status: resp.status,
+                headers: resp.headers,
+                data: (),
+            };
+            Ok(result)
+        }
+    }
+}
 
 /// 基础操作
 #[allow(non_snake_case)]
