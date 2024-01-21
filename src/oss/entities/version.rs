@@ -1,96 +1,96 @@
-use super::{StorageClass, bucket::Owner};
+use super::{bucket::Owner, StorageClass};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum VersioningStatus {
-    Enabled,
-    Suspended,
+	Enabled,
+	Suspended,
 }
 
 impl fmt::Display for VersioningStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Enabled => "Enabled",
-                Self::Suspended => "Suspended",
-            }
-        )
-    }
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(
+			f,
+			"{}",
+			match self {
+				Self::Enabled => "Enabled",
+				Self::Suspended => "Suspended",
+			}
+		)
+	}
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct VersioningConfiguration {
-    #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
-    pub status: Option<VersioningStatus>,
+	#[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
+	pub status: Option<VersioningStatus>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct DeleteMarker {
-    #[serde(rename = "Key")]
-    pub key: String,
-    #[serde(rename = "VersionId")]
-    pub version_id: String,
-    #[serde(rename = "IsLatest")]
-    pub is_latest: String,
-    #[serde(rename = "LastModified")]
-    pub last_modified: String,
-    #[serde(rename = "Owner")]
-    pub owner: Owner,
+	#[serde(rename = "Key")]
+	pub key: String,
+	#[serde(rename = "VersionId")]
+	pub version_id: String,
+	#[serde(rename = "IsLatest")]
+	pub is_latest: String,
+	#[serde(rename = "LastModified")]
+	pub last_modified: String,
+	#[serde(rename = "Owner")]
+	pub owner: Owner,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Version {
-    #[serde(rename = "Key")]
-    pub key: String,
-    #[serde(rename = "VersionId")]
-    pub version_id: String,
-    #[serde(rename = "IsLatest")]
-    pub is_latest: bool,
-    #[serde(rename = "LastModified")]
-    pub last_modified: String,
-    #[serde(rename = "ETag", skip_serializing_if = "Option::is_none")]
-    pub etag: Option<String>,
-    #[serde(rename = "Type", skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
-    #[serde(rename = "Size", skip_serializing_if = "Option::is_none")]
-    pub size: Option<u64>,
-    #[serde(rename = "StorageClass", skip_serializing_if = "Option::is_none")]
-    pub storage_class: Option<StorageClass>,
-    #[serde(rename = "Owner")]
-    pub owner: Owner,
+	#[serde(rename = "Key")]
+	pub key: String,
+	#[serde(rename = "VersionId")]
+	pub version_id: String,
+	#[serde(rename = "IsLatest")]
+	pub is_latest: bool,
+	#[serde(rename = "LastModified")]
+	pub last_modified: String,
+	#[serde(rename = "ETag", skip_serializing_if = "Option::is_none")]
+	pub etag: Option<String>,
+	#[serde(rename = "Type", skip_serializing_if = "Option::is_none")]
+	pub r#type: Option<String>,
+	#[serde(rename = "Size", skip_serializing_if = "Option::is_none")]
+	pub size: Option<u64>,
+	#[serde(rename = "StorageClass", skip_serializing_if = "Option::is_none")]
+	pub storage_class: Option<StorageClass>,
+	#[serde(rename = "Owner")]
+	pub owner: Owner,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ListVersionsResult {
-    #[serde(rename = "Name")]
-    pub name: String,
-    #[serde(rename = "Prefix")]
-    pub prefix: String,
-    #[serde(rename = "KeyMarker")]
-    pub key_marker: String,
-    #[serde(rename = "VersionIdMarker")]
-    pub version_id_marker: String,
-    #[serde(rename = "MaxKeys")]
-    pub max_keys: u64,
-    #[serde(rename = "Delimiter")]
-    pub delimiter: Option<String>,
-    #[serde(rename = "IsTruncated")]
-    pub is_truncated: bool,
-    #[serde(rename = "DeleteMarker", skip_serializing_if = "Option::is_none")]
-    pub delete_marker: Option<Vec<DeleteMarker>>,
-    #[serde(rename = "Version")]
-    pub version: Vec<Version>,
+	#[serde(rename = "Name")]
+	pub name: String,
+	#[serde(rename = "Prefix")]
+	pub prefix: String,
+	#[serde(rename = "KeyMarker")]
+	pub key_marker: String,
+	#[serde(rename = "VersionIdMarker")]
+	pub version_id_marker: String,
+	#[serde(rename = "MaxKeys")]
+	pub max_keys: u64,
+	#[serde(rename = "Delimiter")]
+	pub delimiter: Option<String>,
+	#[serde(rename = "IsTruncated")]
+	pub is_truncated: bool,
+	#[serde(rename = "DeleteMarker", skip_serializing_if = "Option::is_none")]
+	pub delete_marker: Option<Vec<DeleteMarker>>,
+	#[serde(rename = "Version")]
+	pub version: Vec<Version>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    #[test]
-    fn list_versions_result_1() {
-        let xml_content = r#"<ListVersionsResult>
+	use super::*;
+	#[test]
+	fn list_versions_result_1() {
+		let xml_content = r#"<ListVersionsResult>
 <Name>examplebucket-1250000000</Name>
 <Prefix/>
 <KeyMarker/>
@@ -138,15 +138,15 @@ mod tests {
 </Version>
 </ListVersionsResult>"#;
 
-        let object = quick_xml::de::from_str::<ListVersionsResult>(&xml_content).unwrap();
-        let left = "example-object-1.jpg";
-        let right = object.version[0].key.to_string();
-        assert_eq!(left, right);
-    }
+		let object = quick_xml::de::from_str::<ListVersionsResult>(&xml_content).unwrap();
+		let left = "example-object-1.jpg";
+		let right = object.version[0].key.to_string();
+		assert_eq!(left, right);
+	}
 
-    #[test]
-    fn list_versions_result_2() {
-        let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+	#[test]
+	fn list_versions_result_2() {
+		let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
 <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
     <Name>oss-example</Name>
     <Prefix></Prefix>
@@ -195,17 +195,17 @@ mod tests {
     </Version>
 </ListVersionsResult>"#;
 
-        let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
 
-        let left = "example";
-        let right = object.delete_marker.unwrap()[0].key.to_string();
+		let left = "example";
+		let right = object.delete_marker.unwrap()[0].key.to_string();
 
-        assert_eq!(left, right);
-    }
+		assert_eq!(left, right);
+	}
 
-    #[test]
-    fn list_versions_result_3() {
-        let xml_content = r#"<ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+	#[test]
+	fn list_versions_result_3() {
+		let xml_content = r#"<ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
 <Name>oss-example</Name>
 <Prefix></Prefix>
 <KeyMarker>example</KeyMarker>
@@ -255,8 +255,8 @@ mod tests {
     </Version>
 </ListVersionsResult>"#;
 
-        let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
+		let object: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
 
-        println!("{:#?}", object);
-    }
+		println!("{:#?}", object);
+	}
 }
