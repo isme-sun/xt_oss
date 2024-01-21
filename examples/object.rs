@@ -22,9 +22,9 @@ async fn put_object() {
     let client = oss::Client::new(options);
 
     let result = client
-        .PutObject("xtoss/example/123.dmg")
+        .PutObject("xtoss/example/test.png")
         .with_content({
-            let filename = String::from("123.dmg");
+            let filename = String::from("test.png");
             let content = read_assets_file(filename);
             oss::Bytes::from(content)
         })
