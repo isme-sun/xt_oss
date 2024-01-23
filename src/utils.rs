@@ -48,7 +48,8 @@ mod tests {
     fn options_env() {
         dotenv::dotenv().ok();
         let options: Options = options_from_env();
-        let base_url = "https://k12tube.oss-cn-shanghai.aliyuncs.com";
-        assert_eq!(base_url, options.base_url());
+        let left = "https://oss-cn-shanghai.aliyuncs.com";
+        let right = options.root_url();
+        assert_eq!(left, right);
     }
 }

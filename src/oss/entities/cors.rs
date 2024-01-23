@@ -24,7 +24,7 @@ pub struct CORSConfiguration {
 
 pub mod builder {
     use super::*;
-    use crate::oss;
+    use crate::oss::http;
 
     #[derive(Default, Debug)]
     #[allow(unused)]
@@ -41,12 +41,12 @@ pub mod builder {
             self
         }
 
-        pub fn allowed_method(mut self, value: oss::Method) -> Self {
+        pub fn allowed_method(mut self, value: http::Method) -> Self {
             self.rule.allowed_method.push(value.to_string());
             self
         }
 
-        pub fn allowed_header(mut self, value: oss::header::HeaderName) -> Self {
+        pub fn allowed_header(mut self, value: http::HeaderName) -> Self {
             if let Some(mut header_list) = self.rule.allowed_header {
                 header_list.push(value.to_string());
                 self.rule.allowed_header = Some(header_list)
@@ -108,7 +108,7 @@ pub mod builder {
 pub mod tests {
     use super::builder::*;
     use super::*;
-    use crate::oss;
+    use crate::oss::{self, http};
     #[test]
     fn cors_configuration1() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -139,16 +139,16 @@ pub mod tests {
     fn cors_configuration2() {
         let rule1 = CORSRuleBuilder::new()
             .allowed_origin("*")
-            .allowed_method(oss::Method::PUT)
-            .allowed_method(oss::Method::GET)
-            .allowed_header(oss::header::AUTHORIZATION)
+            .allowed_method(http::Method::PUT)
+            .allowed_method(http::Method::GET)
+            .allowed_header(http::header::AUTHORIZATION)
             .builder();
 
         let rule2 = CORSRuleBuilder::new()
             .allowed_origin("http://example.com")
             .allowed_origin("http://example.net")
-            .allowed_method(oss::Method::GET)
-            .allowed_header(oss::header::AUTHORIZATION)
+            .allowed_method(http::Method::GET)
+            .allowed_header(http::header::AUTHORIZATION)
             .expose_header("x-oss-test")
             .expose_header("x-oss-test1")
             .builder();

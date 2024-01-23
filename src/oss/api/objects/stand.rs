@@ -1,10 +1,13 @@
-use crate::oss::{self, Bytes};
+use crate::oss::{self, api::objects::stand::builder::DeleteObjectBuilder};
 
 use builder::PutObjectBuilder;
+
+use self::builder::GetObjectBuilder;
 
 pub mod builder {
     use chrono::{DateTime, Utc};
     use serde::{Deserialize, Serialize};
+    use urlencoding;
 
     use crate::oss::{
         self,
@@ -162,21 +165,7 @@ pub mod builder {
 
     #[allow(unused)]
     #[derive(Debug, Default, Serialize, Deserialize)]
-    pub struct GetObjectBuilderArugments<'a> {
-        #[serde(rename = "versionId", skip_serializing_if = "Option::is_none")]
-        version_id: Option<&'a str>,
-        #[serde(
-            rename = "response-content-type",
-            skip_serializing_if = "Option::is_none"
-        )]
-        content_type: Option<&'a str>,
-        #[serde(
-            rename = "response-content-type",
-            skip_serializing_if = "Option::is_none"
-        )]
-        content_language: Option<&'a str>,
-        #[serde(rename = "response-expires", skip_serializing_if = "Option::is_none")]
-        expires: Option<&'a str>,
+    pub struct GetObjectBuilderQuery<'a> {
         #[serde(
             rename = "response-cache-control",
             skip_serializing_if = "Option::is_none"
@@ -192,7 +181,40 @@ pub mod builder {
             skip_serializing_if = "Option::is_none"
         )]
         content_encoding: Option<&'a str>,
+        #[serde(
+            rename = "response-content-language",
+            skip_serializing_if = "Option::is_none"
+        )]
+        content_language: Option<&'a str>,
+        #[serde(
+            rename = "response-content-type",
+            skip_serializing_if = "Option::is_none"
+        )]
+        content_type: Option<&'a str>,
+        #[serde(rename = "response-expires", skip_serializing_if = "Option::is_none")]
+        expires: Option<&'a str>,
+        #[serde(rename = "versionId", skip_serializing_if = "Option::is_none")]
+        version_id: Option<&'a str>,
     }
+
+    // #[allow(unused)]
+    // #[derive(Debug, Default)]
+    // pub struct GetObjectBuilderQuery2<'a> {
+    //     version_id: Option<&'a str>,
+    //     content_encoding: Option<&'a str>,
+    //     content_type: Option<&'a str>,
+    //     content_language: Option<&'a str>,
+    //     expires: Option<&'a str>,
+    //     cache_control: Option<&'a str>,
+    //     content_disposition: Option<&'a str>,
+    // }
+
+    // #[allow(unused)]
+    // impl<'a> GetObjectBuilderQuery2<'a> {
+    //     pub fn to_query() -> String {
+    //         "".to_string()
+    //     }
+    // }
 
     #[allow(unused)]
     #[derive(Debug)]
@@ -205,7 +227,7 @@ pub mod builder {
         r#match: Option<&'a str>,
         none_match: Option<&'a str>,
         accept_encoding: Option<&'a str>,
-        arguments: GetObjectBuilderArugments<'a>,
+        query: GetObjectBuilderQuery<'a>,
     }
 
     #[allow(unused)]
@@ -220,68 +242,114 @@ pub mod builder {
                 unmodified_since: None,
                 none_match: None,
                 accept_encoding: None,
-                arguments: GetObjectBuilderArugments::default(),
+                query: GetObjectBuilderQuery::default(),
             }
         }
 
-        pub fn version_id(mut self, value: &'a str) -> Self {
-            self.arguments.version_id = Some(value);
+        pub fn with_version_id(mut self, value: &'a str) -> Self {
+            self.query.version_id = Some(value);
             self
         }
-        pub fn content_type(mut self, value: &'a str) -> Self {
-            self.arguments.content_type = Some(value);
+
+        pub fn with_content_type(mut self, value: &'a str) -> Self {
+            self.query.content_type = Some(value);
             self
         }
-        pub fn content_language(mut self, value: &'a str) -> Self {
+
+        pub fn with_content_language(mut self, value: &'a str) -> Self {
+            self.query.content_language = Some(value);
             self
         }
-        pub fn expires(mut self, value: &'a str) -> Self {
-            self.arguments.expires = Some(value);
+
+        pub fn with_expires(mut self, value: &'a str) -> Self {
+            self.query.expires = Some(value);
             self
         }
-        pub fn cache_control(mut self, value: &'a str) -> Self {
-            self.arguments.cache_control = Some(value);
+
+        pub fn with_cache_control(mut self, value: &'a str) -> Self {
+            self.query.cache_control = Some(value);
             self
         }
-        pub fn content_disposition(mut self, value: &'a str) -> Self {
-            self.arguments.content_disposition = Some(value);
+
+        pub fn with_content_disposition(mut self, value: &'a str) -> Self {
+            self.query.content_disposition = Some(value);
             self
         }
-        pub fn content_encoding(mut self, value: &'a str) -> Self {
-            self.arguments.content_encoding = Some(value);
+
+        pub fn with_content_encoding(mut self, value: &'a str) -> Self {
+            self.query.content_encoding = Some(value);
             self
         }
-        pub fn range(mut self, value: (u64, u64)) -> Self {
+
+        pub fn with_range(mut self, value: (u64, u64)) -> Self {
             self.range = Some(value);
             self
         }
 
-        pub fn modified_since(mut self, value: DateTime<Utc>) -> Self {
+        /// 如果指定的时间早于实际修改时间或指定的时间不符合规范，则直接返回Object，
+        /// 并返回200 OK；如果指定的时间等于或者晚于实际修改时间，则返回304 Not Modified。
+        ///
+        /// 时间格式：GMT，例如Fri, 13 Nov 2015 14:47:53 GMT
+        ///
+        /// 默认值：无
+        pub fn with_modified_since(mut self, value: DateTime<Utc>) -> Self {
             self.modified_since = Some(value);
             self
         }
-        pub fn unmodified_since(mut self, value: DateTime<Utc>) -> Self {
+
+        /// 如果指定的时间等于或者晚于Object实际修改时间，则正常传输Object，并返回200 OK；
+        /// 如果指定的时间早于实际修改时间，则返回412 Precondition Failed。
+        ///
+        /// 时间格式：GMT，例如Fri, 13 Nov 2015 14:47:53 GMTIf-Modified-Since和
+        /// If-Unmodified-Since可以同时使用。
+        ///
+        /// 默认值：无
+        pub fn with_unmodified_since(mut self, value: DateTime<Utc>) -> Self {
             self.unmodified_since = Some(value);
             self
         }
 
-        pub fn r#match(mut self, value: &'a str) -> Self {
+        /// ### 设置 If-Match
+        ///
+        /// 如果传入的ETag和Object的ETag匹配，则正常传输Object，并返回200 OK；
+        /// 如果传入的ETag和Object的ETag不匹配，则返回412 Precondition Failed。
+        ///
+        /// Object的ETag值用于验证数据是否发生了更改，您可以基于ETag值验证数据完整性。
+        ///
+        /// 默认值：无
+        pub fn with_match(mut self, value: &'a str) -> Self {
             self.r#match = Some(value);
             self
         }
 
-        pub fn none_match(mut self, value: &'a str) -> Self {
+        /// ### 设置 If-None-Match
+        ///
+        /// 如果传入的ETag值和Object的ETag不匹配，则正常传输Object，并返回200 OK；
+        ///
+        /// 如果传入的ETag和Object的ETag匹配，则返回304 Not Modified。
+        /// `If-Match`和`If-None-Match`可以同时使用。
+        ///
+        /// 默认值：无
+        pub fn with_none_match(mut self, value: &'a str) -> Self {
             self.none_match = Some(value);
             self
         }
 
-        pub fn accept_encoding(mut self, value: &'a str) -> Self {
+        /// ### 指定客户端的编码类型。
+        ///
+        /// 如果要对返回内容进行Gzip压缩传输，您需要在请求头中以显示方式加入Accept-Encoding:gzip
+        ///  OSS会根据Object的Content-Type和Object大小（不小于1 KB）判断是否返回经过Gzip压缩
+        /// 的数据。
+        /// 1. 如果采用了Gzip压缩，则不会附带ETag信息。
+        /// 2. 目前OSS支持Gzip压缩的`Content-Type`为`text/cache-manifest`、 `text/xml`、`text/plain`、`text/css`、`application/javascript`、`application/x-javascript`、`application/rss+xml`、`application/json和text/json`。
+        pub fn with_accept_encoding(mut self, value: &'a str) -> Self {
             self.accept_encoding = Some(value);
             self
         }
 
         pub(crate) fn query(&self) -> String {
-            serde_qs::to_string(&self.arguments).unwrap()
+            // dbg!(println!("{:#?}", &self.query));
+            serde_qs::to_string(&self.query).unwrap()
         }
 
         pub(crate) fn headers(&self) -> HeaderMap {
@@ -306,8 +374,39 @@ pub mod builder {
             headers
         }
 
-        async fn send() -> oss::Result<Bytes> {
-            todo!()
+        pub async fn send(&self) -> oss::Result<Bytes> {
+            let query = self.query();
+            let url = if !query.is_empty() {
+                format!(
+                    "{}/{}?{}",
+                    self.client.options.base_url(),
+                    self.object,
+                    query
+                )
+            } else {
+                format!("{}/{}", self.client.options.base_url(), self.object)
+            };
+
+            let headers = self.headers();
+
+            let query_origin = urlencoding::decode(&query).unwrap();
+            // println!("{}", query_origin);
+            let mut task = self.client.request.task().resourse(&query_origin).url(&url);
+
+            let task = if !headers.is_empty() {
+                task.headers(headers)
+            } else {
+                task
+            };
+
+            let resp = task.send().await?;
+
+            let result = oss::Data {
+                status: resp.status,
+                headers: resp.headers,
+                data: resp.data,
+            };
+            Ok(result)
         }
     }
 
@@ -333,6 +432,65 @@ pub mod builder {
         oss_tagging: Option<Tagging>,
         tagging_directive: (),
     }
+
+    #[allow(unused)]
+    #[derive(Debug)]
+    pub struct DeleteObjectBuilder<'a> {
+        client: &'a oss::Client<'a>,
+        object: &'a str,
+        version_id: Option<&'a str>,
+    }
+
+    #[allow(unused)]
+    impl<'a> DeleteObjectBuilder<'a> {
+        pub fn new(client: &'a oss::Client, object: &'a str) -> Self {
+            Self {
+                client,
+                object,
+                version_id: Default::default(),
+            }
+        }
+
+        pub fn with_version_id(mut self, value: &'a str) -> Self {
+            self.version_id = Some(value);
+            self
+        }
+
+        pub async fn send(&self) -> oss::Result<()> {
+            let url = match self.version_id {
+                Some(version_id) => format!(
+                    "{}/{}?versionId={}",
+                    self.client.options.base_url(),
+                    self.object,
+                    version_id
+                ),
+                None => format!("{}/{}", self.client.options.base_url(), self.object),
+            };
+
+            // let query = {
+            //     let url = Url::parse(&url).unwrap();
+            //     url.query().unwrap().to_owned()
+            // };
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .url(&url)
+                // .resourse(query.as_str())
+                .method(oss::Method::DELETE)
+                .send()
+                .await?;
+
+            let result = oss::Data {
+                status: resp.status,
+                headers: resp.headers,
+                data: (),
+            };
+
+            Ok(result)
+        }
+    }
 }
 
 /// 基础操作
@@ -344,20 +502,8 @@ impl<'a> oss::Client<'a> {
     }
 
     /// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限
-    pub async fn GetObject(&self, objectKey: &'a str) -> oss::Result<Bytes> {
-        let url = {
-            let base_url = self.options.base_url();
-            format!("{base_url}/{objectKey}")
-        };
-
-        let resp = self.request.task().url(&url).send().await.unwrap();
-
-        let result = oss::Data {
-            status: resp.status,
-            headers: resp.headers,
-            data: resp.data,
-        };
-        Ok(result)
+    pub fn GetObject(&self, object: &'a str) -> GetObjectBuilder {
+        GetObjectBuilder::new(self, object)
     }
 
     /// 调用CopyObject接口拷贝同一地域下相同或不同存储空间（Bucket）之间的文件（Object）
@@ -371,12 +517,21 @@ impl<'a> oss::Client<'a> {
         todo!()
     }
 
-    pub async fn DeleteObject(&self) {
-        todo!()
+    /// 调用DeleteObject删除某个文件（Object）
+    ///
+    /// ### 注意事项
+    ///
+    /// - 要删除文件，您必须有oss:DeleteObject权限。要删除文件指定版本，您必须具有
+    /// oss:DeleteObjectVersion权限。
+    /// - 文件删除后无法恢复，请谨慎操作。关于删除文件的更多信息，请参见删除文件。
+    /// - 无论要删除的Object是否存在，删除成功后均会返回204状态码。
+    /// - 如果Object类型为软链接，使用DeleteObject接口只会删除该软链接。
+    pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder<'_> {
+        DeleteObjectBuilder::new(self, object)
     }
 
     /// DeleteMultipleObjects接口用于删除同一个存储空间（Bucket）中的多个文件（Object）
-    pub async fn DeleteMultipleObjects(&self) {
+    pub fn DeleteMultipleObjects() {
         todo!()
     }
 
@@ -445,21 +600,21 @@ mod tests {
         let option = oss::Options::default();
         let client = oss::Client::new(option);
         let builder = GetObjectBuilder::new(&client, "example/ex1.txt")
-            .version_id("version123")
-            .content_type("text/plain")
-            .content_language("zh")
-            .expires("expires")
-            .cache_control("cache")
-            .content_disposition("dis")
-            .content_encoding("GZIP")
-            .range((0, 100))
-            .modified_since(Utc::now())
-            .unmodified_since(Utc::now())
-            .r#match("etag")
-            .none_match("etag")
-            .accept_encoding("text/plain");
+            .with_version_id("version123")
+            .with_content_type("text/plain")
+            .with_content_language("zh")
+            .with_expires("expires")
+            .with_cache_control("cache")
+            .with_content_disposition("dis")
+            .with_content_encoding("GZIP")
+            .with_range((0, 100))
+            .with_modified_since(Utc::now())
+            .with_unmodified_since(Utc::now())
+            .with_match("etag")
+            .with_none_match("etag")
+            .with_accept_encoding("text/plain");
 
-        println!("query: {}", builder.query());
-        print!("headers: {:#?}", builder.headers());
+        println!("  query: {}", builder.query());
+        println!("headers: {:#?}", builder.headers());
     }
 }

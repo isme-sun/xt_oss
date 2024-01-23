@@ -1,7 +1,20 @@
 // re-export
+// #[allow(unused)]
 pub use bytes::Bytes;
-pub use reqwest::header;
-pub use reqwest::Method;
+// #[allow(unused)]
+pub mod http {
+    pub use reqwest::{
+        header::{self, HeaderMap, HeaderName, HeaderValue},
+        Method, StatusCode,
+    };
+}
+
+pub use reqwest::{IntoUrl, Url};
+
+// pub(crate) mod api;
+pub mod entities;
+
+//-------------------------------------------------------------------------
 
 use super::oss;
 use base64::{engine::general_purpose, Engine as _};
@@ -10,27 +23,23 @@ use hmacsha1;
 use reqwest::{
     self,
     header::{AUTHORIZATION, CONTENT_TYPE, DATE},
-    IntoUrl, StatusCode, Url,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use std::time::Duration;
 
-pub(crate) mod api;
-pub mod entities;
-
-pub const BASE_URL: &str = "aliyuncs.com";
-pub const DEFAULT_REGION: &str = "oss-cn-hangzhou";
-const USER_AGENT: &str = "xt oss/0.1";
-const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
-const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
-const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
-const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
+pub(crate) const BASE_URL: &str = "aliyuncs.com";
+pub(crate) const DEFAULT_REGION: &str = "oss-cn-hangzhou";
+pub(crate) const USER_AGENT: &str = "xt oss/0.1";
+pub(crate) const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
+pub(crate) const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
+pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
+// const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
 #[derive(Debug, Default)]
-pub struct Data<T> {
-    pub status: StatusCode,
-    pub headers: self::header::HeaderMap,
+pub struct Data<T = Bytes> {
+    pub status: http::StatusCode,
+    pub headers: http::HeaderMap,
     pub data: T,
 }
 
@@ -64,7 +73,8 @@ impl Display for Message {
     }
 }
 
-type Result<T> = std::result::Result<Data<T>, Message>;
+#[allow(unused)]
+type Result<T = Bytes> = std::result::Result<Data<T>, Message>;
 
 #[derive(Debug)]
 #[allow(unused)]
@@ -74,12 +84,13 @@ struct Authorization<'a> {
     sts_token: &'a str,
     bucket: Option<String>,
     object: Option<String>,
-    headers: &'a header::HeaderMap,
-    method: &'a Method,
+    headers: &'a http::HeaderMap,
+    method: &'a http::Method,
     date: &'a String,
     resourse: Option<&'a str>,
 }
 
+#[allow(unused)]
 impl<'a> Authorization<'a> {
     fn complute(&self) -> String {
         format!("OSS {}:{}", self.access_key_id, self.signature())
@@ -113,7 +124,7 @@ impl<'a> Authorization<'a> {
             Date = self.date,
             Resource = self.canonicalized_resource()
         );
-
+        // dbg!(println!("{}", value));
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();
         let value = hmacsha1::hmac_sha1(key, message);
@@ -137,7 +148,7 @@ impl<'a> Authorization<'a> {
         if let Some(res) = self.resourse {
             format!("{}?{}", res_path, res)
         } else {
-            res_path.to_string()
+            res_path
         }
     }
 }
@@ -147,19 +158,20 @@ pub(crate) struct RequestTask<'a> {
     request: &'a crate::oss::Request<'a>,
     url: &'a str,
     resourse: Option<&'a str>,
-    method: Method,
-    headers: header::HeaderMap,
+    method: http::Method,
+    headers: http::HeaderMap,
     body: Bytes,
 }
 
+#[allow(unused)]
 impl<'a> RequestTask<'a> {
     pub fn new(request: &'a oss::Request<'a>) -> Self {
         Self {
             request,
             url: Default::default(),
             resourse: None,
-            method: Method::GET,
-            headers: header::HeaderMap::new(),
+            method: http::Method::GET,
+            headers: http::HeaderMap::new(),
             body: Bytes::new(),
         }
     }
@@ -170,16 +182,16 @@ impl<'a> RequestTask<'a> {
     }
 
     pub fn resourse(mut self, value: &'a str) -> Self {
-        self.resourse = Some(value);
+        self.resourse = if value.is_empty() { None } else { Some(value) };
         self
     }
 
-    pub fn headers(mut self, value: header::HeaderMap) -> Self {
+    pub fn headers(mut self, value: http::HeaderMap) -> Self {
         self.headers = value;
         self
     }
 
-    pub fn method(mut self, value: Method) -> Self {
+    pub fn method(mut self, value: http::Method) -> Self {
         self.method = value;
         self
     }
@@ -192,7 +204,7 @@ impl<'a> RequestTask<'a> {
     pub async fn send(&self) -> super::oss::Result<Bytes> {
         let (_, bucket, object) = Self::parse_url(self.url);
         let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
-        let mut headers = header::HeaderMap::new();
+        let mut headers = http::HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
         headers.extend(self.headers.to_owned());
 
@@ -278,30 +290,35 @@ impl<'a> RequestTask<'a> {
     }
 }
 
-// #[allow(unused)]
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Request<'a> {
     access_key_id: Option<&'a str>,
     access_key_secret: Option<&'a str>,
     sts_token: Option<&'a str>,
+    endpoint: Option<&'a str>,
     timeout: u64,
     client: reqwest::Client,
 }
 
 impl<'a> Default for Request<'a> {
     fn default() -> Self {
-        let mut default_headers = header::HeaderMap::new();
-        default_headers.insert(CONTENT_TYPE, oss::DEFAULT_CONTENT_TYPE.parse().unwrap());
+        let mut headers = http::HeaderMap::new();
+        headers.insert(
+            CONTENT_TYPE,
+            http::HeaderValue::from_static(DEFAULT_CONTENT_TYPE),
+        );
         let client = reqwest::Client::builder()
-            .default_headers(default_headers)
+            .default_headers(headers)
             .user_agent(oss::USER_AGENT)
-            .connect_timeout(Duration::from_secs(oss::DEFAULT_CONNECT_TIMEOUT))
+            .connect_timeout(Duration::from_secs(DEFAULT_CONNECT_TIMEOUT))
             .build()
             .unwrap();
         Self {
             access_key_id: None,
             access_key_secret: None,
             sts_token: None,
+            endpoint: None,
             timeout: 60,
             client,
         }
@@ -314,22 +331,27 @@ impl<'a> Request<'a> {
         Self::default()
     }
 
-    pub fn access_key_id(mut self, value: &'a str) -> Self {
+    pub fn with_access_key_id(mut self, value: &'a str) -> Self {
         self.access_key_id = Some(value);
         self
     }
 
-    pub fn access_key_secret(mut self, value: &'a str) -> Self {
+    pub fn with_access_key_secret(mut self, value: &'a str) -> Self {
         self.access_key_secret = Some(value);
         self
     }
 
-    pub fn sts_token(mut self, value: &'a str) -> Self {
+    pub fn with_sts_token(mut self, value: &'a str) -> Self {
         self.sts_token = Some(value);
         self
     }
 
-    pub fn timeout(mut self, value: u64) -> Self {
+    pub fn with_endpoint(mut self, value: &'a str) -> Self {
+        self.endpoint = Some(value);
+        self
+    }
+
+    pub fn with_timeout(mut self, value: u64) -> Self {
         self.timeout = value;
         self
     }
@@ -341,7 +363,7 @@ impl<'a> Request<'a> {
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Options<'a> {
     /// 通过阿里云控制台创建的AccessKey ID
     access_key_id: &'a str,
@@ -480,8 +502,8 @@ pub struct Client<'a> {
 impl<'a> Client<'a> {
     pub fn new(options: Options<'a>) -> Self {
         let request = self::Request::new()
-            .access_key_id(options.access_key_id)
-            .access_key_secret(options.access_key_secret);
+            .with_access_key_id(options.access_key_id)
+            .with_access_key_secret(options.access_key_secret);
         Self { options, request }
     }
 
