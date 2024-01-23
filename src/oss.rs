@@ -11,11 +11,10 @@ pub mod http {
 
 pub use reqwest::{IntoUrl, Url};
 
-// pub(crate) mod api;
+pub(crate) mod api;
 pub mod entities;
 
 //-------------------------------------------------------------------------
-
 use super::oss;
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
@@ -40,7 +39,7 @@ pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 pub struct Data<T = Bytes> {
     pub status: http::StatusCode,
     pub headers: http::HeaderMap,
-    pub data: T,
+    pub body: T,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
@@ -122,9 +121,10 @@ impl<'a> Authorization<'a> {
             Header = header_str,
             ContentType = oss::DEFAULT_CONTENT_TYPE,
             Date = self.date,
-            Resource = self.canonicalized_resource()
+            // Resource = self.canonicalized_resource()
+            Resource = self.resourse.unwrap_or_default()
         );
-        // dbg!(println!("{}", value));
+        dbg!(println!("{}", value));
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();
         let value = hmacsha1::hmac_sha1(key, message);
@@ -154,10 +154,11 @@ impl<'a> Authorization<'a> {
 }
 
 #[allow(unused)]
-pub(crate) struct RequestTask<'a> {
-    request: &'a crate::oss::Request<'a>,
+pub struct RequestTask<'a> {
+    request: &'a oss::Request<'a>,
     url: &'a str,
-    resourse: Option<&'a str>,
+    resource: Option<&'a str>,
+    timeout: Option<u64>,
     method: http::Method,
     headers: http::HeaderMap,
     body: Bytes,
@@ -165,48 +166,65 @@ pub(crate) struct RequestTask<'a> {
 
 #[allow(unused)]
 impl<'a> RequestTask<'a> {
-    pub fn new(request: &'a oss::Request<'a>) -> Self {
+    pub(crate) fn new(request: &'a oss::Request<'a>) -> Self {
         Self {
             request,
             url: Default::default(),
-            resourse: None,
+            resource: None,
+            timeout: None,
             method: http::Method::GET,
             headers: http::HeaderMap::new(),
             body: Bytes::new(),
         }
     }
 
-    pub fn url(mut self, value: &'a str) -> Self {
+    fn resource(&self) -> String {
+        self.resource.unwrap_or("/").to_string()
+    }
+
+    pub fn with_url(mut self, value: &'a str) -> Self {
         self.url = value;
         self
     }
 
-    pub fn resourse(mut self, value: &'a str) -> Self {
-        self.resourse = if value.is_empty() { None } else { Some(value) };
+    pub fn with_resource(mut self, value: &'a str) -> Self {
+        self.resource = Some(value);
         self
     }
 
-    pub fn headers(mut self, value: http::HeaderMap) -> Self {
+    pub fn with_headers(mut self, value: http::HeaderMap) -> Self {
         self.headers = value;
         self
     }
 
-    pub fn method(mut self, value: http::Method) -> Self {
+    pub fn with_method(mut self, value: http::Method) -> Self {
         self.method = value;
         self
     }
 
-    pub fn body(mut self, value: Bytes) -> Self {
+    pub fn with_body(mut self, value: Bytes) -> Self {
         self.body = value;
         self
     }
 
-    pub async fn send(&self) -> super::oss::Result<Bytes> {
-        let (_, bucket, object) = Self::parse_url(self.url);
+    pub fn with_timeout(mut self, value: u64) -> Self {
+        self.timeout = Some(value);
+        self
+    }
+
+    pub async fn execute(&self) -> oss::Result<Bytes> {
+        // let (_, bucket, object) = Self::parse_url(self.url);
+
+        // dbg!(println!("{:#?}", (&bucket, &object)));
+        let bucket = None;
+        let object = None;
+
         let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
         let mut headers = http::HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
         headers.extend(self.headers.to_owned());
+
+        println!("{:#?}", headers);
 
         headers.insert(
             AUTHORIZATION,
@@ -219,7 +237,7 @@ impl<'a> RequestTask<'a> {
                 bucket,
                 object,
                 date: &date,
-                resourse: self.resourse,
+                resourse: Some(&self.resource()),
             }
             .complute()
             .parse()
@@ -237,17 +255,17 @@ impl<'a> RequestTask<'a> {
 
         let status = resp.status();
         let headers = resp.headers().to_owned();
-        let data = resp.bytes().await.unwrap();
+        let body = resp.bytes().await.unwrap();
 
         if status.is_success() {
             let oss_data = Data {
                 status,
                 headers,
-                data,
+                body,
             };
             Ok(oss_data)
         } else {
-            let content = String::from_utf8_lossy(&data);
+            let content = String::from_utf8_lossy(&body);
             if content.len() > 0 {
                 let message: Message = quick_xml::de::from_str(&content).unwrap();
                 Err(message)
@@ -264,45 +282,52 @@ impl<'a> RequestTask<'a> {
         }
     }
 
-    pub fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
-    where
-        T: IntoUrl,
-    {
-        let url: Url = input.into_url().unwrap();
-        let host = url.host().unwrap().to_string();
-        if host == crate::oss::BASE_URL {
-            (None, None, None)
-        } else {
-            let fragment = &host[..(host.len() - oss::BASE_URL.len() - 1)];
-            let result = fragment.split_once('.');
-            let (bucket, region) = match result {
-                Some((bucket, region)) => (Some(bucket.to_string()), Some(region.to_string())),
-                _ => (None, Some(fragment.to_string())),
-            };
-            let object = url.path().trim_start_matches('/');
-            let object = if object.is_empty() {
-                None
-            } else {
-                Some(object.to_string())
-            };
-            (region, bucket, object)
-        }
-    }
+    // fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
+    // where
+    //     T: IntoUrl,
+    // {
+    //     let url: Url = input.into_url().unwrap();
+    //     dbg!(&url.to_string());
+    //     let host = url.host().unwrap().to_string();
+    //     dbg!(&host);
+    //     if host == oss::BASE_URL {
+    //         (None, None, None)
+    //     } else {
+    //         let fragment = &host[..(host.len() - oss::BASE_URL.len() - 1)];
+    //         dbg!(fragment);
+    //         let result = fragment.split_once('.');
+    //         let (bucket, region) = match result {
+    //             Some((bucket, region)) => (Some(bucket.to_string()), Some(region.to_string())),
+    //             _ => (None, Some(fragment.to_string())),
+    //         };
+    //         let object = url.path().trim_start_matches('/');
+    //         let object = if object.is_empty() {
+    //             None
+    //         } else {
+    //             Some(object.to_string())
+    //         };
+    //         (region, bucket, object)
+    //     }
+    // }
 }
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Request<'a> {
     access_key_id: Option<&'a str>,
     access_key_secret: Option<&'a str>,
+    region: Option<&'a str>,
+    bucket: Option<&'a str>,
+    internal: Option<bool>,
     sts_token: Option<&'a str>,
     endpoint: Option<&'a str>,
     timeout: u64,
     client: reqwest::Client,
 }
 
-impl<'a> Default for Request<'a> {
-    fn default() -> Self {
+#[allow(unused)]
+impl<'a> Request<'a> {
+    pub fn new() -> Self {
         let mut headers = http::HeaderMap::new();
         headers.insert(
             CONTENT_TYPE,
@@ -315,20 +340,9 @@ impl<'a> Default for Request<'a> {
             .build()
             .unwrap();
         Self {
-            access_key_id: None,
-            access_key_secret: None,
-            sts_token: None,
-            endpoint: None,
-            timeout: 60,
             client,
+            ..Self::default()
         }
-    }
-}
-
-#[allow(unused)]
-impl<'a> Request<'a> {
-    pub fn new() -> Self {
-        Self::default()
     }
 
     pub fn with_access_key_id(mut self, value: &'a str) -> Self {
@@ -338,6 +352,21 @@ impl<'a> Request<'a> {
 
     pub fn with_access_key_secret(mut self, value: &'a str) -> Self {
         self.access_key_secret = Some(value);
+        self
+    }
+
+    pub fn with_region(mut self, value: &'a str) -> Self {
+        self.region = Some(value);
+        self
+    }
+
+    pub fn with_bucket(mut self, value: &'a str) -> Self {
+        self.bucket = Some(value);
+        self
+    }
+
+    pub fn with_internal(mut self, value: bool) -> Self {
+        self.internal = Some(value);
         self
     }
 
@@ -503,7 +532,8 @@ impl<'a> Client<'a> {
     pub fn new(options: Options<'a>) -> Self {
         let request = self::Request::new()
             .with_access_key_id(options.access_key_id)
-            .with_access_key_secret(options.access_key_secret);
+            .with_access_key_secret(options.access_key_secret)
+            .with_timeout(options.timeout);
         Self { options, request }
     }
 

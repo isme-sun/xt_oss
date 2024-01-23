@@ -64,7 +64,7 @@ pub struct BucketInfo {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Buckets {
     #[serde(rename(deserialize = "Bucket"))]
-    pub bucket: Vec<Bucket>,
+    pub bucket: Option<Vec<Bucket>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

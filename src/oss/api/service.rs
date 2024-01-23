@@ -3,21 +3,25 @@ use crate::oss::Client;
 use builder::ListBucketsBuilder;
 
 pub mod builder {
-    use std::fmt;
-
+    use std::{fmt, str::FromStr};
     use serde::{Deserialize, Serialize};
 
-    use crate::oss::{self, entities::bucket::ListAllMyBucketsResult};
+    use crate::oss::{self, entities::bucket::ListAllMyBucketsResult, http};
 
     #[derive(Debug, Serialize, Deserialize, Default)]
     struct ListBucketsQuery<'a> {
-        /// 限定此次返回Bucket的最大个数。
-        prefix: Option<&'a str>,
         /// 设定结果从marker之后按字母排序的第一个开始返回。如果不设定，则从头开始返回数据。
+        #[serde(skip_serializing_if = "Option::is_none")]
         marker: Option<&'a str>,
-        #[serde(rename = "max-keys")]
         /// 限定返回的Bucket名称必须以prefix作为前缀。如果不设定，则不过滤前缀信息。
+        #[serde(
+            rename(serialize = "max-keys"),
+            skip_serializing_if = "Option::is_none"
+        )]
         max_keys: Option<i32>,
+        /// 限定此次返回Bucket的最大个数。
+        #[serde(skip_serializing_if = "Option::is_none")]
+        prefix: Option<&'a str>,
     }
 
     impl<'a> fmt::Display for ListBucketsQuery<'a> {
@@ -29,6 +33,7 @@ pub mod builder {
     #[derive(Debug)]
     pub struct ListBucketsBuilder<'a> {
         client: &'a oss::Client<'a>,
+        resource_group_id: Option<&'a str>,
         query: ListBucketsQuery<'a>,
     }
 
@@ -36,39 +41,90 @@ pub mod builder {
         pub(crate) fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
+                resource_group_id: None,
                 query: ListBucketsQuery::default(),
             }
         }
 
-        pub fn prefix(mut self, value: &'a str) -> Self {
+        pub fn with_prefix(mut self, value: &'a str) -> Self {
             self.query.prefix = Some(value);
             self
         }
 
-        pub fn marker(mut self, value: &'a str) -> Self {
+        pub fn with_marker(mut self, value: &'a str) -> Self {
             self.query.marker = Some(value);
             self
         }
 
-        pub fn max_keys(mut self, value: i32) -> Self {
+        pub fn with_max_keys(mut self, value: i32) -> Self {
             self.query.max_keys = Some(value);
             self
         }
 
-        pub async fn send(&self) -> oss::Result<ListAllMyBucketsResult> {
-            let url = {
-                let base_url = self.client.options.root_url();
-                format!("{}?{}", base_url, self.query)
+        pub fn with_resource_group_id(mut self, value: &'a str) -> Self {
+            self.resource_group_id = Some(value);
+            self
+        }
+
+        fn query(&self) -> String {
+            serde_qs::to_string(&self.query).unwrap()
+        }
+
+        fn headers(&self) -> http::HeaderMap {
+            let mut headers = http::HeaderMap::new();
+            let headers = if let Some(group_id) = self.resource_group_id {
+                headers.append("x-oss-resource-group-id", group_id.parse().unwrap());
+                headers
+            } else {
+                headers
             };
-            let resp = self.client.request.task().url(&url).send().await.unwrap();
+            headers
+        }
 
-            let data = String::from_utf8_lossy(&resp.data);
+        pub async fn execute(&self) -> oss::Result<ListAllMyBucketsResult> {
 
-            let data = quick_xml::de::from_str(&data).unwrap();
+            let query = self.query();
+            let headers = self.headers();
+
+            let url = format!(
+                "{}://{}.{}",
+                self.client.options.schema(),
+                oss::DEFAULT_REGION,
+                oss::BASE_URL
+            );
+
+            let url = if !query.is_empty() {
+                let mut url = oss::Url::from_str(&url).unwrap();
+                url.set_query(Some(&query));
+                url.to_string()
+            } else {
+                url
+            };
+
+            let task = self
+                .client
+                .request
+                .task()
+                .with_timeout(self.client.options.timeout)
+                .with_method(http::Method::GET)
+                .with_url(&url)
+                .with_resource("/");
+
+            let task = if !headers.is_empty() {
+                task.with_headers(headers)
+            } else {
+                task
+            };
+
+            let resp = task.execute().await.unwrap();
+
+            let body = String::from_utf8_lossy(&resp.body);
+
+            let body = quick_xml::de::from_str(&body).unwrap();
             Ok(oss::Data {
                 status: resp.status,
                 headers: resp.headers,
-                data,
+                body
             })
         }
     }
