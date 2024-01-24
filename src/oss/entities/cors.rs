@@ -108,7 +108,7 @@ pub mod builder {
 pub mod tests {
     use super::builder::*;
     use super::*;
-    use crate::oss::{self, http};
+    use crate::oss::http;
     #[test]
     fn cors_configuration1() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>

@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 #[allow(unused)]
 use xt_oss::oss::{http, Request};
 use xt_oss::{oss, utils};
@@ -102,6 +104,7 @@ async fn t3() {
     }
 }
 
+#[allow(unused)]
 async fn t4() {
     let request = Request::new()
         .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
@@ -117,14 +120,41 @@ async fn t4() {
     match result {
         Ok(resp) => {
             println!("{}", String::from_utf8_lossy(&resp.body));
-        },
+        }
         Err(message) => {
             println!("{:#?}", message)
         }
     }
 }
 
+#[derive(Debug)]
+struct T1 {
+    name: String,
+}
+
+#[allow(unused)]
+impl T1 {
+    fn new() -> Self {
+        Self {
+            name: "孙健勇".to_string(),
+        }
+    }
+    fn with_name(mut self, value: String) {
+        self.name = value
+    }
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+}
+
+#[allow(unused)]
+fn hello() {
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    println!("{:#?}", options);
+}
+
 #[tokio::main]
 async fn main() {
-    t4().await;
+    hello();
 }

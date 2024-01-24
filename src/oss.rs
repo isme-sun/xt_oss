@@ -15,17 +15,16 @@ pub(crate) mod api;
 pub mod entities;
 
 //-------------------------------------------------------------------------
-use super::oss;
+use super::oss::{
+    self,
+    http::header::{AUTHORIZATION, CONTENT_TYPE, DATE},
+};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use hmacsha1;
-use reqwest::{
-    self,
-    header::{AUTHORIZATION, CONTENT_TYPE, DATE},
-};
+use reqwest;
 use serde::{Deserialize, Serialize};
-use std::fmt::{self, Display};
-use std::time::Duration;
+use std::{fmt, time::Duration};
 
 pub(crate) const BASE_URL: &str = "aliyuncs.com";
 pub(crate) const DEFAULT_REGION: &str = "oss-cn-hangzhou";
@@ -66,13 +65,12 @@ pub struct Message {
     pub string_to_sign_bytes: Option<String>,
 }
 
-impl Display for Message {
+impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}]: {}", self.code, self.message)
     }
 }
 
-#[allow(unused)]
 type Result<T = Bytes> = std::result::Result<Data<T>, Message>;
 
 #[derive(Debug)]
@@ -81,8 +79,8 @@ struct Authorization<'a> {
     access_key_id: &'a str,
     access_key_secret: &'a str,
     sts_token: &'a str,
-    bucket: Option<String>,
-    object: Option<String>,
+    bucket: Option<&'a str>,
+    object: Option<&'a str>,
     headers: &'a http::HeaderMap,
     method: &'a http::Method,
     date: &'a String,
@@ -158,6 +156,7 @@ pub struct RequestTask<'a> {
     request: &'a oss::Request<'a>,
     url: &'a str,
     resource: Option<&'a str>,
+    sts_token: Option<&'a str>,
     timeout: Option<u64>,
     method: http::Method,
     headers: http::HeaderMap,
@@ -171,15 +170,16 @@ impl<'a> RequestTask<'a> {
             request,
             url: Default::default(),
             resource: None,
-            timeout: None,
+            sts_token: None,
+            timeout: Some(request.timeout),
             method: http::Method::GET,
             headers: http::HeaderMap::new(),
             body: Bytes::new(),
         }
     }
 
-    fn resource(&self) -> String {
-        self.resource.unwrap_or("/").to_string()
+    fn resource(&self) -> &'a str {
+        self.resource.unwrap_or("/")
     }
 
     pub fn with_url(mut self, value: &'a str) -> Self {
@@ -231,7 +231,7 @@ impl<'a> RequestTask<'a> {
             Authorization {
                 access_key_id: self.request.access_key_id.unwrap_or_default(),
                 access_key_secret: self.request.access_key_secret.unwrap_or_default(),
-                sts_token: self.request.access_key_secret.unwrap_or_default(),
+                sts_token: self.request.sts_token.unwrap_or_default(),
                 headers: &headers,
                 method: &self.method,
                 bucket,
@@ -318,14 +318,12 @@ pub struct Request<'a> {
     access_key_secret: Option<&'a str>,
     region: Option<&'a str>,
     bucket: Option<&'a str>,
-    internal: Option<bool>,
     sts_token: Option<&'a str>,
     endpoint: Option<&'a str>,
     timeout: u64,
     client: reqwest::Client,
 }
 
-#[allow(unused)]
 impl<'a> Request<'a> {
     pub fn new() -> Self {
         let mut headers = http::HeaderMap::new();
@@ -365,16 +363,6 @@ impl<'a> Request<'a> {
         self
     }
 
-    pub fn with_internal(mut self, value: bool) -> Self {
-        self.internal = Some(value);
-        self
-    }
-
-    pub fn with_sts_token(mut self, value: &'a str) -> Self {
-        self.sts_token = Some(value);
-        self
-    }
-
     pub fn with_endpoint(mut self, value: &'a str) -> Self {
         self.endpoint = Some(value);
         self
@@ -385,14 +373,13 @@ impl<'a> Request<'a> {
         self
     }
 
-    #[allow(private_interfaces)]
     pub fn task(&self) -> RequestTask<'_> {
         RequestTask::new(self)
     }
 }
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
+#[allow(unused)]
 pub struct Options<'a> {
     /// 通过阿里云控制台创建的AccessKey ID
     access_key_id: &'a str,
@@ -403,7 +390,7 @@ pub struct Options<'a> {
     /// 通过控制台或PutBucket创建的Bucket
     bucket: &'a str,
     /// OSS访问域名。
-    // endpoint: &'a str,
+    endpoint: &'a str,
     /// Bucket所在的区域， 默认值为oss-cn-hangzhou
     region: &'a str,
     /// 是否使用阿里云内网访问，默认值为false
@@ -425,71 +412,72 @@ impl<'a> Default for Options<'a> {
             access_key_secret: Default::default(),
             sts_token: Default::default(),
             bucket: Default::default(),
-            // endpoint: Default::default(),
+            endpoint: Default::default(),
             region: oss::DEFAULT_REGION,
             internal: false,
             cname: false,
             is_request_pay: false,
-            secure: true,
+            secure: false,
             timeout: 60u64,
         }
     }
 }
 
-#[allow(unused)]
 impl<'a> Options<'a> {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn access_key_id(mut self, value: &'a str) -> Self {
+    pub fn with_access_key_id(mut self, value: &'a str) -> Self {
         self.access_key_id = value;
         self
     }
 
-    pub fn access_key_secret(mut self, value: &'a str) -> Self {
+    pub fn with_access_key_secret(mut self, value: &'a str) -> Self {
         self.access_key_secret = value;
         self
     }
 
-    pub fn bucket(mut self, value: &'a str) -> Self {
+    pub fn with_bucket(mut self, value: &'a str) -> Self {
         self.bucket = value;
         self
     }
 
-    pub fn region(mut self, value: &'a str) -> Self {
+    pub fn with_region(mut self, value: &'a str) -> Self {
         self.region = value;
         self
     }
 
-    pub fn sts_token(mut self, value: &'a str) -> Self {
+    pub fn with_sts_token(mut self, value: &'a str) -> Self {
         self.sts_token = value;
         self
     }
 
-    // pub fn endpoint(mut self, value: &'a str) -> Self {
-    //     self.endpoint = value;
-    //     self
-    // }
-    pub fn internal(mut self, value: bool) -> Self {
+    pub fn with_endpoint(mut self, value: &'a str) -> Self {
+        self.endpoint = value;
+        self.cname = true;
+        self
+    }
+
+    pub fn with_internal(mut self, value: bool) -> Self {
         self.internal = value;
         self
     }
 
-    pub fn cname(mut self, value: bool) -> Self {
+    pub fn with_cname(mut self, value: bool) -> Self {
         self.cname = value;
         self
     }
-    pub fn is_request_pay(mut self, value: bool) -> Self {
+    pub fn with_is_request_pay(mut self, value: bool) -> Self {
         self.is_request_pay = value;
         self
     }
 
-    pub fn secret(mut self, value: bool) -> Self {
-        self.is_request_pay = value;
+    pub fn with_secret(mut self, value: bool) -> Self {
+        self.secure = value;
         self
     }
-    pub fn timeout(mut self, value: u64) -> Self {
+    pub fn with_timeout(mut self, value: u64) -> Self {
         self.timeout = value;
         self
     }
@@ -499,7 +487,10 @@ impl<'a> Options<'a> {
     }
 
     pub fn base_url(&self) -> String {
-        format!("{}://{}.{}", self.schema(), self.bucket, self.host()).to_string()
+        match self.cname {
+            true => format!("{}://{}", self.schema(), self.host()),
+            false => format!("{}://{}.{}", self.schema(), self.bucket, self.host()).to_string(),
+        }
     }
 
     fn schema(&self) -> String {
@@ -510,19 +501,28 @@ impl<'a> Options<'a> {
     }
 
     fn host(&self) -> String {
-        match self.internal {
-            true => {
-                format!("{}-internal.{}", self.region, oss::BASE_URL)
-            }
-            false => {
-                format!("{}.{}", self.region, oss::BASE_URL)
-            }
+        match self.cname {
+            true => match self.endpoint.is_empty() {
+                true => panic!("must set endpoint"),
+                false => {
+                    if self.endpoint.starts_with("http://") {
+                        self.endpoint["https://".len() - 1..].to_string()
+                    } else if self.endpoint.starts_with("https://") {
+                        self.endpoint["http://".len() - 1..].to_string()
+                    } else {
+                        self.endpoint.to_string()
+                    }
+                }
+            },
+            false => match self.internal {
+                true => format!("{}-internal.{}", self.region, oss::BASE_URL),
+                false => format!("{}.{}", self.region, oss::BASE_URL),
+            },
         }
     }
 }
 
 #[derive(Debug, Default)]
-#[allow(unused)]
 pub struct Client<'a> {
     options: Options<'a>,
     request: Request<'a>,
@@ -541,33 +541,76 @@ impl<'a> Client<'a> {
         &self.options
     }
 
-    pub fn region(mut self, value: &'a str) -> Self {
+    pub fn with_region(mut self, value: &'a str) -> Self {
         self.options.region = value;
         self
     }
 
-    pub fn bucket(mut self, value: &'a str) -> Self {
+    pub fn with_bucket(mut self, value: &'a str) -> Self {
         self.options.bucket = value;
         self
     }
 
-    pub fn internal(mut self, value: bool) -> Self {
+    pub fn with_internal(mut self, value: bool) -> Self {
         self.options.internal = value;
         self
     }
 
-    pub fn cname(mut self, value: bool) -> Self {
+    pub fn with_cname(mut self, value: bool) -> Self {
         self.options.cname = value;
         self
     }
 
-    pub fn secure(mut self, value: bool) -> Self {
+    pub fn with_secure(mut self, value: bool) -> Self {
         self.options.secure = value;
         self
     }
 
-    pub fn timeout(mut self, value: u64) -> Self {
+    pub fn with_timeout(mut self, value: u64) -> Self {
         self.options.timeout = value;
         self
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use crate::oss;
+
+    #[test]
+    fn options_new_normal() {
+        let options = oss::Options::new()
+            .with_access_key_id("access_key_id")
+            .with_access_key_secret("access_key_secret")
+            .with_region("oss-sn-shanghai1")
+            .with_bucket("xtoss-t1")
+            .with_internal(true)
+            .with_secret(true);
+
+        let host = "oss-sn-shanghai1-internal.aliyuncs.com";
+        let root_url = "https://oss-sn-shanghai1-internal.aliyuncs.com";
+        let base_url = "https://xtoss-t1.oss-sn-shanghai1-internal.aliyuncs.com";
+
+        assert_eq!(options.host(), host);
+        assert_eq!(options.root_url(), root_url);
+        assert_eq!(options.base_url(), base_url);
+    }
+
+    #[test]
+    fn options_new_endpoint() {
+        let options = oss::Options::new()
+            .with_access_key_id("access_key_id")
+            .with_access_key_secret("access_key_secret")
+            .with_endpoint("http://cdn-dev.xuetube.com")
+            .with_bucket("xtoss-t1")
+            .with_cname(true)
+            .with_secret(false);
+
+        let host = "cdn-dev.xuetube.com";
+        let root_url = "http://cdn-dev.xuetube.com";
+        let base_url = "http://cdn-dev.xuetube.com";
+
+        assert_eq!(options.host(), host);
+        assert_eq!(options.root_url(), root_url);
+        assert_eq!(options.base_url(), base_url);
     }
 }
