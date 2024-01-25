@@ -6,11 +6,9 @@ async fn main() {
 #[cfg(test)]
 pub mod tests {
     // use log::debug;
-
-    use xt_oss::oss;
     #[allow(unused)]
     use xt_oss::{
-        oss::{http, Request},
+        oss::{self, http, Request},
         utils,
     };
 
@@ -25,56 +23,60 @@ pub mod tests {
             .try_init();
     }
 
-    // #[tokio::test]
-    // async fn ex_oss_request_regions() {
-    //     // let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions=oss-us-west-1";
-    //     let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions";
+    #[tokio::test]
+    async fn ex_oss_request_regions() {
+        let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions=oss-us-west-1";
+        // let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions";
 
-    //     let resp = Request::new()
-    //         .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
-    //         .with_access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-    //         .task()
-    //         .with_url(&url)
-    //         .with_method(http::Method::GET)
-    //         .execute()
-    //         .await;
+        let resp = Request::new()
+            .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+            .with_access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+            .task()
+            .with_url(&url)
+            // default Method::GET
+            // .with_method(http::Method::GET)
+            .execute_timeout(30)
+            // default timeout = 60
+            // .execute()
+            .await;
 
-    //     match resp {
-    //         Ok(resp) => {
-    //             println!("status: {}", resp.status);
-    //             println!("headers: {:#?}", resp.headers);
-    //             println!("data: {}", String::from_utf8_lossy(&resp.body));
-    //         }
-    //         Err(message) => {
-    //             println!("{:#?}", message)
-    //         }
-    //     }
-    // }
+        match resp {
+            Ok(resp) => {
+                let bytes = resp.bytes().await.unwrap();
+                let content = String::from_utf8_lossy(&bytes);
+                println!("{}", content);
+            }
+            Err(error) => {
+                println!("reqwest error: {}", error)
+            }
+        }
+    }
 
-    // #[tokio::test]
-    // async fn ex_oss_request_list_buckets() {
-    //     let url = "https://oss-cn-hangzhou.aliyuncs.com";
+    #[tokio::test]
+    async fn ex_oss_request_list_buckets() {
+        let url = "https://oss-cn-hangzhou.aliyuncs.com";
 
-    //     let resp = Request::new()
-    //         .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
-    //         .with_access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
-    //         .task()
-    //         .with_url(&url)
-    //         .with_method(http::Method::GET)
-    //         .execute()
-    //         .await;
+        let resp = Request::new()
+            .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+            .with_access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+            .task()
+            .with_url(&url)
+            // default Method::GET
+            // .with_method(http::Method::GET)
+            .execute()
+            .await;
 
-    //     match resp {
-    //         Ok(resp) => {
-    //             println!("status: {}", resp.status);
-    //             println!("headers: {:#?}", resp.headers);
-    //             println!("data: {}", String::from_utf8_lossy(&resp.body));
-    //         }
-    //         Err(message) => {
-    //             println!("{:#?}", message)
-    //         }
-    //     }
-    // }
+        match resp {
+            Ok(resp) => {
+                let bytes = resp.bytes().await.unwrap();
+                let content = String::from_utf8_lossy(&bytes);
+                println!("{}", content);
+            }
+            Err(error) => {
+                println!("reqwest error: {}", error)
+            }
+        }
+    }
 
     #[tokio::test]
     async fn ex_oss_request_bucket_info() {
@@ -88,92 +90,99 @@ pub mod tests {
             .with_url(&url)
             .with_resource("/xuetube-dev/?bucketInfo")
             .with_method(http::Method::GET)
-            // .execute()
             .execute_timeout(30)
             .await;
 
-        // println!("{:#?}", resp);
+        match resp {
+            Ok(resp) => {
+                let bytes = resp.bytes().await.unwrap();
+                let content = String::from_utf8_lossy(&bytes);
+                println!("{}", content);
+            }
+            Err(error) => {
+                println!("{:#?}", error);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn ex_oss_request_bucket_get_cors() {
+        let url = "https://xtoss-t1.oss-cn-shanghai.aliyuncs.com/?cors";
+        let resp = Request::new()
+            .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+            .with_access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+            .task()
+            .with_url(&url)
+            .with_resource("/xtoss-t1/?cors")
+            .execute_timeout(30)
+            .await;
 
         match resp {
             Ok(resp) => {
-                // println!("{:#?}",resp);
-                let body = resp.bytes().await.unwrap();
-                println!("{:#?}", body);
-                // resp.headers()
-                // let body = resp.bytes().await.unwrap();
-                // println!("{:#?}", body);
-                // println!("status: {}", resp.status);
-                // println!("headers: {:#?}", resp.headers);
-                // println!("data: {}", String::from_utf8_lossy(&resp.body));
+                println!("is success: {}", resp.status().is_success());
+                let status = resp.status();
+                let bytes = resp.bytes().await.unwrap();
+                let content = String::from_utf8_lossy(&bytes);
+                println!("{}", status);
+                println!("{}", content);
             }
             Err(error) => {
-                match error {
-                    oss::error::Error::REQWEST(err) => {
-                        println!("reqwest:  {:#?}", err.to_string());
+                println!("{:#?}", error);
+            }
+        }
+    }
 
-                    },
-                    oss::error::Error::OSS(err) => {
-                        println!("oss error: {:#?}", err);
-                    }
-                }
+    #[tokio::test]
+    async fn ex_oss_request_bucket_put_cors() {
+        let url = "https://xtoss-t1.oss-cn-shanghai.aliyuncs.com/?cors";
+
+        let cors_config = r#"<?xml version="1.0" encoding="UTF-8"?>
+<CORSConfiguration>
+    <CORSRule>
+        <AllowedOrigin>*</AllowedOrigin>
+        <AllowedMethod>PUT</AllowedMethod>
+        <AllowedMethod>GET</AllowedMethod>
+        <AllowedHeader>Authorization</AllowedHeader>
+    </CORSRule>
+    <CORSRule>
+        <AllowedOrigin>http://example.com</AllowedOrigin>
+        <AllowedOrigin>http://example.net</AllowedOrigin>
+        <AllowedMethod>GET</AllowedMethod>
+        <AllowedHeader> Authorization</AllowedHeader>
+        <ExposeHeader>x-oss-test</ExposeHeader>
+        <ExposeHeader>x-oss-test1</ExposeHeader>
+        <MaxAgeSeconds>100</MaxAgeSeconds>
+    </CORSRule>
+    <ResponseVary>false</ResponseVary>
+</CORSConfiguration >"#.to_string();
+
+        let data = oss::Bytes::from(cors_config);
+
+        let resp = Request::new()
+            .with_access_key_id("LTAI5tCpYAHHsoasDTH7hfXW")
+            .with_access_key_secret("k0JAQGp6NURoVSDuxR7BORorlejGmj")
+            .task()
+            .with_url(&url)
+            .with_resource("/xtoss-t1/?cors")
+            .with_method(http::Method::PUT)
+            .with_body(data)
+            .execute_timeout(30)
+            .await;
+
+        match resp {
+            Ok(resp) => {
+                println!("is success: {}", resp.status().is_success());
+                let status = resp.status();
+                let bytes = resp.bytes().await.unwrap();
+                let content = String::from_utf8_lossy(&bytes);
+                println!("{}", status);
+                println!("{}", content);
+            }
+            Err(error) => {
+                println!("{:#?}", error);
             }
         }
     }
 
 
-
-    // #[tokio::test]
-    // async fn t2() {
-    //     dotenv::dotenv().ok();
-    //     let options = utils::options_from_env();
-    //     let client = oss::Client::new(options);
-    //     let result = client
-    //         .DescribeRegions()
-    //         .with_region("oss-us-west-1")
-    //         .with_timeout(34)
-    //         .execute()
-    //         .await;
-    //     match result {
-    //         Ok(result) => {
-    //             println!("{:#?}", result);
-    //         }
-    //         Err(message) => {
-    //             println!("{:#?}", message);
-    //         }
-    //     }
-    // }
-
-    // #[tokio::test]
-    // async fn t3() {
-    //     dotenv::dotenv().ok();
-    //     let options = utils::options_from_env();
-    //     let client = oss::Client::new(options);
-    //     let result = client
-    //         .ListBuckets()
-    //         // .with_max_keys(2)
-    //         // .with_prefix("xuetube1")
-    //         // .with_resource_group_id("rg-aekzjlcn4s63s7a")
-    //         // .with_marker("mybucket10")
-    //         .execute()
-    //         .await;
-
-    //     match result {
-    //         Ok(result) => match result.body.buckets.bucket {
-    //             Some(buckes) => {
-    //                 for bucket in buckes {
-    //                     println!("  location: {}", bucket.location);
-    //                     println!("    bucket: {}", bucket.name);
-    //                     println!("created_at: {}", bucket.creation_date);
-    //                     println!("   extrant: {}", bucket.extranet_endpoint);
-    //                     println!("  intranet: {}", bucket.intranet_endpoint);
-    //                     println!("{}", "-".repeat(60))
-    //                 }
-    //             }
-    //             None => println!("{}", "no buckets"),
-    //         },
-    //         Err(message) => {
-    //             println!("{:#?}", message);
-    //         }
-    //     }
-    // }
 }
