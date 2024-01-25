@@ -3,9 +3,9 @@ use std::env;
 use xt_oss::oss::Request;
 #[tokio::main]
 async fn main() {
-		dotenv::dotenv().ok();
-		let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
-		let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
+    dotenv::dotenv().ok();
+    let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
+    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
     let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions=oss-us-west-1";
     // let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions";
 
