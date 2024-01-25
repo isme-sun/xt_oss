@@ -6,6 +6,14 @@
 
 ### 关于Service/Region操作
 
+| Item         | Price     | # In stock |
+|--------------|-----------|------------|
+| Juicy Apples | 1.99      | *7*        |
+| Bananas      | **1.89**  | 5234       |
+
+
+### 关于Service/Region操作
+
 - [X] 01 ★ `ListBuckets（GetService）`
 - [X] 02 ★ `DescribeRegions`
 
