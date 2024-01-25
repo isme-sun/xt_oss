@@ -9,9 +9,11 @@ pub mod http {
     };
 }
 
+pub use error::Error;
 pub use reqwest::{IntoUrl, Url};
 
-pub(crate) mod api;
+pub mod error;
+// pub(crate) mod api;
 pub mod entities;
 
 //-------------------------------------------------------------------------
@@ -22,7 +24,7 @@ use super::oss::{
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use hmacsha1;
-use reqwest;
+use reqwest::{self, Response as ReqwestResponse};
 use serde::{Deserialize, Serialize};
 use std::{fmt, time::Duration};
 
@@ -31,8 +33,11 @@ pub(crate) const DEFAULT_REGION: &str = "oss-cn-hangzhou";
 pub(crate) const USER_AGENT: &str = "xt oss/0.1";
 pub(crate) const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
 pub(crate) const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
+pub(crate) const DEFAULT_TIMEOUT: u64 = 60;
 pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 // const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
+
+pub struct Response(ReqwestResponse);
 
 #[derive(Debug, Default)]
 pub struct Data<T = Bytes> {
@@ -71,7 +76,8 @@ impl fmt::Display for Message {
     }
 }
 
-type Result<T = Bytes> = std::result::Result<Data<T>, Message>;
+pub type Result<T> = std::result::Result<T, Error>;
+// type Result<T = Bytes> = std::result::Result<Data<T>, Message>;
 
 #[derive(Debug)]
 #[allow(unused)]
@@ -122,7 +128,7 @@ impl<'a> Authorization<'a> {
             // Resource = self.canonicalized_resource()
             Resource = self.resourse.unwrap_or_default()
         );
-        dbg!(println!("{}", value));
+        // dbg!(println!("{}", value));
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();
         let value = hmacsha1::hmac_sha1(key, message);
@@ -156,8 +162,6 @@ pub struct RequestTask<'a> {
     request: &'a oss::Request<'a>,
     url: &'a str,
     resource: Option<&'a str>,
-    sts_token: Option<&'a str>,
-    timeout: Option<u64>,
     method: http::Method,
     headers: http::HeaderMap,
     body: Bytes,
@@ -170,8 +174,6 @@ impl<'a> RequestTask<'a> {
             request,
             url: Default::default(),
             resource: None,
-            sts_token: None,
-            timeout: Some(request.timeout),
             method: http::Method::GET,
             headers: http::HeaderMap::new(),
             body: Bytes::new(),
@@ -207,12 +209,18 @@ impl<'a> RequestTask<'a> {
         self
     }
 
-    pub fn with_timeout(mut self, value: u64) -> Self {
-        self.timeout = Some(value);
-        self
+    // pub async fn execute(&self) -> oss::Result<Bytes> {
+    pub async fn execute(&self) -> oss::Result<Response> {
+        self.inner_execute(None).await
     }
 
-    pub async fn execute(&self) -> oss::Result<Bytes> {
+    // pub async fn execute_timeout(&self, value:u64) -> oss::Result<Bytes> {
+    pub async fn execute_timeout(&self, value: u64) -> oss::Result<Response> {
+        self.inner_execute(Some(value)).await
+    }
+
+    // async fn inner_execute(&self, timeout:Option<u64>) -> oss::Result<Bytes> {
+    async fn inner_execute(&self, timeout: Option<u64>) -> oss::Result<Response> {
         // let (_, bucket, object) = Self::parse_url(self.url);
 
         // dbg!(println!("{:#?}", (&bucket, &object)));
@@ -224,7 +232,7 @@ impl<'a> RequestTask<'a> {
         headers.insert(DATE, date.parse().unwrap());
         headers.extend(self.headers.to_owned());
 
-        println!("{:#?}", headers);
+        // println!("{:#?}", headers);
 
         headers.insert(
             AUTHORIZATION,
@@ -244,42 +252,61 @@ impl<'a> RequestTask<'a> {
             .unwrap(),
         );
 
-        let request_builder = self
+        let mut request_builder = self
             .request
             .client
             .request(self.method.to_owned(), self.url)
             .headers(headers)
             .body(self.body.to_owned());
 
-        let resp = request_builder.send().await.unwrap();
-
-        let status = resp.status();
-        let headers = resp.headers().to_owned();
-        let body = resp.bytes().await.unwrap();
-
-        if status.is_success() {
-            let oss_data = Data {
-                status,
-                headers,
-                body,
-            };
-            Ok(oss_data)
-        } else {
-            let content = String::from_utf8_lossy(&body);
-            if content.len() > 0 {
-                let message: Message = quick_xml::de::from_str(&content).unwrap();
-                Err(message)
-            } else if headers.contains_key("x-oss-err") {
-                let error_info = headers.get("x-oss-err").unwrap();
-                let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
-                let content = String::from_utf8_lossy(&error_info);
-                let message: Message = quick_xml::de::from_str(&content).unwrap();
-                Err(message)
-            } else {
-                let message = Message::default();
-                Err(message)
+        let request_builder = match timeout {
+            Some(timeout) => {
+                let timeout = Duration::from_secs(timeout);
+                request_builder.timeout(timeout)
             }
+            e => {
+                let timeout = Duration::from_secs(oss::DEFAULT_TIMEOUT);
+                request_builder.timeout(timeout)
+            }
+        };
+
+        let response = request_builder.send().await;
+        match response {
+            Ok(response) => {
+                Ok(Response(response))
+            },
+            Err(error) => Err(Error::REQWEST(error)),
         }
+
+        // println!("{:#?}", resp);
+
+        // let status = resp.status();
+        // let headers = resp.headers().to_owned();
+        // let body = resp.bytes().await.unwrap();
+
+        // if status.is_success() {
+        //     let oss_data = Data {
+        //         status,
+        //         headers,
+        //         body,
+        //     };
+        //     Ok(oss_data)
+        // } else {
+        //     let content = String::from_utf8_lossy(&body);
+        //     if !content.is_empty() {
+        //         let message: Message = quick_xml::de::from_str(&content).unwrap();
+        //         Err(message)
+        //     } else if headers.contains_key("x-oss-err") {
+        //         let error_info = headers.get("x-oss-err").unwrap();
+        //         let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
+        //         let content = String::from_utf8_lossy(&error_info);
+        //         let message: Message = quick_xml::de::from_str(&content).unwrap();
+        //         Err(message)
+        //     } else {
+        //         let message = Message::default();
+        //         Err(message)
+        //     }
+        // }
     }
 
     // fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
@@ -316,11 +343,7 @@ impl<'a> RequestTask<'a> {
 pub struct Request<'a> {
     access_key_id: Option<&'a str>,
     access_key_secret: Option<&'a str>,
-    region: Option<&'a str>,
-    bucket: Option<&'a str>,
     sts_token: Option<&'a str>,
-    endpoint: Option<&'a str>,
-    timeout: u64,
     client: reqwest::Client,
 }
 
@@ -353,28 +376,8 @@ impl<'a> Request<'a> {
         self
     }
 
-    pub fn with_region(mut self, value: &'a str) -> Self {
-        self.region = Some(value);
-        self
-    }
-
-    pub fn with_bucket(mut self, value: &'a str) -> Self {
-        self.bucket = Some(value);
-        self
-    }
-
-    pub fn with_endpoint(mut self, value: &'a str) -> Self {
-        self.endpoint = Some(value);
-        self
-    }
-
-    pub fn with_timeout(mut self, value: u64) -> Self {
-        self.timeout = value;
-        self
-    }
-
     pub fn task(&self) -> RequestTask<'_> {
-        RequestTask::new(self)
+        RequestTask::new(&self)
     }
 }
 
@@ -523,6 +526,7 @@ impl<'a> Options<'a> {
 }
 
 #[derive(Debug, Default)]
+#[allow(unused)]
 pub struct Client<'a> {
     options: Options<'a>,
     request: Request<'a>,
@@ -532,8 +536,7 @@ impl<'a> Client<'a> {
     pub fn new(options: Options<'a>) -> Self {
         let request = self::Request::new()
             .with_access_key_id(options.access_key_id)
-            .with_access_key_secret(options.access_key_secret)
-            .with_timeout(options.timeout);
+            .with_access_key_secret(options.access_key_secret);
         Self { options, request }
     }
 

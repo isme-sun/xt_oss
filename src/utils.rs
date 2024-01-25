@@ -35,7 +35,7 @@ pub fn options_from_env() -> oss::Options<'static> {
         )
         .with_timeout(
             env::var("OSS_TIMEOUT")
-                .unwrap_or_default()
+                .unwrap_or(oss::DEFAULT_TIMEOUT.to_string())
                 .parse::<u64>()
                 .unwrap_or(60),
         )

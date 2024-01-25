@@ -3,10 +3,14 @@ use crate::oss::Client;
 use builder::ListBucketsBuilder;
 
 pub mod builder {
-    use std::{fmt, str::FromStr};
     use serde::{Deserialize, Serialize};
+    use std::fmt;
 
-    use crate::oss::{self, entities::bucket::ListAllMyBucketsResult, http};
+    use crate::oss::{
+        self,
+        entities::bucket::ListAllMyBucketsResult,
+        http,
+    };
 
     #[derive(Debug, Serialize, Deserialize, Default)]
     struct ListBucketsQuery<'a> {
@@ -35,6 +39,7 @@ pub mod builder {
         client: &'a oss::Client<'a>,
         resource_group_id: Option<&'a str>,
         query: ListBucketsQuery<'a>,
+        timeout: Option<u64>,
     }
 
     impl<'a> ListBucketsBuilder<'a> {
@@ -42,8 +47,14 @@ pub mod builder {
             Self {
                 client,
                 resource_group_id: None,
+                timeout: None,
                 query: ListBucketsQuery::default(),
             }
+        }
+
+        pub fn with_timeout(mut self, value: u64) -> Self {
+            self.timeout = Some(value);
+            self
         }
 
         pub fn with_prefix(mut self, value: &'a str) -> Self {
@@ -82,30 +93,23 @@ pub mod builder {
         }
 
         pub async fn execute(&self) -> oss::Result<ListAllMyBucketsResult> {
-
             let query = self.query();
             let headers = self.headers();
 
-            let url = format!(
-                "{}://{}.{}",
-                self.client.options.schema(),
-                oss::DEFAULT_REGION,
-                oss::BASE_URL
-            );
+            let url = self.client.options.root_url();
 
             let url = if !query.is_empty() {
-                let mut url = oss::Url::from_str(&url).unwrap();
-                url.set_query(Some(&query));
-                url.to_string()
+                format!("{}/?{}", url, query)
             } else {
                 url
             };
 
+            let timeout = self.timeout.unwrap_or(self.client.options.timeout);
             let task = self
                 .client
                 .request
                 .task()
-                .with_timeout(self.client.options.timeout)
+                .with_timeout(timeout)
                 .with_method(http::Method::GET)
                 .with_url(&url)
                 .with_resource("/");
@@ -116,10 +120,8 @@ pub mod builder {
                 task
             };
 
-            let resp = task.execute().await.unwrap();
-
+            let resp = task.execute().await?;
             let body = String::from_utf8_lossy(&resp.body);
-
             let body = quick_xml::de::from_str(&body).unwrap();
             Ok(oss::Data {
                 status: resp.status,

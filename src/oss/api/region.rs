@@ -12,7 +12,7 @@ pub mod builder {
     pub struct DescribeRegionsBuilder<'a> {
         client: &'a oss::Client<'a>,
         region: Option<&'a str>,
-        // timeout: Option<u32>
+        timeout: Option<u64>,
     }
 
     impl<'a> DescribeRegionsBuilder<'a> {
@@ -20,7 +20,7 @@ pub mod builder {
             Self {
                 client,
                 region: None,
-                // timeout: None,
+                timeout: None,
             }
         }
 
@@ -29,23 +29,25 @@ pub mod builder {
             self
         }
 
+        pub fn with_timeout(mut self, value: u64) -> Self {
+            self.timeout = Some(value);
+            self
+        }
+
         pub async fn execute(&self) -> oss::Result<Vec<RegionInfo>> {
+            let base_url = format!(
+                "{}://{}.{}",
+                self.client.options.schema(),
+                oss::DEFAULT_REGION,
+                oss::BASE_URL
+            );
+
             let url = match self.region {
-                Some(region) => format!(
-                    "{}://{}.{}/?regions={}",
-                    self.client.options.schema(),
-                    oss::DEFAULT_REGION,
-                    oss::BASE_URL,
-                    region
-                ),
-                None => format!(
-                    "{}://{}.{}/?regions",
-                    self.client.options.schema(),
-                    oss::DEFAULT_REGION,
-                    oss::BASE_URL
-                ),
+                Some(region) => format!("{}/?regions={}", base_url, region),
+                None => format!("{}/?regions", base_url),
             };
 
+            let timeout = self.timeout.unwrap_or(self.client.options.timeout);
             let resp = self
                 .client
                 .request
@@ -53,7 +55,7 @@ pub mod builder {
                 .with_url(&url)
                 .with_method(http::Method::GET)
                 .with_resource("/")
-                .with_timeout(self.client.options.timeout)
+                .with_timeout(timeout)
                 .execute()
                 .await?;
 
