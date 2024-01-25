@@ -4,20 +4,12 @@
 
 概要说明 ...
 
-### 关于Service/Region操作
-
-| Item         | Price     | # In stock |
-|--------------|-----------|------------|
-| Juicy Apples | 1.99      | *7*        |
-| Bananas      | **1.89**  | 5234       |
-
-
-### 关于Service/Region操作
+##### 关于Service/Region操作
 
 - [X] 01 ★ `ListBuckets（GetService）`
 - [X] 02 ★ `DescribeRegions`
 
-### Bucket - 基础操作
+##### Bucket - 基础操作
 
 - [X] 03 ★ `PutBucket`
 - [X] 04 ★ `DeleteBucket`
@@ -27,7 +19,7 @@
 - [X] 08 ★ `GetBucketLocation`
 - [X] 09 ★ `GetBucketStat`
 
-### Bucket 合规保留策略（WORM）
+##### Bucket 合规保留策略（WORM）
 
 - [X] 10 ★ `InitiateBucketWorm`
 - [X] 11 ★ `AbortBucketWorm`
@@ -35,29 +27,29 @@
 - [X] 13 ★ `ExtendBucketWorm`
 - [X] 14 ★ `GetBucketWorm`
 
-### Bucket 权限控制（ACL）
+##### Bucket 权限控制（ACL）
 
 - [X] 15 ★ `PutBucketAcl`
 - [X] 16 ★ `GetBucketAcl`
 
-### Bucket 生命周期（Lifecycle）
+##### Bucket 生命周期（Lifecycle）
 
 - [X] 17 ★ `PutBucketLifecycle`
 - [X] 18 ★ `GetBucketLifecycle`
 - [X] 19 ★ `DeleteBucketLifecycle`
 
-### Bucket 传输加速（TransferAcceleration）
+##### Bucket 传输加速（TransferAcceleration）
 
 - [X] 20 ★ `PutBucketTransferAcceleration`
 - [X] 21 ★ `GetBucketTransferAcceleration`
 
-### Bucket 版本控制（Versioning）
+##### Bucket 版本控制（Versioning）
 
 - [X] 22 ★ `PutBucketVersioning`
 - [X] 23 ★ `GetBucketVersioning`
 - [ ] 24 ★ `ListObjectVersions（GetBucketVersions）`
 
-### Bucket 数据复制（Replication）
+##### Bucket 数据复制（Replication）
 
 - [ ] `PutBucketReplication`
 - [ ] `PutBucketRTC`
@@ -66,78 +58,78 @@
 - [ ] `GetBucketReplicationProgress`
 - [ ] `DeleteBucketReplication`
 
-### Bucket 授权策略（Policy）
+##### Bucket 授权策略（Policy）
 
 - [ ] 25 ★ `PutBucketPolicy`
 - [ ] 26 ★ `GetBucketPolicy`
 - [ ] 27 ★ `DeleteBucketPolicy`
 
-### Bucket 清单（Inventory）
+##### Bucket 清单（Inventory）
 
 - [ ] `PutBucketInventory`
 - [ ] `GetBucketInventory`
 - [ ] `ListBucketInventory`
 - [ ] `DeleteBucketInventory`
 
-### Bucket 日志管理（Logging）
+##### Bucket 日志管理（Logging）
 
 - [X] 28 ★ `PutBucketLogging`
 - [X] 29 ★ `GetBucketLogging`
 - [X] 30 ★ `DeleteBucketLogging`
 
-### Bucket 静态网站（Website）
+##### Bucket 静态网站（Website）
 
 - [X] 31 ★ `PutBucketWebsite`
 - [X] 32 ★ `GetBucketWebsite`
 - [X] 33 ★ `DeleteBucketWebsite`
 
-### Bucket 防盗链（Referer）
+##### Bucket 防盗链（Referer）
 
 - [X] 34 ★ `PutBucketReferer`
 - [X] 35 ★ `GetBucketReferer`
 
-### Bucket 标签（Tags）
+##### Bucket 标签（Tags）
 
 - [X] 36 ★ `PutBucketTags`
 - [X] 37 ★ `GetBucketTags`
 - [X] 38 ★ `DeleteBucketTags`
 
-### Bucket 加密（Encryption）
+##### Bucket 加密（Encryption）
 
 - [X] 39 ★ `PutBucketEncryption`
 - [X] 40 ★ `GetBucketEncryption`
 - [X] 41 ★ `DeleteBucketEncryption`
 
-### Bucket 请求者付费（RequestPayment）
+##### Bucket 请求者付费（RequestPayment）
 
 - [ ] 42 ★ `PutBucketRequestPayment`
 - [ ] 43 ★ `GetBucketRequestPayment`
 
-### Bucket 跨域资源共享（CORS）
+##### Bucket 跨域资源共享（CORS）
 
 - [X] 43 ★ `PutBucketCors`
 - [X] 44 ★ `GetBucketCors`
 - [X] 45 ★ `DeleteBucketCors`
 - [ ] `Options`
 
-### Bucket 访问跟踪（AccessMonitor）
+##### Bucket 访问跟踪（AccessMonitor）
 
 - [ ] `PutBucketAccessMonitor`
 - [ ] `GetBucketAccessMonitor`
 
-### Bucket 数据索引（Data Indexing）
+##### Bucket 数据索引（Data Indexing）
 
 - [ ] `OpenMetaQuery`
 - [ ] `GetMetaQueryStatus`
 - [ ] `DoMetaQuery`
 - [ ] `CloseMetaQuery`
 
-### Bucket 资源组（Resource Group）
+##### Bucket 资源组（Resource Group）
 
 - [ ] `PutBucketResourceGroup`
 - [ ] `GetBucketResourceGroup`
 
-### Bucket 自定义域名（CNAME）
+##### Bucket 自定义域名（CNAME）
 
 - [X] 46 ★ `CreateCnameToken`
 - [X] 47 ★ `GetCnameToken`
@@ -145,14 +137,14 @@
 - [X] 49 ★ `ListCname`
 - [X] 50 ★ `DeleteCname`
 
-### Bucket 图片样式（Style）
+##### Bucket 图片样式（Style）
 
 - [X] 51 ★ `PutStyle`
 - [X] 52 ★ `GetStyle`
 - [X] 53 ★ `ListStyle`
 - [X] 54 ★ `DeleteStyle`
 
-### Bucket  安全传输层协议（TLS）
+##### Bucket  安全传输层协议（TLS）
 
 - [ ] `PutBucketHttpsConfig`
 - [ ] `GetBucketHttpsConfig`
@@ -165,7 +157,7 @@
 - [ ] `ListUserDataRedundancyTransition`
 - [ ] `ListBucketDataRedundancyTransition`
 
-### Bucket  接入点（AccessPoint）
+##### Bucket  接入点（AccessPoint）
 
 - [ ] `CreateAccessPoint`
 - [ ] `GetAccessPoint`
@@ -175,7 +167,7 @@
 - [ ] `GetAccessPointPolicy`
 - [ ] `DeleteAccessPointPolicy`
 
-### Bucket  对象FC接入点（Object FC AccessPoint）
+##### Bucket  对象FC接入点（Object FC AccessPoint）
 
 - [ ] `CreateAccessPointForObjectProcess`
 - [ ] `GetAccessPointForObjectProcess`
@@ -188,7 +180,7 @@
 - [ ] `DeleteAccessPointPolicyForObjectProcess`
 - [ ] `WriteGetObjectResponse`
 
-### Object 基础操作 Stand
+##### Object 基础操作 Stand
 
 - [X] 55 ★ `PutObject`
 - [X] 56 ★ `GetObject`
@@ -203,7 +195,7 @@
 - [ ] 63 ★ `RestoreObject`
 - [ ] `SelectObject`
 
-### Object 分片上传（MultipartUpload）
+##### Object 分片上传（MultipartUpload）
 
 - [ ] 64 ★ `InitiateMultipartUpload`
 - [ ] 65 ★ `UploadPart`
@@ -213,23 +205,23 @@
 - [ ] 69 ★ `ListMultipartUploads`
 - [ ] 70 ★ `ListParts`
 
-### Object 权限控制（ACL)
+##### Object 权限控制（ACL)
 
 - [X] 71 ★ `PutObjectACL`
 - [X] 72 ★ `GetObjectACL`
 
-### Object 软链接（Symlink）
+##### Object 软链接（Symlink）
 
 - [X] 73 ★ `PutSymlink`
 - [X] 74 ★ `GetSymlink`
 
-### Object 标签（Tagging）
+##### Object 标签（Tagging）
 
 - [X] 75 ★ `PutObjectTagging`
 - [X] 76 ★ `GetObjectTagging`
 - [X] 77 ★ `DeleteObjectTagging`
 
-### 关于LiveChannel的操作
+##### 关于LiveChannel的操作
 
 - [ ] 78 ★ `PutLiveChannel`
 - [ ] 79 ★ `ListLiveChannel`
