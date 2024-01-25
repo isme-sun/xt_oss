@@ -7,6 +7,7 @@ async fn main() {
 pub mod tests {
     // use log::debug;
 
+    use xt_oss::oss;
     #[allow(unused)]
     use xt_oss::{
         oss::{http, Request},
@@ -88,22 +89,33 @@ pub mod tests {
             .with_resource("/xuetube-dev/?bucketInfo")
             .with_method(http::Method::GET)
             // .execute()
-            .execute_timeout(1)
+            .execute_timeout(30)
             .await;
 
         // println!("{:#?}", resp);
 
         match resp {
             Ok(resp) => {
-                println!("{:#?}",resp);
-                println!("{:#?}",resp.content_length());
+                // println!("{:#?}",resp);
+                let body = resp.bytes().await.unwrap();
+                println!("{:#?}", body);
+                // resp.headers()
+                // let body = resp.bytes().await.unwrap();
+                // println!("{:#?}", body);
                 // println!("status: {}", resp.status);
                 // println!("headers: {:#?}", resp.headers);
                 // println!("data: {}", String::from_utf8_lossy(&resp.body));
             }
             Err(error) => {
-                println!("{:#?}", error);
-                println!("is_timeout: {}", error.is_timeout())
+                match error {
+                    oss::error::Error::REQWEST(err) => {
+                        println!("reqwest:  {:#?}", err.to_string());
+
+                    },
+                    oss::error::Error::OSS(err) => {
+                        println!("oss error: {:#?}", err);
+                    }
+                }
             }
         }
     }

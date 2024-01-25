@@ -1,33 +1,3 @@
-// re-export
-// #[allow(unused)]
-pub use bytes::Bytes;
-// #[allow(unused)]
-pub mod http {
-    pub use reqwest::{
-        header::{self, HeaderMap, HeaderName, HeaderValue},
-        Method, StatusCode,
-    };
-}
-
-pub use error::Error;
-pub use reqwest::{IntoUrl, Url};
-
-pub mod error;
-// pub(crate) mod api;
-pub mod entities;
-
-//-------------------------------------------------------------------------
-use super::oss::{
-    self,
-    http::header::{AUTHORIZATION, CONTENT_TYPE, DATE},
-};
-use base64::{engine::general_purpose, Engine as _};
-use chrono::Utc;
-use hmacsha1;
-use reqwest::{self, Response as ReqwestResponse};
-use serde::{Deserialize, Serialize};
-use std::{fmt, time::Duration};
-
 pub(crate) const BASE_URL: &str = "aliyuncs.com";
 pub(crate) const DEFAULT_REGION: &str = "oss-cn-hangzhou";
 pub(crate) const USER_AGENT: &str = "xt oss/0.1";
@@ -35,49 +5,32 @@ pub(crate) const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
 pub(crate) const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
 pub(crate) const DEFAULT_TIMEOUT: u64 = 60;
 pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
-// const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
+// pub(crate) const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
-pub struct Response(ReqwestResponse);
-
-#[derive(Debug, Default)]
-pub struct Data<T = Bytes> {
-    pub status: http::StatusCode,
-    pub headers: http::HeaderMap,
-    pub body: T,
+// re-export
+pub use bytes::Bytes;
+pub mod http {
+    pub use reqwest::{
+        header::{self, HeaderMap, HeaderName, HeaderValue},
+        IntoUrl, Method, StatusCode, Url,
+    };
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
-pub struct Message {
-    #[serde(rename(deserialize = "Code"))]
-    pub code: String,
-    #[serde(rename(deserialize = "Message"))]
-    pub message: String,
-    #[serde(rename(deserialize = "RequestId"))]
-    pub request_id: String,
-    #[serde(rename(deserialize = "HostId"))]
-    pub host_id: String,
-    #[serde(rename(deserialize = "EC"))]
-    pub ec: Option<String>,
-    #[serde(rename(deserialize = "RecommendDoc"))]
-    pub recommend_doc: Option<String>,
-    #[serde(rename = "OSSAccessKeyId")]
-    pub oss_access_key_id: Option<String>,
-    #[serde(rename = "SignatureProvided")]
-    pub signature_provided: Option<String>,
-    #[serde(rename = "StringToSign")]
-    pub string_to_sign: Option<String>,
-    #[serde(rename = "StringToSignBytes")]
-    pub string_to_sign_bytes: Option<String>,
-}
+// entity defined
+pub mod entities;
+// api impl
+// pub(crate) mod api;
 
-impl fmt::Display for Message {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[{}]: {}", self.code, self.message)
-    }
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
-// type Result<T = Bytes> = std::result::Result<Data<T>, Message>;
+// core
+use super::oss::{
+    self,
+    http::header::{AUTHORIZATION, CONTENT_TYPE, DATE},
+};
+use base64::{engine::general_purpose, Engine as _};
+use chrono::Utc;
+use hmacsha1;
+use reqwest::{Response, Result};
+use std::time::Duration;
 
 #[derive(Debug)]
 #[allow(unused)]
@@ -270,43 +223,8 @@ impl<'a> RequestTask<'a> {
             }
         };
 
-        let response = request_builder.send().await;
-        match response {
-            Ok(response) => {
-                Ok(Response(response))
-            },
-            Err(error) => Err(Error::REQWEST(error)),
-        }
-
-        // println!("{:#?}", resp);
-
-        // let status = resp.status();
-        // let headers = resp.headers().to_owned();
-        // let body = resp.bytes().await.unwrap();
-
-        // if status.is_success() {
-        //     let oss_data = Data {
-        //         status,
-        //         headers,
-        //         body,
-        //     };
-        //     Ok(oss_data)
-        // } else {
-        //     let content = String::from_utf8_lossy(&body);
-        //     if !content.is_empty() {
-        //         let message: Message = quick_xml::de::from_str(&content).unwrap();
-        //         Err(message)
-        //     } else if headers.contains_key("x-oss-err") {
-        //         let error_info = headers.get("x-oss-err").unwrap();
-        //         let error_info = general_purpose::STANDARD.decode(error_info).unwrap();
-        //         let content = String::from_utf8_lossy(&error_info);
-        //         let message: Message = quick_xml::de::from_str(&content).unwrap();
-        //         Err(message)
-        //     } else {
-        //         let message = Message::default();
-        //         Err(message)
-        //     }
-        // }
+        let result = request_builder.send().await;
+        result
     }
 
     // fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
