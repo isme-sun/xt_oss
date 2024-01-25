@@ -14,7 +14,29 @@ categories = ["filesystem"]
 [badges]
 maintenance = { status = "actively-developed" }
 
+
+[[example]]
+name = "request_regions"
+path = "examples/request/regions.rs"
+
+[[example]]
+name = "request_list_buckets"
+path = "examples/request/list_buckets.rs"
+
+[[example]]
+name = "request_bucket_info"
+path = "examples/request/bucket_info.rs"
+
+[[example]]
+name = "request_bucket_get_cors"
+path = "examples/request/bucket_get_cors.rs"
+
+[[example]]
+name = "request_bucket_put_cors"
+path = "examples/request/bucket_put_cors.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 
 [dependencies]
 base64 = "0.21.5"

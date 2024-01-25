@@ -14,6 +14,7 @@ Cargo.lock
 ★.pdb
 
 .env
+.examples
 
 # Added by cargo
 

@@ -29,7 +29,7 @@ use super::oss::{
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use hmacsha1;
-use reqwest::{Response, Result};
+use reqwest::{header::HeaderMap, Response, Result};
 use std::time::Duration;
 
 #[derive(Debug)]
@@ -38,8 +38,6 @@ struct Authorization<'a> {
     access_key_id: &'a str,
     access_key_secret: &'a str,
     sts_token: &'a str,
-    bucket: Option<&'a str>,
-    object: Option<&'a str>,
     headers: &'a http::HeaderMap,
     method: &'a http::Method,
     date: &'a String,
@@ -52,34 +50,33 @@ impl<'a> Authorization<'a> {
         format!("OSS {}:{}", self.access_key_id, self.signature())
     }
 
+    fn headers_str(&self) -> String {
+        let mut oss_key_name: Vec<&str> = Vec::new();
+        let keys = self.headers.keys();
+        for item in keys {
+            let name = item.as_str();
+            if name.starts_with("x-oss") {
+                oss_key_name.push(name);
+            }
+        }
+        oss_key_name.sort();
+        let mut value: Vec<String> = Vec::new();
+        for key_name in oss_key_name {
+            let key_value = self.headers.get(key_name).unwrap().to_str().unwrap();
+            value.push(format!("{}:{}\n", key_name, key_value));
+        }
+        value.join("").to_string()
+    }
+
     fn signature(&self) -> String {
-        let header_str = {
-            let mut oss_key_name: Vec<&str> = Vec::new();
-            let keys = self.headers.keys();
-            for item in keys {
-                let name = item.as_str();
-                if name.starts_with("x-oss") {
-                    oss_key_name.push(name);
-                }
-            }
-
-            oss_key_name.sort();
-            let mut value: Vec<String> = Vec::new();
-            for key_name in oss_key_name {
-                let key_value = self.headers.get(key_name).unwrap().to_str().unwrap();
-                value.push(format!("{}:{}\n", key_name, key_value));
-            }
-            value.join("")
-        };
-
+        let header_str = self.headers_str();
         let value = format!(
             "{VERB}\n\n{ContentType}\n{Date}\n{Header}{Resource}",
             VERB = self.method,
             Header = header_str,
             ContentType = oss::DEFAULT_CONTENT_TYPE,
             Date = self.date,
-            // Resource = self.canonicalized_resource()
-            Resource = self.resourse.unwrap_or_default()
+            Resource = self.resourse.unwrap_or("/")
         );
         // dbg!(println!("{}", value));
         let key = self.access_key_secret.as_bytes();
@@ -87,26 +84,6 @@ impl<'a> Authorization<'a> {
         let value = hmacsha1::hmac_sha1(key, message);
         let encoded = general_purpose::STANDARD.encode(value.as_slice());
         encoded
-    }
-
-    fn canonicalized_resource(&self) -> String {
-        let res_path = match (&self.bucket, &self.object) {
-            (Some(bucket), Some(object)) => {
-                format!("/{}/{}", bucket, object)
-            }
-            (Some(bucket), None) => {
-                format!("/{}/", bucket)
-            }
-            (None, None) => "/".to_string(),
-            (None, Some(_)) => {
-                panic!("params error")
-            }
-        };
-        if let Some(res) = self.resourse {
-            format!("{}?{}", res_path, res)
-        } else {
-            res_path
-        }
     }
 }
 
@@ -131,10 +108,6 @@ impl<'a> RequestTask<'a> {
             headers: http::HeaderMap::new(),
             body: Bytes::new(),
         }
-    }
-
-    fn resource(&self) -> &'a str {
-        self.resource.unwrap_or("/")
     }
 
     pub fn with_url(mut self, value: &'a str) -> Self {
@@ -162,98 +135,53 @@ impl<'a> RequestTask<'a> {
         self
     }
 
-    // pub async fn execute(&self) -> oss::Result<Bytes> {
     pub async fn execute(&self) -> oss::Result<Response> {
         self.inner_execute(None).await
     }
 
-    // pub async fn execute_timeout(&self, value:u64) -> oss::Result<Bytes> {
     pub async fn execute_timeout(&self, value: u64) -> oss::Result<Response> {
         self.inner_execute(Some(value)).await
     }
 
-    // async fn inner_execute(&self, timeout:Option<u64>) -> oss::Result<Bytes> {
+    fn authorization(&self, headers: &HeaderMap, date: &String) -> String {
+        let access_key_id = self.request.access_key_id.unwrap_or_default();
+        let access_key_secret = self.request.access_key_secret.unwrap_or_default();
+        let sts_token = self.request.sts_token.unwrap_or_default();
+        let resourse = self.resource;
+        Authorization {
+            access_key_id,
+            access_key_secret,
+            sts_token,
+            headers: &headers,
+            method: &self.method,
+            date: &date,
+            resourse,
+        }
+        .complute()
+    }
+
     async fn inner_execute(&self, timeout: Option<u64>) -> oss::Result<Response> {
-        // let (_, bucket, object) = Self::parse_url(self.url);
-
-        // dbg!(println!("{:#?}", (&bucket, &object)));
-        let bucket = None;
-        let object = None;
-
         let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
         let mut headers = http::HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
         headers.extend(self.headers.to_owned());
+        let auth = self.authorization(&headers, &date);
+        headers.insert(AUTHORIZATION, auth.parse().unwrap());
 
-        // println!("{:#?}", headers);
-
-        headers.insert(
-            AUTHORIZATION,
-            Authorization {
-                access_key_id: self.request.access_key_id.unwrap_or_default(),
-                access_key_secret: self.request.access_key_secret.unwrap_or_default(),
-                sts_token: self.request.sts_token.unwrap_or_default(),
-                headers: &headers,
-                method: &self.method,
-                bucket,
-                object,
-                date: &date,
-                resourse: Some(&self.resource()),
-            }
-            .complute()
-            .parse()
-            .unwrap(),
-        );
-
-        let mut request_builder = self
+        let builder = self
             .request
             .client
             .request(self.method.to_owned(), self.url)
             .headers(headers)
             .body(self.body.to_owned());
 
-        let request_builder = match timeout {
-            Some(timeout) => {
-                let timeout = Duration::from_secs(timeout);
-                request_builder.timeout(timeout)
-            }
-            e => {
-                let timeout = Duration::from_secs(oss::DEFAULT_TIMEOUT);
-                request_builder.timeout(timeout)
-            }
-        };
+        let timeout = Duration::from_secs(timeout.unwrap_or(oss::DEFAULT_TIMEOUT));
 
-        let result = request_builder.send().await;
+        let builder = builder.timeout(timeout);
+
+        let result = builder.send().await;
         result
     }
-
-    // fn parse_url<T>(input: T) -> (Option<String>, Option<String>, Option<String>)
-    // where
-    //     T: IntoUrl,
-    // {
-    //     let url: Url = input.into_url().unwrap();
-    //     dbg!(&url.to_string());
-    //     let host = url.host().unwrap().to_string();
-    //     dbg!(&host);
-    //     if host == oss::BASE_URL {
-    //         (None, None, None)
-    //     } else {
-    //         let fragment = &host[..(host.len() - oss::BASE_URL.len() - 1)];
-    //         dbg!(fragment);
-    //         let result = fragment.split_once('.');
-    //         let (bucket, region) = match result {
-    //             Some((bucket, region)) => (Some(bucket.to_string()), Some(region.to_string())),
-    //             _ => (None, Some(fragment.to_string())),
-    //         };
-    //         let object = url.path().trim_start_matches('/');
-    //         let object = if object.is_empty() {
-    //             None
-    //         } else {
-    //             Some(object.to_string())
-    //         };
-    //         (region, bucket, object)
-    //     }
-    // }
 }
 
 #[allow(unused)]
