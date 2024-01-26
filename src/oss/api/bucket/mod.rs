@@ -1,4 +1,4 @@
-pub(crate) mod acceleration;
+// pub(crate) mod acceleration;
 // pub(crate) mod acl;
 // pub(crate) mod cname;
 // pub(crate) mod cors;

@@ -4,6 +4,8 @@ use self::builder::DescribeRegionsBuilder;
 
 pub mod builder {
 
+    use bytes::Bytes;
+
     use crate::oss::{
         self,
         api::{self, into_api_result},
@@ -35,7 +37,7 @@ pub mod builder {
             self
         }
 
-        pub async fn execute(&self) -> api::Result<RegionInfoList> {
+        pub async fn execute(&self) -> api::ApiResult<Bytes> {
             let base_url = format!(
                 "{}://{}.{}",
                 self.client.options.schema(),

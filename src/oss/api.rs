@@ -1,7 +1,9 @@
-use super::http::{HeaderMap, StatusCode, Url};
+use super::{
+    http::{HeaderMap, StatusCode, Url},
+    Bytes, Result,
+};
 use base64::{engine::general_purpose, Engine as _};
-use bytes::Bytes;
-use reqwest::{Error as ReqwestError, Response};
+use reqwest::{Error, Response};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -36,12 +38,6 @@ impl fmt::Display for Message {
 }
 
 #[derive(Debug)]
-pub enum Error {
-    ReqwestError(ReqwestError),
-    OssError(Message),
-}
-
-#[derive(Debug)]
 pub struct Data<T> {
     url: Url,
     status: StatusCode,
@@ -50,6 +46,10 @@ pub struct Data<T> {
 }
 
 impl<T> Data<T> {
+    pub fn request_id(&self) -> String {
+        "".to_string()
+    }
+
     pub fn url(&self) -> &Url {
         &self.url
     }
@@ -67,28 +67,29 @@ impl<T> Data<T> {
     }
 }
 
-type Result<T> = std::result::Result<Data<T>, Error>;
+pub enum ApiResponse<T> {
+    SUCCESS(Data<T>),
+    FAIL(Data<Message>),
+}
 
-pub(crate) async fn into_api_result<T>(result: super::Result<Response>) -> Result<T>
-where
-    T: for<'a> Deserialize<'a>,
-{
-    use Error::{OssError, ReqwestError};
+#[allow(unused)]
+type ApiResult<T> = std::result::Result<ApiResponse<T>, Error>;
+
+pub(crate) async fn into_api_result(result: Result<Response>) -> ApiResult<Bytes> {
+    use ApiResponse::{FAIL, SUCCESS};
     match result {
         Ok(response) => {
+            let url = response.url().to_owned();
+            let status = response.status();
+            let headers = response.headers().to_owned();
             if response.status().is_success() {
-                let url = response.url().to_owned();
-                let status = response.status();
-                let headers = response.headers().to_owned();
-                let data: Bytes = response.bytes().await.unwrap().to_owned();
-                let content = String::from_utf8_lossy(&data);
-                let content: T = quick_xml::de::from_str(&content).unwrap();
-                Ok(Data {
+                let content: Bytes = response.bytes().await.unwrap().to_owned();
+                Ok(SUCCESS(Data {
                     url,
                     status,
                     headers,
                     content,
-                })
+                }))
             } else {
                 let info = match response.headers().contains_key("x-oss-err") {
                     true => {
@@ -99,10 +100,15 @@ where
                 };
                 let content = String::from_utf8_lossy(&info);
                 let message: Message = quick_xml::de::from_str(&content).unwrap();
-                Err(OssError(message))
+                Ok(FAIL(Data {
+                    url,
+                    status,
+                    headers,
+                    content: message,
+                }))
             }
         }
-        Err(error) => Err(ReqwestError(error)),
+        Err(error) => Err(error),
     }
 }
 

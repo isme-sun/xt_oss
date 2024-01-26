@@ -3,12 +3,13 @@ use crate::oss::Client;
 use builder::ListBucketsBuilder;
 
 pub mod builder {
+    use bytes::Bytes;
     use serde::{Deserialize, Serialize};
     use std::fmt;
 
     use crate::oss::{
         self,
-        api::{self, into_api_result},
+        api::{self, into_api_result, Data},
         entities::bucket::ListAllMyBucketsResult,
         http,
     };
@@ -93,7 +94,7 @@ pub mod builder {
             headers
         }
 
-        pub async fn execute(&self) -> api::Result<ListAllMyBucketsResult> {
+        pub async fn execute(&self) -> api::ApiResult<ListAllMyBucketsResult> {
             let query = self.query();
             let headers = self.headers();
 
@@ -124,7 +125,23 @@ pub mod builder {
                 None => task.execute().await,
             };
 
-            into_api_result(resp).await
+            let result = into_api_result(resp).await?;
+
+            match result {
+                api::ApiResponse::SUCCESS(data) => {
+                    let content = String::from_utf8_lossy(data.content()).to_string();
+                    let content: ListAllMyBucketsResult =
+                        quick_xml::de::from_str(&content).unwrap();
+                    let d = Data {
+                        url: data.url().clone(),
+                        status: data.status.clone(),
+                        headers: data.headers().clone(),
+                        content,
+                    };
+                    Ok(api::ApiResponse::SUCCESS(d))
+                }
+                api::ApiResponse::FAIL(data) => Ok(api::ApiResponse::FAIL(data)),
+            }
         }
     }
 }
@@ -132,10 +149,9 @@ pub mod builder {
 #[allow(non_snake_case)]
 /// 关于Region操作
 impl<'a> Client<'a> {
-
-	  /// ## ex1
-		/// 
-		///```no_run
+    /// ## ex1
+    ///
+    ///```no_run
     /// use xt_oss::oss::api::Error::{OssError, ReqwestError};
     /// use xt_oss::{oss, utils};
     ///
@@ -159,8 +175,8 @@ impl<'a> Client<'a> {
     /// 						OssError(error) => println!("{:#?}", error),
     /// 				},
     /// 		}
-		/// }
-		///```
+    /// }
+    ///```
     pub fn ListBuckets(&self) -> ListBucketsBuilder {
         ListBucketsBuilder::new(self)
     }
