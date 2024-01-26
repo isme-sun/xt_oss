@@ -48,6 +48,9 @@ path = "examples/region/describe_regions.rs"
 name = "api_list_buckets"
 path = "examples/service/api_list_buckets.rs"
 
+[[example]]
+name = "put_bucket_transfer_acceleration"
+path = "examples/buckets/put_bucket_transfer_acceleration.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

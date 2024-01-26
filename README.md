@@ -41,7 +41,7 @@
 
 ### 关于Service/Region
 
-- [★ `ListBuckets（GetService）`](https://www.example.com)
+- [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets)
 <small>调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）</small>
 - [★ `DescribeRegions`](https://www.example.com) 
 <small>调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息</small>

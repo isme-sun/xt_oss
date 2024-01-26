@@ -69,7 +69,7 @@ impl<T> Data<T> {
 
 type Result<T> = std::result::Result<Data<T>, Error>;
 
-pub async fn into_api_result<T>(result: super::Result<Response>) -> Result<T>
+pub(crate) async fn into_api_result<T>(result: super::Result<Response>) -> Result<T>
 where
     T: for<'a> Deserialize<'a>,
 {
@@ -106,5 +106,6 @@ where
     }
 }
 
+pub(crate) mod bucket;
 pub(crate) mod region;
 pub(crate) mod service;
