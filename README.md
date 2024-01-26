@@ -2,119 +2,161 @@
 
 > 参考官方其他SDK实现的阿里云OSS SDK
 
-概要说明 ...
+## 一、简介
 
-☆ 未实现 ★ 已实现
+内容
 
-##### 关于Service/Region操作
+## 二、应用示例
 
-- [X] `ListBuckets（GetService）`  
-- [X] `DescribeRegions`
+ ```rust
+ fn main() {
+     println!("示例说明")
+ }
+  //
+ ```
 
-##### Bucket - 基础操作
+## 三、配置说明
 
-- [X] `PutBucket`
-- [X] `DeleteBucket`
-- [X] `ListObjects`
-- [X] `ListObjectsV2`
-- [X] `GetBucketInfo`
-- [X] `GetBucketLocation`
-- [X] `GetBucketStat`
+ 概要说明 ...
 
-##### Bucket 合规保留策略（WORM）
+ ```rust
+ fn main() {
+     println!("示例说明")
+ }
+ ```
 
-- [X] `InitiateBucketWorm`
-- [X] `AbortBucketWorm`
-- [X] `CompleteBucketWorm`
-- [X] `ExtendBucketWorm`
-- [X] `GetBucketWorm`
+## 四、参数与返回数据
 
-##### Bucket 权限控制（ACL）
+内容
 
-- [X] `PutBucketAcl`
-- [X] `GetBucketAcl`
+ ```rust
+ fn main() {
+     println!("示例说明")
+ }
+ ```
 
-##### Bucket 生命周期（Lifecycle）
+## 四、实现的API
 
-- [X] `PutBucketLifecycle`
-- [X] `GetBucketLifecycle`
-- [X] `DeleteBucketLifecycle`
+简介
 
-##### Bucket 传输加速（TransferAcceleration）
+### 关于Service/Region
 
-- [X] `PutBucketTransferAcceleration`
-- [X] `GetBucketTransferAcceleration`
+- [★ `ListBuckets（GetService）`](https://www.example.com)
+<small>调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）</small>
+- [★ `DescribeRegions`](https://www.example.com) 
+<small>调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息</small>
 
-##### Bucket 版本控制（Versioning）
+### Bucket - 基础操作
 
-- [X] `PutBucketVersioning`
-- [X] `GetBucketVersioning`
-- [ ] `ListObjectVersions（GetBucketVersions）` x
+- [★ `PutBucket`](https://www.example.com)
+<small>调用PutBucket接口创建存储空间（Bucket）</small>
+- [★ `DeleteBucket`](https://www.example.com)
+<small>调用DeleteBucket删除某个存储空间（Bucket）</small>
+- [★ `ListObjects`](https://www.example.com)
+<small>当您需要列举存储空间（Bucket）中所有文件（Object）的信息</small>
+- [★ `ListObjectsV2`](https://www.example.com)
+<small>ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息</small>
+- [★ `GetBucketInfo`](https://www.example.com)
+<small>调用GetBucketInfo接口查看存储空间（Bucket）的相关信息</small>
+- [★ `GetBucketLocation`](https://www.example.com)
+<small>GetBucketLocation接口用于查看存储空间（Bucket）的位置信息</small>
+- [★ `GetBucketStat`](https://www.example.com)
+<small>调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件（Object）数量</small>
 
-##### Bucket 数据复制（Replication）
+### 合规保留策略（WORM）
+
+- [★ `InitiateBucketWorm`](https://www.example.com)
+- [★ `AbortBucketWorm`](https://www.example.com)
+- [★ `CompleteBucketWorm`](https://www.example.com)
+- [★ `ExtendBucketWorm`](https://www.example.com)
+- [★ `GetBucketWorm`](https://www.example.com)
+
+### Bucket 权限控制（ACL）
+
+- [★ `PutBucketAcl`](https://www.example.com)
+- [★ `GetBucketAcl`](https://www.example.com)
+
+### Bucket 生命周期（Lifecycle）
+
+- [★ `PutBucketLifecycle`](https://www.example.com)
+- [★ `GetBucketLifecycle`](https://www.example.com)
+- [★ `DeleteBucketLifecycle`](https://www.example.com)
+
+### Bucket 传输加速（TransferAcceleration）
+
+- [★ `PutBucketTransferAcceleration`](https://www.example.com)
+- [★ `GetBucketTransferAcceleration`](https://www.example.com)
+
+### Bucket 版本控制（Versioning）
+
+- [★ `PutBucketVersioning`](https://www.example.com)
+- [★ `GetBucketVersioning`](https://www.example.com)
+- [☆ `ListObjectVersions（GetBucketVersions ）x`](https://www.example.com)
+
+<!-- **Bucket 数据复制（Replication）**
 
 - [ ] `PutBucketReplication`
 - [ ] `PutBucketRTC`
 - [ ] `GetBucketReplication`
 - [ ] `GetBucketReplicationLocation`
 - [ ] `GetBucketReplicationProgress`
-- [ ] `DeleteBucketReplication`
+- [ ] `DeleteBucketReplication` -->
 
-##### Bucket 授权策略（Policy）
+### Bucket 授权策略（Policy）
 
-- [ ] `PutBucketPolicy` x
-- [ ] `GetBucketPolicy` x
-- [ ] `DeleteBucketPolicy`x
+- [☆ `PutBucketPolicy`](https://www.example.com)
+- [☆ `GetBucketPolicy`](https://www.example.com)
+- [☆ `DeleteBucketPolicy`](https://www.example.com)
 
-##### Bucket 清单（Inventory）
+<!-- ###### Bucket 清单（Inventory）
 
 - [ ] `PutBucketInventory`
 - [ ] `GetBucketInventory`
 - [ ] `ListBucketInventory`
-- [ ] `DeleteBucketInventory`
+- [ ] `DeleteBucketInventory` -->
 
-##### Bucket 日志管理（Logging）
+### Bucket 日志管理（Logging）
 
-- [X] `PutBucketLogging`
-- [X] `GetBucketLogging`
-- [X] `DeleteBucketLogging`
+- [★ `PutBucketLogging`](https://www.example.com)
+- [★ `GetBucketLogging`](https://www.example.com)
+- [★ `DeleteBucketLogging`](https://www.example.com)
 
-##### Bucket 静态网站（Website）
+### Bucket 静态网站（Website）
 
-- [X] `PutBucketWebsite`
-- [X] `GetBucketWebsite`
-- [X] `DeleteBucketWebsite`
+- [★ `PutBucketWebsite`](https://www.example.com)
+- [★ `GetBucketWebsite`](https://www.example.com)
+- [★ `DeleteBucketWebsite`](https://www.example.com)
 
-##### Bucket 防盗链（Referer）
+### Bucket 防盗链（Referer）
 
-- [X] `PutBucketReferer`
-- [X] `GetBucketReferer`
+- [★ `PutBucketReferer`](https://www.example.com)
+- [★ `GetBucketReferer`](https://www.example.com)
 
-##### Bucket 标签（Tags）
+### Bucket 标签（Tags）
 
-- [X] `PutBucketTags`
-- [X] `GetBucketTags`
-- [X] `DeleteBucketTags`
+- [★ `PutBucketTags`](https://www.example.com)
+- [★ `GetBucketTags`](https://www.example.com)
+- [★ `DeleteBucketTags`](https://www.example.com)
 
-##### Bucket 加密（Encryption）
+### Bucket 加密（Encryption）
 
-- [X] `PutBucketEncryption`
-- [X] `GetBucketEncryption`
-- [X] `DeleteBucketEncryption`
+- [★ `PutBucketEncryption`](https://www.example.com)
+- [★ `GetBucketEncryption`](https://www.example.com)
+- [★ `DeleteBucketEncryption`](https://www.example.com)
 
-##### Bucket 请求者付费（RequestPayment）
+### Bucket 请求者付费（RequestPayment）
 
-- [ ] `PutBucketRequestPayment` x
-- [ ] `GetBucketRequestPayment` x
+- [☆ `PutBucketRequestPayment`](https://www.example.com)
+- [☆ `GetBucketRequestPayment`](https://www.example.com)
 
-##### Bucket 跨域资源共享（CORS）
+### Bucket 跨域资源共享（CORS）
 
-- [X] `PutBucketCors`
-- [X] `GetBucketCors`
-- [X] `DeleteBucketCors`
-- [ ] `Options` x
+- [★ `PutBucketCors`](https://www.example.com)
+- [★ `GetBucketCors`](https://www.example.com)
+- [★ `DeleteBucketCors`](https://www.example.com)
+- [★ `Options`](https://www.example.com)
 
-##### Bucket 访问跟踪（AccessMonitor）
+<!-- ##### Bucket 访问跟踪（AccessMonitor）
 
 - [ ] `PutBucketAccessMonitor`
 - [ ] `GetBucketAccessMonitor`
@@ -129,24 +171,24 @@
 ##### Bucket 资源组（Resource Group）
 
 - [ ] `PutBucketResourceGroup`
-- [ ] `GetBucketResourceGroup`
+- [ ] `GetBucketResourceGroup` -->
 
-##### Bucket 自定义域名（CNAME）
+### Bucket 自定义域名（CNAME）
 
-- [X] `CreateCnameToken`
-- [X] `GetCnameToken`
-- [X] `PutCname`
-- [X] `ListCname`
-- [X] `DeleteCname`
+- [★ `CreateCnameToken`](https://www.example.com)
+- [★ `GetCnameToken`](https://www.example.com)
+- [★ `PutCname`](https://www.example.com)
+- [★ `ListCname`](https://www.example.com)
+- [★ `DeleteCname`](https://www.example.com)
 
-##### Bucket 图片样式（Style）
+### Bucket 图片样式（Style）
 
-- [X] `PutStyle`
-- [X] `GetStyle`
-- [X] `ListStyle`
-- [X] `DeleteStyle`
+- [★ `PutStyle`](https://www.example.com)
+- [★ `GetStyle`](https://www.example.com)
+- [★ `ListStyle`](https://www.example.com)
+- [★ `DeleteStyle`](https://www.example.com)
 
-##### Bucket  安全传输层协议（TLS）
+<!-- ##### Bucket  安全传输层协议（TLS）
 
 - [ ] `PutBucketHttpsConfig`
 - [ ] `GetBucketHttpsConfig`
@@ -180,87 +222,60 @@
 - [ ] `PutAccessPointPolicyForObjectProcess`
 - [ ] `GetAccessPointPolicyForObjectProcess`
 - [ ] `DeleteAccessPointPolicyForObjectProcess`
-- [ ] `WriteGetObjectResponse`
+- [ ] `WriteGetObjectResponse` -->
 
-##### Object 基础操作 Stand
+### Object 基础操作 Stand
 
-- [X] `PutObject`
-- [X] `GetObject`
-- [ ] `CopyObject` x
-- [ ] `AppendObject` x
-- [ ] `DeleteObject` x
-- [ ] `DeleteMultipleObjects` x
-- [X] `HeadObject`
-- [X] `GetObjectMeta`
-- [ ] `PostObject`
-- [ ] `Callback`
-- [ ] `RestoreObject` x
-- [ ] `SelectObject`
+- [☆ `PutObject`](https://www.example.com)
+- [☆ `GetObject`](https://www.example.com)
+- [☆ `CopyObject`](https://www.example.com)
+- [☆ `AppendObject`](https://www.example.com)
+- [☆ `DeleteObject`](https://www.example.com)
+- [☆ `DeleteMultipleObjects`](https://www.example.com)
+- [☆ `HeadObject`](https://www.example.com)
+- [☆ `GetObjectMeta`](https://www.example.com)
+- [☆ `PostObject`](https://www.example.com)
+- [☆ `Callback`](https://www.example.com)
+- [☆ `RestoreObject`](https://www.example.com)
+- [☆ `SelectObject`](https://www.example.com)
 
-##### Object 分片上传（MultipartUpload）
+### Object 分片上传（MultipartUpload）
 
-- [ ] `InitiateMultipartUpload` x
-- [ ] `UploadPart` x
-- [ ] `UploadPartCopy` x
-- [ ] `CompleteMultipartUpload` x
-- [ ] `AbortMultipartUpload` x
-- [ ] `ListMultipartUploads` x
-- [ ] `ListParts` x
+- [☆ `InitiateMultipartUpload`](https://www.example.com)
+- [☆ `UploadPart`](https://www.example.com)
+- [☆ `UploadPartCopy`](https://www.example.com)
+- [☆ `CompleteMultipartUpload`](https://www.example.com)
+- [☆ `AbortMultipartUpload`](https://www.example.com)
+- [☆ `ListMultipartUploads`](https://www.example.com)
+- [☆ `ListParts`](https://www.example.com)
 
-##### Object 权限控制（ACL)
+### Object 权限控制（ACL)
 
-- [X] `PutObjectACL`
-- [X] `GetObjectACL`
+- [★ `PutObjectACL`](https://www.example.com)
+- [★ `GetObjectACL`](https://www.example.com)
 
-##### Object 软链接（Symlink）
+### Object 软链接（Symlink）
 
-- [X] `PutSymlink`
-- [X] `GetSymlink`
+- [★ `PutSymlink`](https://www.example.com)
+- [★ `GetSymlink`](https://www.example.com)
 
-##### Object 标签（Tagging）
+### Object 标签（Tagging）
 
-- [X] `PutObjectTagging`
-- [X] `GetObjectTagging`
-- [X] `DeleteObjectTagging`
+- [★ `PutObjectTagging`](https://www.example.com)
+- [★ `GetObjectTagging`](https://www.example.com)
+- [★ `DeleteObjectTagging`](https://www.example.com)
 
-##### 关于LiveChannel的操作
+### 关于LiveChannel的操作
 
-- [ ] `PutLiveChannel` x
-- [ ] `ListLiveChannel` x
-- [ ] `DeleteLiveChannel` x
-- [ ] `PutLiveChannelStatus` x
-- [ ] `GetLiveChannelInfo` x
-- [ ] `GetLiveChannelStat` x
-- [ ] `GetLiveChannelHistory` x
-- [ ] `PostVodPlaylist` x
-- [ ] `GetVodPlaylist` x
-
- ```rust
- fn main() {
-     println!("示例说明")
- }
-  //
- ```
-
-## 配置说明
-
- 概要说明 ...
-
- ```rust
- fn main() {
-     println!("示例说明")
- }
- ```
-
-## 参数与返回数据
-
- 概要说明 ...
-
- ```rust
- fn main() {
-     println!("示例说明")
- }
- ```
+- [☆ `PutLiveChannel`](https://www.example.com)
+- [☆ `ListLiveChannel`](https://www.example.com)
+- [☆ `DeleteLiveChannel`](https://www.example.com)
+- [☆ `PutLiveChannelStatus`](https://www.example.com)
+- [☆ `GetLiveChannelInfo`](https://www.example.com)
+- [☆ `GetLiveChannelStat`](https://www.example.com)
+- [☆ `GetLiveChannelHistory`](https://www.example.com)
+- [☆ `PostVodPlaylist`](https://www.example.com)
+- [☆ `GetVodPlaylist`](https://www.example.com)
 
 ## 关于oss::Request
 
@@ -433,3 +448,5 @@ async fn main() {
 
 
 ```
+
+## 五、其他
