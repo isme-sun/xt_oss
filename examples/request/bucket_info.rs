@@ -1,5 +1,6 @@
 use std::env;
-use xt_oss::oss::{http, Request};
+use reqwest::Response;
+use xt_oss::oss::{self, http, Request};
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
@@ -21,7 +22,7 @@ async fn main() {
 
     match resp {
         Ok(resp) => {
-            let bytes = resp.bytes().await.unwrap();
+            let bytes: oss::Bytes = resp.bytes().await.unwrap();
             let content = String::from_utf8_lossy(&bytes);
             println!("{}", content);
         }

@@ -19,7 +19,7 @@ pub mod http {
 // entity defined
 pub mod entities;
 // api impl
-// pub(crate) mod api;
+pub mod api;
 
 // core
 use super::oss::{

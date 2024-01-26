@@ -3,10 +3,11 @@ use crate::oss::Client;
 use self::builder::DescribeRegionsBuilder;
 
 pub mod builder {
+
     use crate::oss::{
         self,
-        entities::region::{RegionInfo, RegionInfoList},
-        http,
+        api::{self, into_api_result},
+        entities::region::RegionInfoList,
     };
 
     pub struct DescribeRegionsBuilder<'a> {
@@ -34,7 +35,7 @@ pub mod builder {
             self
         }
 
-        pub async fn execute(&self) -> oss::Result<Vec<RegionInfo>> {
+        pub async fn execute(&self) -> api::Result<RegionInfoList> {
             let base_url = format!(
                 "{}://{}.{}",
                 self.client.options.schema(),
@@ -47,26 +48,14 @@ pub mod builder {
                 None => format!("{}/?regions", base_url),
             };
 
-            let timeout = self.timeout.unwrap_or(self.client.options.timeout);
-            let resp = self
-                .client
-                .request
-                .task()
-                .with_url(&url)
-                .with_method(http::Method::GET)
-                .with_resource("/")
-                .with_timeout(timeout)
-                .execute()
-                .await?;
+            let task = self.client.request.task().with_url(&url).with_resource("/");
 
-            let body = String::from_utf8_lossy(&resp.body);
-            let regoins: RegionInfoList = quick_xml::de::from_str(&body).unwrap();
-            let result = oss::Data {
-                status: resp.status,
-                headers: resp.headers,
-                body: regoins.region_info,
+            let resp = match self.timeout {
+                Some(timeout) => task.execute_timeout(timeout).await,
+                None => task.execute().await,
             };
-            Ok(result)
+
+            into_api_result(resp).await
         }
     }
 }

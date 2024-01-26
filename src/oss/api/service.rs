@@ -8,6 +8,7 @@ pub mod builder {
 
     use crate::oss::{
         self,
+        api::{self, into_api_result},
         entities::bucket::ListAllMyBucketsResult,
         http,
     };
@@ -92,7 +93,7 @@ pub mod builder {
             headers
         }
 
-        pub async fn execute(&self) -> oss::Result<ListAllMyBucketsResult> {
+        pub async fn execute(&self) -> api::Result<ListAllMyBucketsResult> {
             let query = self.query();
             let headers = self.headers();
 
@@ -104,12 +105,10 @@ pub mod builder {
                 url
             };
 
-            let timeout = self.timeout.unwrap_or(self.client.options.timeout);
             let task = self
                 .client
                 .request
                 .task()
-                .with_timeout(timeout)
                 .with_method(http::Method::GET)
                 .with_url(&url)
                 .with_resource("/");
@@ -120,14 +119,12 @@ pub mod builder {
                 task
             };
 
-            let resp = task.execute().await?;
-            let body = String::from_utf8_lossy(&resp.body);
-            let body = quick_xml::de::from_str(&body).unwrap();
-            Ok(oss::Data {
-                status: resp.status,
-                headers: resp.headers,
-                body
-            })
+            let resp = match self.timeout {
+                Some(timeout) => task.execute_timeout(timeout).await,
+                None => task.execute().await,
+            };
+
+            into_api_result(resp).await
         }
     }
 }
