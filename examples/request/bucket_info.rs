@@ -1,5 +1,4 @@
 use std::env;
-use reqwest::Response;
 use xt_oss::oss::{self, http, Request};
 #[tokio::main]
 async fn main() {
