@@ -25,5 +25,5 @@
 
 #[tokio::main]
 async fn main() {
-    println!("hello world");
+  println!("hello world");
 }

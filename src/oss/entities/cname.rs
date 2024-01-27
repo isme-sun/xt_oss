@@ -3,153 +3,153 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ListCnameResult {
-    #[serde(rename = "Bucket")]
-    pub bucket: String,
-    #[serde(rename = "Owner")]
-    pub owner: String,
-    #[serde(rename = "Cname")]
-    pub cname: Option<Vec<Cname>>,
+  #[serde(rename = "Bucket")]
+  pub bucket: String,
+  #[serde(rename = "Owner")]
+  pub owner: String,
+  #[serde(rename = "Cname")]
+  pub cname: Option<Vec<Cname>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Certificate {
-    #[serde(rename = "Type")]
-    pub r#type: String,
-    #[serde(rename = "CertId")]
-    pub cert_id: String,
-    #[serde(rename = "Status")]
-    pub status: String,
-    #[serde(rename = "CreationDate")]
-    pub creation_date: String,
-    #[serde(rename = "Fingerprint")]
-    pub fingerprint: String,
-    #[serde(rename = "ValidStartDate")]
-    pub valid_start_date: String,
-    #[serde(rename = "ValidEndDate")]
-    pub valid_end_date: String,
+  #[serde(rename = "Type")]
+  pub r#type: String,
+  #[serde(rename = "CertId")]
+  pub cert_id: String,
+  #[serde(rename = "Status")]
+  pub status: String,
+  #[serde(rename = "CreationDate")]
+  pub creation_date: String,
+  #[serde(rename = "Fingerprint")]
+  pub fingerprint: String,
+  #[serde(rename = "ValidStartDate")]
+  pub valid_start_date: String,
+  #[serde(rename = "ValidEndDate")]
+  pub valid_end_date: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Cname {
-    #[serde(rename = "Domain")]
-    pub domain: String,
-    #[serde(
-        rename = "LastModified",
-        with = "super::private::serde_date::utc_option",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub last_modified: Option<DateTime<Utc>>,
-    #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
-    #[serde(rename = "IsPurgeCdnCache", skip_serializing_if = "Option::is_none")]
-    pub is_purge_cdn_cache: Option<bool>,
-    #[serde(rename = "Certificate", skip_serializing_if = "Option::is_none")]
-    pub certificate: Option<Certificate>,
-    #[serde(
-        rename = "CertificateConfiguration",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub certificate_configuration: Option<CertificateConfiguration>,
+  #[serde(rename = "Domain")]
+  pub domain: String,
+  #[serde(
+    rename = "LastModified",
+    with = "super::private::serde_date::utc_option",
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub last_modified: Option<DateTime<Utc>>,
+  #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
+  pub status: Option<String>,
+  #[serde(rename = "IsPurgeCdnCache", skip_serializing_if = "Option::is_none")]
+  pub is_purge_cdn_cache: Option<bool>,
+  #[serde(rename = "Certificate", skip_serializing_if = "Option::is_none")]
+  pub certificate: Option<Certificate>,
+  #[serde(
+    rename = "CertificateConfiguration",
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub certificate_configuration: Option<CertificateConfiguration>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct CnameToken {
-    #[serde(rename = "Bucket")]
-    pub bucket: String,
-    #[serde(rename = "Cname")]
-    pub cname: String,
-    #[serde(rename = "Token")]
-    pub token: String,
-    #[serde(rename = "ExpireTime")]
-    pub expire_time: String,
+  #[serde(rename = "Bucket")]
+  pub bucket: String,
+  #[serde(rename = "Cname")]
+  pub cname: String,
+  #[serde(rename = "Token")]
+  pub token: String,
+  #[serde(rename = "ExpireTime")]
+  pub expire_time: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BucketCnameConfiguration {
-    #[serde(rename = "Cname")]
-    pub cname: Cname,
+  #[serde(rename = "Cname")]
+  pub cname: Cname,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct CertificateConfiguration {
-    #[serde(rename = "CertId")]
-    pub cert_id: String,
-    #[serde(rename = "Certificate")]
-    pub certificate: String,
-    #[serde(rename = "PrivateKey")]
-    pub private_key: String,
-    #[serde(rename = "PreviousCertId")]
-    pub previous_cert_id: String,
-    #[serde(rename = "Force")]
-    pub force: bool,
-    #[serde(rename = "DeleteCertificate")]
-    pub delete_certificate: bool,
+  #[serde(rename = "CertId")]
+  pub cert_id: String,
+  #[serde(rename = "Certificate")]
+  pub certificate: String,
+  #[serde(rename = "PrivateKey")]
+  pub private_key: String,
+  #[serde(rename = "PreviousCertId")]
+  pub previous_cert_id: String,
+  #[serde(rename = "Force")]
+  pub force: bool,
+  #[serde(rename = "DeleteCertificate")]
+  pub delete_certificate: bool,
 }
 
 pub mod builder {
 
-    use super::BucketCnameConfiguration;
+  use super::BucketCnameConfiguration;
 
-    #[derive(Debug, Default)]
-    pub struct BucketCnameConfigurationBuilder {
-        pub bucket_cname_configuration: BucketCnameConfiguration,
+  #[derive(Debug, Default)]
+  pub struct BucketCnameConfigurationBuilder {
+    pub bucket_cname_configuration: BucketCnameConfiguration,
+  }
+
+  impl BucketCnameConfigurationBuilder {
+    pub fn new() -> Self {
+      BucketCnameConfigurationBuilder {
+        bucket_cname_configuration: BucketCnameConfiguration::default(),
+      }
     }
 
-    impl BucketCnameConfigurationBuilder {
-        pub fn new() -> Self {
-            BucketCnameConfigurationBuilder {
-                bucket_cname_configuration: BucketCnameConfiguration::default(),
-            }
-        }
-
-        pub fn with_domain(mut self, value: &str) -> Self {
-            self.bucket_cname_configuration.cname.domain = value.to_string();
-            self
-        }
-
-        // pub fn with_cert_id(mut self, value: &str) -> Self {
-        //     let certificate =
-        //         if let Some(mut certificate) = self.bucket_cname_configuration.cname.certificate {
-        //             certificate.cert_id = value.to_string();
-        //             certificate
-        //         } else {
-        //             let mut certificate = super::Certificate::default();
-        //             certificate.cert_id = value.to_string();
-        //             certificate
-        //         };
-        //     self.bucket_cname_configuration.cname.certificate = Some(certificate);
-        //     self
-        // }
-
-        pub fn config(&self) -> String {
-            quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
-        }
+    pub fn with_domain(mut self, value: &str) -> Self {
+      self.bucket_cname_configuration.cname.domain = value.to_string();
+      self
     }
+
+    // pub fn with_cert_id(mut self, value: &str) -> Self {
+    //     let certificate =
+    //         if let Some(mut certificate) = self.bucket_cname_configuration.cname.certificate {
+    //             certificate.cert_id = value.to_string();
+    //             certificate
+    //         } else {
+    //             let mut certificate = super::Certificate::default();
+    //             certificate.cert_id = value.to_string();
+    //             certificate
+    //         };
+    //     self.bucket_cname_configuration.cname.certificate = Some(certificate);
+    //     self
+    // }
+
+    pub fn config(&self) -> String {
+      quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
+    }
+  }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::builder::BucketCnameConfigurationBuilder;
-    use crate::oss::entities::cname::{CnameToken, ListCnameResult};
+  use super::builder::BucketCnameConfigurationBuilder;
+  use crate::oss::entities::cname::{CnameToken, ListCnameResult};
 
-    #[test]
-    fn cname_token() {
-        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+  #[test]
+  fn cname_token() {
+    let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
 <CnameToken>
 	<Bucket>examplebucket</Bucket>
 	<Cname>example.com</Cname>;
 	<Token>be1d49d863dea9ffeff3df7d6455****</Token>
 	<ExpireTime>Wed, 23 Feb 2022 21:16:37 GMT</ExpireTime>
 </CnameToken>"#;
-        let obj = quick_xml::de::from_str::<CnameToken>(xml).unwrap();
-        let left = "Wed, 23 Feb 2022 21:16:37 GMT";
-        let right = obj.expire_time;
-        assert_eq!(left, right);
-    }
+    let obj = quick_xml::de::from_str::<CnameToken>(xml).unwrap();
+    let left = "Wed, 23 Feb 2022 21:16:37 GMT";
+    let right = obj.expire_time;
+    assert_eq!(left, right);
+  }
 
-    #[test]
-    fn list_cname_result() {
-        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+  #[test]
+  fn list_cname_result() {
+    let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
 <ListCnameResult>
 	<Bucket>targetbucket</Bucket>
 	<Owner>testowner</Owner>
@@ -178,18 +178,18 @@ mod tests {
 		<Status>Enabled</Status>
 	</Cname>
 </ListCnameResult>"#;
-        let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
+    let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
 
-        println!("{:#?}", obj);
+    println!("{:#?}", obj);
 
-        let cname = obj.cname.unwrap()[0].clone();
-        let cert = cname.certificate.unwrap();
-        assert_eq!("CAS", cert.r#type);
-    }
+    let cname = obj.cname.unwrap()[0].clone();
+    let cert = cname.certificate.unwrap();
+    assert_eq!("CAS", cert.r#type);
+  }
 
-    #[test]
-    fn list_cname_result2() {
-        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+  #[test]
+  fn list_cname_result2() {
+    let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
 			<ListCnameResult>
 			<Bucket>xuetube-dev</Bucket>
 			<Owner>1508492296054765</Owner>
@@ -209,16 +209,15 @@ mod tests {
 				</Certificate>
 			</Cname>
 		</ListCnameResult>"#;
-        let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
+    let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
 
-        println!("{:#?}", obj);
-    }
+    println!("{:#?}", obj);
+  }
 
-    #[test]
-    fn bucket_cname_configuration_builder() {
-        let builder =
-            BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
+  #[test]
+  fn bucket_cname_configuration_builder() {
+    let builder = BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
 
-        print!("{}", builder.config());
-    }
+    print!("{}", builder.config());
+  }
 }
