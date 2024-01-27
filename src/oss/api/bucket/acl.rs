@@ -1,6 +1,10 @@
-use crate::oss::{self, entities::acl::AccessControlPolicy};
+use crate::oss::{
+  self,
+  api::{self, ApiResultFrom},
+  entities::acl::AccessControlPolicy,
+  http,
+};
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct PutBucketAclBuilder<'a> {
   client: &'a oss::Client<'a>,
@@ -21,39 +25,52 @@ impl<'a> PutBucketAclBuilder<'a> {
     self
   }
 
-  pub async fn send(&self) -> oss::Result<()> {
+  pub async fn execute(&self) -> api::ApiResult<()> {
     let bucket = self.client.options.bucket;
-    let res = "acl";
-    let url = {
-      format!(
-        "{}://{}.{}/?{}",
-        self.client.options.schema(),
-        bucket,
-        self.client.options.host(),
-        res
-      )
-    };
+    let url = { format!("{}/?{}", self.client.options.base_url(), "acl") };
+    let res = format!("/{}/?{}", bucket, "acl");
 
-    let mut headers = oss::header::HeaderMap::new();
+    let mut headers = http::HeaderMap::new();
     headers.insert("x-oss-acl", self.acl.to_string().parse().unwrap());
 
     let resp = self
       .client
       .request
       .task()
-      .method(oss::Method::PUT)
-      .headers(headers)
-      .url(&url)
-      .resourse(res)
-      .send()
-      .await?;
+      .with_url(&url)
+      .with_method(http::Method::PUT)
+      .with_headers(headers)
+      .with_resource(&res)
+      .execute_timeout(self.client.options.timeout)
+      .await;
 
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-    Ok(result)
+    ApiResultFrom(resp).to_empty().await
+  }
+}
+
+pub struct GetBucketAclBuilder<'a> {
+  client: &'a oss::Client<'a>,
+}
+
+impl<'a> GetBucketAclBuilder<'a> {
+  pub(crate) fn new(client: &'a oss::Client) -> Self {
+    Self { client }
+  }
+
+  pub async fn execute(&self) -> api::ApiResult<AccessControlPolicy> {
+    let url = format!("{}/?{}", self.client.options.base_url(), "acl");
+    let res = format!("/{}/?{}", self.client.options.bucket, "acl");
+
+    let resp = self
+      .client
+      .request
+      .task()
+      .with_url(&url)
+      .with_resource(&res)
+      .execute_timeout(self.client.options.timeout)
+      .await;
+
+    ApiResultFrom(resp).to_type().await
   }
 }
 
@@ -65,29 +82,7 @@ impl<'a> oss::Client<'a> {
   }
 
   /// GetBucketAcl接口用于获取某个存储空间（Bucket）的访问权限（ACL）。只有Bucket的拥有者才能获取Bucket的访问权限。
-  pub async fn GetBucketAcl(&self) -> oss::Result<AccessControlPolicy> {
-    let res = "acl";
-    let url = {
-      let base_url = self.options.base_url();
-      format!("{base_url}?{res}")
-    };
-
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .resourse(res)
-      .send()
-      .await
-      .unwrap();
-
-    let content = String::from_utf8_lossy(&resp.data);
-    let cnames = quick_xml::de::from_str(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: cnames,
-    };
-    Ok(result)
+  pub async fn GetBucketAcl(&self) -> GetBucketAclBuilder {
+    GetBucketAclBuilder::new(&self)
   }
 }

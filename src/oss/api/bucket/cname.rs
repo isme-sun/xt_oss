@@ -5,6 +5,10 @@ use crate::oss::{
   },
 };
 
+pub mod builder {
+
+}
+
 #[allow(unused)]
 pub struct PutCnameBuilder<'a> {
   client: &'a oss::Client<'a>,
