@@ -79,8 +79,10 @@ pub enum ResponseKind<T> {
     FAIL(ApiData<Message>),
 }
 
+type ApiResponse<T> = Result<ApiData<T>, ApiData<Message>>;
+
 // api 返回体， 包含请求错误， 和api返回数据
-type ApiResult<T> = Result<ResponseKind<T>, reqwest::Error>;
+type ApiResult<T> = Result<ApiResponse<T>, reqwest::Error>;
 
 pub(crate) struct ApiResultFrom(Result<reqwest::Response, reqwest::Error>);
 
@@ -132,7 +134,7 @@ impl ApiResultFrom {
             let content = resp.bytes().await.unwrap();
             let content = String::from_utf8_lossy(&content);
             let content: T = quick_xml::de::from_str(&content).unwrap();
-            Ok(ResponseKind::SUCCESS(ApiData {
+            Ok(Ok(ApiData {
                 url,
                 status,
                 headers,
@@ -140,7 +142,7 @@ impl ApiResultFrom {
             }))
         } else {
             let data_fail_message = Self::fail_message(resp).await;
-            Ok(ResponseKind::FAIL(data_fail_message))
+            Ok(Err(data_fail_message))
         }
     }
 
@@ -148,17 +150,17 @@ impl ApiResultFrom {
         let resp = self.0?;
         if resp.status().is_success() {
             let data = Self::bytes_data(resp).await;
-            Ok(ResponseKind::SUCCESS(data))
+            Ok(Ok(data))
         } else {
             let data_fail_message = Self::fail_message(resp).await;
-            Ok(ResponseKind::FAIL(data_fail_message))
+            Ok(Err(data_fail_message))
         }
     }
 
     pub(crate) async fn to_empty(self) -> ApiResult<()> {
         let resp = self.0?;
         if resp.status().is_success() {
-            Ok(ResponseKind::SUCCESS(ApiData {
+            Ok(Ok(ApiData {
                 url: resp.url().clone(),
                 status: resp.status().clone(),
                 headers: resp.headers().clone(),
@@ -166,7 +168,7 @@ impl ApiResultFrom {
             }))
         } else {
             let data_fail_message = Self::fail_message(resp).await;
-            Ok(ResponseKind::FAIL(data_fail_message))
+            Ok(Err(data_fail_message))
         }
     }
 }

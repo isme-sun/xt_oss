@@ -95,11 +95,6 @@ pub mod builder {
             headers
         }
 
-        /// Returns the execute of this [`ListBucketsBuilder`].
-        ///
-        /// # Errors
-        ///
-        /// This function will return an error if .
         pub async fn execute(&self) -> api::ApiResult<ListAllMyBucketsResult> {
             let query = self.query();
             let headers = self.headers();
@@ -120,10 +115,9 @@ pub mod builder {
                 .with_url(&url)
                 .with_resource("/");
 
-            let task = if !headers.is_empty() {
-                task.with_headers(headers)
-            } else {
-                task
+            let task = match headers.is_empty() {
+                true => task.with_headers(headers),
+                false => task,
             };
 
             let resp = match self.timeout {
