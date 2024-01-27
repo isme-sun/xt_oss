@@ -1,9 +1,8 @@
 use super::{
     http::{HeaderMap, StatusCode, Url},
-    Bytes, Result,
+    Bytes, Response,
 };
 use base64::{engine::general_purpose, Engine as _};
-use reqwest::{Error, Response};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -38,18 +37,16 @@ impl fmt::Display for Message {
 }
 
 #[derive(Debug)]
-pub struct Data<T> {
+// api 返回数据， 可能正确也可能错误
+pub struct ApiData<T> {
     url: Url,
     status: StatusCode,
     headers: HeaderMap,
     content: T,
 }
 
-impl<T> Data<T> {
-    pub fn request_id(&self) -> String {
-        "".to_string()
-    }
-
+#[allow(unused)]
+impl<T> ApiData<T> {
     pub fn url(&self) -> &Url {
         &self.url
     }
@@ -62,53 +59,115 @@ impl<T> Data<T> {
         &self.headers
     }
 
-    pub fn content(&self) -> &T {
-        &self.content
+    pub fn content(self) -> T {
+        self.content
+    }
+
+    pub fn version_id(&self) -> String {
+        self.headers
+            .get("ok")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 }
 
-pub enum ApiResponse<T> {
-    SUCCESS(Data<T>),
-    FAIL(Data<Message>),
+#[derive(Debug)]
+pub enum ResponseKind<T> {
+    SUCCESS(ApiData<T>),
+    FAIL(ApiData<Message>),
 }
 
-#[allow(unused)]
-type ApiResult<T> = std::result::Result<ApiResponse<T>, Error>;
+// api 返回体， 包含请求错误， 和api返回数据
+type ApiResult<T> = Result<ResponseKind<T>, reqwest::Error>;
 
-pub(crate) async fn into_api_result(result: Result<Response>) -> ApiResult<Bytes> {
-    use ApiResponse::{FAIL, SUCCESS};
-    match result {
-        Ok(response) => {
-            let url = response.url().to_owned();
-            let status = response.status();
-            let headers = response.headers().to_owned();
-            if response.status().is_success() {
-                let content: Bytes = response.bytes().await.unwrap().to_owned();
-                Ok(SUCCESS(Data {
-                    url,
-                    status,
-                    headers,
-                    content,
-                }))
-            } else {
-                let info = match response.headers().contains_key("x-oss-err") {
-                    true => {
-                        let info = response.headers().get("x-oss-err").unwrap();
-                        general_purpose::STANDARD.decode(info).unwrap().to_vec()
-                    }
-                    false => response.bytes().await.unwrap().to_vec(),
-                };
-                let content = String::from_utf8_lossy(&info);
-                let message: Message = quick_xml::de::from_str(&content).unwrap();
-                Ok(FAIL(Data {
-                    url,
-                    status,
-                    headers,
-                    content: message,
-                }))
+pub(crate) struct ApiResultFrom(Result<reqwest::Response, reqwest::Error>);
+
+#[allow(unused)]
+impl ApiResultFrom {
+    pub(crate) async fn fail_message(resp: Response) -> ApiData<Message> {
+        let url = resp.url().clone();
+        let status = resp.status().clone();
+        let headers = resp.headers().clone();
+        let info = match resp.headers().contains_key("x-oss-err") {
+            true => {
+                let info = resp.headers().get("x-oss-err").unwrap();
+                general_purpose::STANDARD.decode(info).unwrap().to_vec()
             }
+            false => resp.bytes().await.unwrap().to_vec(),
+        };
+        let content = String::from_utf8_lossy(&info);
+        let content: Message = quick_xml::de::from_str(&content).unwrap();
+        ApiData {
+            url,
+            status,
+            headers,
+            content,
         }
-        Err(error) => Err(error),
+    }
+
+    pub(crate) async fn bytes_data(resp: Response) -> ApiData<Bytes> {
+        let url = resp.url().clone();
+        let status = resp.status().clone();
+        let headers = resp.headers().clone();
+        let content = resp.bytes().await.unwrap();
+        ApiData {
+            url,
+            status,
+            headers,
+            content,
+        }
+    }
+
+    pub(crate) async fn to_type<T>(self) -> ApiResult<T>
+    where
+        T: for<'a> Deserialize<'a>,
+    {
+        let resp = self.0?;
+        if resp.status().is_success() {
+            let url = resp.url().clone();
+            let status = resp.status().clone();
+            let headers = resp.headers().clone();
+            let content = resp.bytes().await.unwrap();
+            let content = String::from_utf8_lossy(&content);
+            let content: T = quick_xml::de::from_str(&content).unwrap();
+            Ok(ResponseKind::SUCCESS(ApiData {
+                url,
+                status,
+                headers,
+                content,
+            }))
+        } else {
+            let data_fail_message = Self::fail_message(resp).await;
+            Ok(ResponseKind::FAIL(data_fail_message))
+        }
+    }
+
+    pub(crate) async fn to_bytes(self) -> ApiResult<Bytes> {
+        let resp = self.0?;
+        if resp.status().is_success() {
+            let data = Self::bytes_data(resp).await;
+            Ok(ResponseKind::SUCCESS(data))
+        } else {
+            let data_fail_message = Self::fail_message(resp).await;
+            Ok(ResponseKind::FAIL(data_fail_message))
+        }
+    }
+
+    pub(crate) async fn to_empty(self) -> ApiResult<()> {
+        let resp = self.0?;
+        if resp.status().is_success() {
+            Ok(ResponseKind::SUCCESS(ApiData {
+                url: resp.url().clone(),
+                status: resp.status().clone(),
+                headers: resp.headers().clone(),
+                content: (),
+            }))
+        } else {
+            let data_fail_message = Self::fail_message(resp).await;
+            Ok(ResponseKind::FAIL(data_fail_message))
+        }
     }
 }
 

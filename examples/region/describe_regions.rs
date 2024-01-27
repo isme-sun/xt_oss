@@ -1,31 +1,32 @@
-// use xt_oss::oss::api::Error::{OssError, ReqwestError};
-// use xt_oss::{oss, utils};
+use std::process;
 
-// #[tokio::main]
-// async fn main() {
-//     dotenv::dotenv().ok();
-//     let options = utils::options_from_env();
-//     let client = oss::Client::new(options);
-//     let resp = client
-//         .DescribeRegions()
-//         // .with_region("oss-sn-shanghai")
-//         .with_timeout(30)
-//         .execute()
-//         .await;
-
-//     match resp {
-//         Ok(data) => {
-//             println!("{}", serde_json::to_string_pretty(data.content()).unwrap());
-//         }
-//         Err(error) => match error {
-//             ReqwestError(error) => println!("{}", error),
-//             OssError(error) => println!("{:#?}", error),
-//         },
-//     }
-//     // println!("{:#?}", resp);
-// }
+use xt_oss::oss::api;
+use xt_oss::{oss, utils};
 
 #[tokio::main]
 async fn main() {
-    println!("hello world");
+    dotenv::dotenv().ok();
+    let options = utils::options_from_env();
+    let client = oss::Client::new(options);
+    let resp = client
+        .DescribeRegions()
+        // .with_region("oss-sn-shanghai")
+        .with_timeout(30)
+        .execute()
+        .await;
+
+    let result = resp.unwrap_or_else(|error| {
+        println!("request error:{}", error);
+        process::exit(-1);
+    });
+
+    let data = if let api::ResponseKind::SUCCESS(result) = result {
+        result
+    } else {
+        println!("oss error!");
+        println!("{:#?}", result);
+        process::exit(-1);
+    };
+    let data = data.content();
+    println!("{}", serde_json::to_string_pretty(&data).unwrap());
 }

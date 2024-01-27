@@ -10,7 +10,7 @@ pub mod builder {
 
     use crate::oss::{
         self,
-        api::{self, into_api_result, Data},
+        api::{self, ApiResultFrom},
         entities::bucket::ListAllMyBucketsResult,
         http,
     };
@@ -95,6 +95,11 @@ pub mod builder {
             headers
         }
 
+        /// Returns the execute of this [`ListBucketsBuilder`].
+        ///
+        /// # Errors
+        ///
+        /// This function will return an error if .
         pub async fn execute(&self) -> api::ApiResult<ListAllMyBucketsResult> {
             let query = self.query();
             let headers = self.headers();
@@ -126,23 +131,7 @@ pub mod builder {
                 None => task.execute().await,
             };
 
-            let result = into_api_result(resp).await?;
-
-            match result {
-                api::ApiResponse::SUCCESS(data) => {
-                    let content = String::from_utf8_lossy(data.content()).to_string();
-                    let content: ListAllMyBucketsResult =
-                        quick_xml::de::from_str(&content).unwrap();
-                    let d = Data {
-                        url: data.url().clone(),
-                        status: data.status.clone(),
-                        headers: data.headers().clone(),
-                        content,
-                    };
-                    Ok(api::ApiResponse::SUCCESS(d))
-                }
-                api::ApiResponse::FAIL(data) => Ok(api::ApiResponse::FAIL(data)),
-            }
+            ApiResultFrom(resp).to_type().await
         }
     }
 }

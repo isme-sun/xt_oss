@@ -3,14 +3,9 @@ use crate::oss::Client;
 use self::builder::DescribeRegionsBuilder;
 
 pub mod builder {
-
-    #[allow(unused)]
-    use bytes::Bytes;
-
-    #[allow(unused)]
     use crate::oss::{
         self,
-        api::{self, into_api_result, Data},
+        api::{self, ApiResultFrom},
         entities::region::RegionInfoList,
     };
 
@@ -59,19 +54,7 @@ pub mod builder {
                 None => task.execute().await,
             };
 
-            let _result = into_api_result(resp).await;
-            // let result = if let Ok(api::ApiResponse::SUCCESS(data)) = result {
-            //     let content = String::from_utf8_lossy(&data.content());
-            //     let content: RegionInfoList = quick_xml::de::from_str(&content).unwrap();
-            //     let target = Data {
-            //         url: data.url().clone(),
-            //         status: data.status().clone(),
-            //         headers: data.headers().clone(),
-            //         content
-            //     };
-            //     Ok(api::ApiResponse::SUCCESS(target))
-            // };
-            todo!()
+            ApiResultFrom(resp).to_type().await
         }
     }
 }
