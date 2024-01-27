@@ -3,6 +3,7 @@ use crate::oss::Client;
 use builder::ListBucketsBuilder;
 
 pub mod builder {
+    #[allow(unused)]
     use bytes::Bytes;
     use serde::{Deserialize, Serialize};
     use std::fmt;

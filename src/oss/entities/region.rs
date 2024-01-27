@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 /// OSS 区域信息
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -16,4 +17,11 @@ pub struct RegionInfo {
 pub struct RegionInfoList {
     #[serde(rename = "RegionInfo")]
     pub region_info: Vec<RegionInfo>,
+}
+
+impl From<Bytes> for RegionInfoList {
+    fn from(item: Bytes) -> Self {
+        let content = String::from_utf8_lossy(&item);
+        quick_xml::de::from_str(&content).unwrap()
+    }
 }

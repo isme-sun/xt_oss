@@ -4,11 +4,13 @@ use self::builder::DescribeRegionsBuilder;
 
 pub mod builder {
 
+    #[allow(unused)]
     use bytes::Bytes;
 
+    #[allow(unused)]
     use crate::oss::{
         self,
-        api::{self, into_api_result},
+        api::{self, into_api_result, Data},
         entities::region::RegionInfoList,
     };
 
@@ -37,7 +39,7 @@ pub mod builder {
             self
         }
 
-        pub async fn execute(&self) -> api::ApiResult<Bytes> {
+        pub async fn execute(&self) -> api::ApiResult<RegionInfoList> {
             let base_url = format!(
                 "{}://{}.{}",
                 self.client.options.schema(),
@@ -57,7 +59,19 @@ pub mod builder {
                 None => task.execute().await,
             };
 
-            into_api_result(resp).await
+            let _result = into_api_result(resp).await;
+            // let result = if let Ok(api::ApiResponse::SUCCESS(data)) = result {
+            //     let content = String::from_utf8_lossy(&data.content());
+            //     let content: RegionInfoList = quick_xml::de::from_str(&content).unwrap();
+            //     let target = Data {
+            //         url: data.url().clone(),
+            //         status: data.status().clone(),
+            //         headers: data.headers().clone(),
+            //         content
+            //     };
+            //     Ok(api::ApiResponse::SUCCESS(target))
+            // };
+            todo!()
         }
     }
 }
