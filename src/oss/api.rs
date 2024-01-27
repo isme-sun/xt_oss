@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Message {
+pub struct ErrorMessage {
     #[serde(rename(deserialize = "Code"))]
     pub code: String,
     #[serde(rename(deserialize = "Message"))]
@@ -30,7 +30,7 @@ pub struct Message {
     pub string_to_sign_bytes: Option<String>,
 }
 
-impl fmt::Display for Message {
+impl fmt::Display for ErrorMessage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}]: {}", self.code, self.message)
     }
@@ -73,13 +73,13 @@ impl<T> ApiData<T> {
     }
 }
 
-#[derive(Debug)]
-pub enum ResponseKind<T> {
-    SUCCESS(ApiData<T>),
-    FAIL(ApiData<Message>),
-}
+// #[derive(Debug)]
+// pub enum ResponseKind<T> {
+//     SUCCESS(ApiData<T>),
+//     FAIL(ApiData<Message>),
+// }
 
-type ApiResponse<T> = Result<ApiData<T>, ApiData<Message>>;
+type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
 
 // api 返回体， 包含请求错误， 和api返回数据
 type ApiResult<T> = Result<ApiResponse<T>, reqwest::Error>;
@@ -88,7 +88,7 @@ pub(crate) struct ApiResultFrom(Result<reqwest::Response, reqwest::Error>);
 
 #[allow(unused)]
 impl ApiResultFrom {
-    pub(crate) async fn fail_message(resp: Response) -> ApiData<Message> {
+    pub(crate) async fn fail_message(resp: Response) -> ApiData<ErrorMessage> {
         let url = resp.url().clone();
         let status = resp.status().clone();
         let headers = resp.headers().clone();
@@ -100,7 +100,7 @@ impl ApiResultFrom {
             false => resp.bytes().await.unwrap().to_vec(),
         };
         let content = String::from_utf8_lossy(&info);
-        let content: Message = quick_xml::de::from_str(&content).unwrap();
+        let content: ErrorMessage = quick_xml::de::from_str(&content).unwrap();
         ApiData {
             url,
             status,
