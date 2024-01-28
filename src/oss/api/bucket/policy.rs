@@ -1,30 +1,117 @@
 use crate::oss;
 
+use self::builders::{DeleteBucketPolicyBuilder, GetBucketPolicyBuilder, PutBucketPolicyBuilder};
+
+pub mod builders {
+  use crate::oss::{
+    self,
+    api::{self, ApiResultFrom},
+    http, Bytes,
+  };
+
+  pub struct PutBucketPolicyBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    policy: &'a str,
+  }
+
+  impl<'a> PutBucketPolicyBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        policy: Default::default(),
+      }
+    }
+
+    pub fn with_policy(mut self, value: &'a str) -> Self {
+      self.policy = value;
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "policy");
+      let url = format!("{}/?{}", self.client.options.base_url(), "policy");
+
+      let data = oss::Bytes::from(self.policy.to_string());
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_body(data)
+        .execute()
+        .await;
+
+      ApiResultFrom(resp).to_empty().await
+    }
+  }
+
+  pub struct GetBucketPolicyBuilder<'a> {
+    client: &'a oss::Client<'a>,
+  }
+
+  impl<'a> GetBucketPolicyBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<Bytes> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "policy");
+      let url = format!("{}/?{}", self.client.options.base_url(), "policy");
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await;
+
+      ApiResultFrom(resp).to_bytes().await
+    }
+  }
+
+  pub struct DeleteBucketPolicyBuilder<'a> {
+    client: &'a oss::Client<'a>,
+  }
+
+  impl<'a> DeleteBucketPolicyBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "policy");
+      let url = format!("{}/?{}", self.client.options.base_url(), "policy");
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_method(http::Method::DELETE)
+        .execute()
+        .await;
+
+      ApiResultFrom(resp).to_empty().await
+    }
+  }
+}
+
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-  pub fn PutBucketPolicy() {
-    todo!()
+  pub fn PutBucketPolicy(&self) -> PutBucketPolicyBuilder {
+    PutBucketPolicyBuilder::new(self)
   }
 
-  pub async fn GetBucketPolicy(&self) -> oss::Result<()> {
-    let res = "policy";
-    let url = format!("{}/?{}", self.options.base_url(), res);
-
-    let resp = self.request.task().url(&url).resourse(res).send().await?;
-
-    let content = String::from_utf8_lossy(&resp.data);
-
-    println!("{}", content);
-
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-    Ok(result)
+  pub fn GetBucketPolicy(&self) -> GetBucketPolicyBuilder {
+    GetBucketPolicyBuilder::new(self)
   }
 
-  pub fn DeleteBucketPolicy() {
-    todo!()
+  pub fn DeleteBucketPolicy(&self) -> DeleteBucketPolicyBuilder {
+    DeleteBucketPolicyBuilder::new(self)
   }
 }

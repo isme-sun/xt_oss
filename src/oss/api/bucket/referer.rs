@@ -1,12 +1,14 @@
-use crate::oss::{
-  self,
-  entities::referer::{inner, RefererConfiguration},
-};
+use crate::oss;
 
-use self::builder::PutBucketRefererBuilder;
+use self::builders::{GetBucketRefererBuilder, PutBucketRefererBuilder};
 
-pub mod builder {
-  use crate::oss::{self, entities::referer::RefererConfiguration};
+pub mod builders {
+  use crate::oss::{
+    self,
+    api::{self, ApiResultFrom},
+    entities::referer::RefererConfiguration,
+    http,
+  };
 
   #[derive(Debug)]
   pub struct PutBucketRefererBuilder<'a> {
@@ -117,67 +119,67 @@ pub mod builder {
       quick_xml::se::to_string(&config).unwrap()
     }
 
-    pub async fn send(&self) -> oss::Result<()> {
-      let res = "referer";
-      let url = { format!("{}?{}", self.client.options.base_url(), res) };
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "referer");
+      let url = { format!("{}?{}", self.client.options.base_url(), "referer") };
       let config = self.config();
       let data = oss::Bytes::from(config);
-      let resp = self
-        .client
-        .request
-        .task()
-        .method(oss::Method::PUT)
-        .url(&url)
-        .resourse(res)
-        .body(data)
-        .send()
-        .await?;
 
-      let result = oss::Data {
-        status: resp.status,
-        headers: resp.headers,
-        data: (),
-      };
-      Ok(result)
+      ApiResultFrom(
+        self
+          .client
+          .request
+          .task()
+          .with_method(http::Method::PUT)
+          .with_url(&url)
+          .with_resource(&res)
+          .with_body(data)
+          .execute()
+          .await,
+      )
+      .to_empty()
+      .await
+    }
+  }
+
+  pub struct GetBucketRefererBuilder<'a> {
+    client: &'a oss::Client<'a>,
+  }
+
+  impl<'a> GetBucketRefererBuilder<'a> {
+    pub fn new(cilent: &'a oss::Client) -> Self {
+      Self { client: cilent }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<RefererConfiguration> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "referer");
+      let url = format!("{}?{}", self.client.options.base_url(), "referer");
+
+      ApiResultFrom(
+        self
+          .client
+          .request
+          .task()
+          .with_url(&url)
+          .with_resource(&res)
+          .execute()
+          .await,
+      )
+      .to_type()
+      .await
     }
   }
 }
 
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-  /// GetBucketReferer接口用于查看存储空间（Bucket）的防盗链（Referer）相关配置。
-  pub async fn GetBucketReferer(&self) -> oss::Result<RefererConfiguration> {
-    let res = "referer";
-    let url = {
-      let base_url = self.options.base_url();
-      format!("{base_url}?{res}")
-    };
-
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .resourse(res)
-      .send()
-      .await
-      .unwrap();
-
-    let content = String::from_utf8_lossy(&resp.data);
-
-    let config_inner: inner::RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
-
-    let config = RefererConfiguration::from_inner(config_inner);
-
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: config,
-    };
-    Ok(result)
-  }
-
   /// 调用PutBucketReferer接口设置存储空间（Bucket）级别的Referer访问白名单以及黑名单
   pub fn PutBucketReferer(&self) -> PutBucketRefererBuilder {
     PutBucketRefererBuilder::new(self)
+  }
+
+  /// GetBucketReferer接口用于查看存储空间（Bucket）的防盗链（Referer）相关配置。
+  pub fn GetBucketReferer(&self) -> GetBucketRefererBuilder {
+    GetBucketRefererBuilder::new(self)
   }
 }

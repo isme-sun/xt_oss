@@ -1,87 +1,88 @@
-use crate::oss::entities::version::VersioningConfiguration;
-#[allow(unused)]
-use crate::oss::{self, Client, Data, Method, Result};
+use crate::oss;
+use crate::oss::{
+  api::{self, ApiResultFrom},
+  entities::version::{VersioningConfiguration, VersioningStatus},
+};
 
-use self::builder::PutBucketVersioningBuilder;
+use self::builders::PutBucketVersioningBuilder;
 
-pub mod builder {
-    use crate::oss::{
-        self,
-        entities::version::{VersioningConfiguration, VersioningStatus},
-    };
+pub mod builders {
+  use crate::oss::{
+    self,
+    api::{self, ApiResultFrom},
+    entities::version::{VersioningConfiguration, VersioningStatus},
+    http,
+  };
 
-    pub struct PutBucketVersioningBuilder<'a> {
-        client: &'a oss::Client<'a>,
-        status: VersioningStatus,
+  pub struct PutBucketVersioningBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    status: VersioningStatus,
+  }
+
+  impl<'a> PutBucketVersioningBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, status: VersioningStatus) -> Self {
+      Self { client, status }
     }
 
-    impl<'a> PutBucketVersioningBuilder<'a> {
-        pub(crate) fn new(client: &'a oss::Client) -> Self {
-            Self {
-                client,
-                status: VersioningStatus::Enabled,
-            }
-        }
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "versioning");
+      let url = format!("{}/?{}", self.client.options.base_url(), "versioning");
 
-        pub fn status(mut self, value: VersioningStatus) -> Self {
-            self.status = value;
-            self
-        }
+      let config = VersioningConfiguration {
+        status: Some(self.status.to_owned()),
+      };
 
-        pub async fn send(&self) -> oss::Result<()> {
-            let res = "versioning";
-            let url = format!("{}/?{}", self.client.options.base_url(), res);
+      let data = oss::Bytes::from(quick_xml::se::to_string(&config).unwrap());
 
-            let config = VersioningConfiguration {
-                status: Some(self.status.clone()),
-            };
-
-            let data = oss::Bytes::from(quick_xml::se::to_string(&config).unwrap());
-
-            let resp = self
-                .client
-                .request
-                .task()
-                .url(&url)
-                .method(oss::Method::PUT)
-                .resourse(res)
-                .body(data)
-                .send()
-                .await?;
-
-            let result = oss::Data {
-                status: resp.status,
-                headers: resp.headers,
-                data: (),
-            };
-            Ok(result)
-        }
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_resource(&res)
+        .with_body(data)
+        .execute()
+        .await;
+      ApiResultFrom(resp).to_empty().await
     }
+  }
+}
+
+pub struct GetBucketVersioningBuilder<'a> {
+  client: &'a oss::Client<'a>,
+}
+
+impl<'a> GetBucketVersioningBuilder<'a> {
+  pub(crate) fn new(client: &'a oss::Client) -> Self {
+    Self { client }
+  }
+  pub async fn execute(&self) -> api::ApiResult<VersioningConfiguration> {
+    let res = format!("/{}/?{}", self.client.options.bucket, "versioning");
+    let url = format!("{}/?{}", self.client.options.base_url(), res);
+    let resp = self
+      .client
+      .request
+      .task()
+      .with_url(&url)
+      .with_resource(&res)
+      .execute()
+      .await;
+    ApiResultFrom(resp).to_type().await
+  }
 }
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
-    pub fn PutBucketVersioning(&self) -> PutBucketVersioningBuilder {
-        PutBucketVersioningBuilder::new(self)
-    }
+impl<'a> oss::Client<'a> {
+  pub fn PutBucketVersioning(&self, status: VersioningStatus) -> PutBucketVersioningBuilder {
+    PutBucketVersioningBuilder::new(self, status)
+  }
 
-    pub async fn GetBucketVersioning(&self) -> oss::Result<VersioningConfiguration> {
-        let res = "versioning";
-        let url = format!("{}/?{}", self.options.base_url(), res);
-        let resp = self.request.task().url(&url).resourse(res).send().await?;
+  pub fn GetBucketVersioning(&self) -> GetBucketVersioningBuilder {
+    GetBucketVersioningBuilder::new(self)
+  }
 
-        let content = String::from_utf8_lossy(&resp.data);
-        let config = quick_xml::de::from_str(&content).unwrap();
-
-        let result = oss::Data {
-            status: resp.status,
-            headers: resp.headers,
-            data: config,
-        };
-        Ok(result)
-    }
-
-    pub fn ListObjectVersions() {
-        todo!()
-    }
+  pub fn ListObjectVersions() {
+    todo!()
+  }
 }

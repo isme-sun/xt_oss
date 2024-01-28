@@ -1,164 +1,159 @@
-use crate::oss::entities::tag::Tagging;
-#[allow(unused)]
-use crate::oss::{self, Client, Data, Method, Result};
+use crate::oss;
 
-use self::builder::{DeleteBucketTagsBuilder, PutBucketTagsBuilder};
+use self::builders::{DeleteBucketTagsBuilder, GetBucketTagsBuilder, PutBucketTagsBuilder};
 
-pub mod builder {
-    use std::collections::HashMap;
+pub mod builders {
+  use std::collections::HashMap;
 
-    use crate::oss::{
-        self,
-        entities::tag::{Tag, TagSet, Tagging},
-    };
+  use crate::oss::{
+    self,
+    api::{self, ApiResultFrom},
+    entities::tag::{Tag, TagSet, Tagging},
+    http,
+  };
 
-    pub struct DeleteBucketTagsBuilder<'a> {
-        client: &'a oss::Client<'a>,
-        keys: Vec<&'a str>,
+  pub struct PutBucketTagsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    tags: HashMap<&'a str, &'a str>,
+  }
+
+  impl<'a> PutBucketTagsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        tags: HashMap::new(),
+      }
     }
 
-    impl<'a> DeleteBucketTagsBuilder<'a> {
-        pub fn new(client: &'a oss::Client) -> Self {
-            Self {
-                client,
-                keys: Vec::new(),
-            }
-        }
-
-        pub fn delete_key(mut self, value: &'a str) -> Self {
-            self.keys.push(value);
-            self
-        }
-
-        pub fn delete_keys(mut self, value: Vec<&'a str>) -> Self {
-            self.keys.extend(value);
-            self
-        }
-
-        pub async fn send(&self) -> oss::Result<()> {
-            let res = "tagging";
-            let query = if !self.keys.is_empty() {
-                let keys = self.keys.join(",");
-                format!("{}={}", res, keys)
-            } else {
-                res.to_string()
-            };
-            let url = { format!("{}/?{}", self.client.options.base_url(), query) };
-
-            println!("{}", url);
-
-            let resp = self
-                .client
-                .request
-                .task()
-                .url(&url)
-                .method(oss::Method::DELETE)
-                .resourse(&query)
-                .send()
-                .await?;
-
-            let result = oss::Data {
-                status: resp.status,
-                headers: resp.headers,
-                data: (),
-            };
-            Ok(result)
-        }
+    pub fn with_tags(mut self, tags: HashMap<&'a str, &'a str>) -> Self {
+      self.tags = tags;
+      self
     }
 
-    pub struct PutBucketTagsBuilder<'a> {
-        client: &'a oss::Client<'a>,
-        tags: HashMap<&'a str, &'a str>,
+    fn tagging(&self) -> Tagging {
+      Tagging {
+        tag_set: TagSet {
+          tag: Some(
+            self
+              .tags
+              .iter()
+              .map(|entry| Tag {
+                key: entry.0.to_string(),
+                value: entry.1.to_string(),
+              })
+              .collect::<Vec<Tag>>(),
+          ),
+        },
+      }
     }
 
-    impl<'a> PutBucketTagsBuilder<'a> {
-        pub fn new(client: &'a oss::Client) -> Self {
-            Self {
-                client,
-                tags: HashMap::new(),
-            }
-        }
-
-        /// 添加tag
-        pub fn add_tag(mut self, key: &'a str, value: &'a str) -> Self {
-            self.tags.insert(key, value);
-            self
-        }
-
-        /// 移除tag
-        pub fn remove_tag(mut self, key: &'a str) -> Self {
-            self.tags.remove(key);
-            self
-        }
-
-        pub fn tagging(&self) -> Tagging {
-            let mut tags: Vec<Tag> = Vec::new();
-            for (key, value) in self.tags.clone() {
-                tags.push(Tag {
-                    key: String::from(key),
-                    value: String::from(value),
-                });
-            }
-            Tagging {
-                tag_set: TagSet { tag: Some(tags) },
-            }
-        }
-
-        pub fn tagging_xml(&self) -> String {
-            quick_xml::se::to_string(&self.tagging()).unwrap()
-        }
-
-        pub async fn send(&self) -> oss::Result<()> {
-            let res = "tagging";
-            let url = format!("{}?{}", self.client.options.base_url(), res);
-
-            let data = oss::Bytes::from(self.tagging_xml());
-
-            let resp = self
-                .client
-                .request
-                .task()
-                .url(&url)
-                .method(oss::Method::PUT)
-                .resourse(res)
-                .body(data)
-                .send()
-                .await?;
-
-            let result = oss::Data {
-                status: resp.status,
-                headers: resp.headers,
-                data: (),
-            };
-            Ok(result)
-        }
+    fn tagging_xml(&self) -> String {
+      quick_xml::se::to_string(&self.tagging()).unwrap()
     }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "tagging");
+      let url = format!("{}?{}", self.client.options.base_url(), "tagging");
+
+      let data = oss::Bytes::from(self.tagging_xml());
+
+      ApiResultFrom(
+        self
+          .client
+          .request
+          .task()
+          .with_url(&url)
+          .with_method(http::Method::PUT)
+          .with_resource(&res)
+          .with_body(data)
+          .execute()
+          .await,
+      )
+      .to_empty()
+      .await
+    }
+  }
+
+  pub struct GetBucketTagsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+  }
+
+  impl<'a> GetBucketTagsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<Tagging> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "tagging");
+      let url = format!("{}?{}", self.client.options.base_url(), "tagging");
+      ApiResultFrom(
+        self
+          .client
+          .request
+          .task()
+          .with_url(&url)
+          .with_resource(&res)
+          .execute()
+          .await,
+      )
+      .to_type()
+      .await
+    }
+  }
+  pub struct DeleteBucketTagsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    keys: Vec<&'a str>,
+  }
+
+  impl<'a> DeleteBucketTagsBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        keys: Vec::new(),
+      }
+    }
+
+    pub fn with_keys(mut self, keys: Vec<&'a str>) -> Self {
+      self.keys = keys;
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "tagging");
+      let url = format!("{}?{}", self.client.options.base_url(), "tagging");
+      let url = if !self.keys.is_empty() {
+        let keys = self.keys.join(",");
+        format!("{}&{}", url, keys)
+      } else {
+        url
+      };
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::DELETE)
+        .with_resource(&res)
+        .execute()
+        .await;
+
+      ApiResultFrom(resp).to_empty().await
+    }
+  }
 }
 
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
-    pub fn PutBucketTags(&self) -> PutBucketTagsBuilder {
-        PutBucketTagsBuilder::new(self)
-    }
+impl<'a> oss::Client<'a> {
+  pub fn PutBucketTags(&self) -> PutBucketTagsBuilder {
+    PutBucketTagsBuilder::new(self)
+  }
 
-    pub async fn GetBucketTags(&self) -> oss::Result<Tagging> {
-        let res = "tagging";
-        let url = format!("{}?{}", self.options.base_url(), res);
+  pub fn GetBucketTags(&self) -> GetBucketTagsBuilder {
+    GetBucketTagsBuilder::new(self)
+  }
 
-        let resp = self.request.task().url(&url).resourse(res).send().await?;
-
-        let content = String::from_utf8_lossy(&resp.data);
-        let tagging: Tagging = quick_xml::de::from_str(&content).unwrap();
-
-        let result = oss::Data {
-            status: resp.status,
-            headers: resp.headers,
-            data: tagging,
-        };
-        Ok(result)
-    }
-
-    pub fn DeleteBucketTags(&self) -> DeleteBucketTagsBuilder {
-        DeleteBucketTagsBuilder::new(self)
-    }
+  pub fn DeleteBucketTags(&self) -> DeleteBucketTagsBuilder {
+    DeleteBucketTagsBuilder::new(self)
+  }
 }
