@@ -33,7 +33,6 @@ use reqwest::{header::HeaderMap, Response, Result};
 use std::time::Duration;
 
 #[derive(Debug)]
-#[allow(unused)]
 struct Authorization<'a> {
   access_key_id: &'a str,
   access_key_secret: &'a str,
@@ -44,7 +43,6 @@ struct Authorization<'a> {
   resourse: Option<&'a str>,
 }
 
-#[allow(unused)]
 impl<'a> Authorization<'a> {
   fn complute(&self) -> String {
     format!("OSS {}:{}", self.access_key_id, self.signature())
@@ -87,7 +85,6 @@ impl<'a> Authorization<'a> {
   }
 }
 
-#[allow(unused)]
 pub struct RequestTask<'a> {
   request: &'a oss::Request<'a>,
   url: &'a str,
@@ -97,7 +94,6 @@ pub struct RequestTask<'a> {
   body: Bytes,
 }
 
-#[allow(unused)]
 impl<'a> RequestTask<'a> {
   pub(crate) fn new(request: &'a oss::Request<'a>) -> Self {
     Self {
@@ -184,7 +180,6 @@ impl<'a> RequestTask<'a> {
   }
 }
 
-#[allow(unused)]
 #[derive(Debug, Default)]
 pub struct Request<'a> {
   access_key_id: Option<&'a str>,
@@ -228,7 +223,6 @@ impl<'a> Request<'a> {
 }
 
 #[derive(Debug, Clone)]
-#[allow(unused)]
 pub struct Options<'a> {
   /// 通过阿里云控制台创建的AccessKey ID
   access_key_id: &'a str,
@@ -372,7 +366,6 @@ impl<'a> Options<'a> {
 }
 
 #[derive(Debug, Default)]
-#[allow(unused)]
 pub struct Client<'a> {
   options: Options<'a>,
   request: Request<'a>,

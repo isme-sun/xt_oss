@@ -1,5 +1,4 @@
-#[allow(unused)]
-use crate::oss::{self, api, entities::acceleration::TransferAccelerationConfiguration};
+use crate::oss;
 
 use self::builder::{GetBucketTransferAccelerationBuilder, PutBucketTransferAccelerationBuilder};
 

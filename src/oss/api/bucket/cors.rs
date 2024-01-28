@@ -10,7 +10,6 @@ pub mod builders {
     http,
   };
 
-  #[allow(unused)]
   pub struct PutBucketCorsBuilder<'a> {
     client: &'a oss::Client<'a>,
     config: CORSConfiguration,
