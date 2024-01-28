@@ -1,79 +1,123 @@
-use crate::oss::entities::log::LoggingEnabled;
-#[allow(unused)]
-use crate::oss::{self, entities::log::BucketLoggingStatus};
-/*  日志管理（Logging） */
+use crate::oss;
 
-#[allow(unused)]
-pub struct PutBucketLoggingBuilder<'a> {
-  pub client: &'a oss::Client<'a>,
-  pub bucket_logging_status: BucketLoggingStatus,
-}
+use self::builders::{
+  DeleteBucketLoggingBuilder, GetBucketLoggingBuilder, PutBucketLoggingBuilder,
+};
 
-#[allow(unused)]
-impl<'a> PutBucketLoggingBuilder<'a> {
-  pub(crate) fn new(client: &'a oss::Client) -> Self {
-    Self {
-      client,
-      bucket_logging_status: BucketLoggingStatus::default(),
-    }
+pub mod builders {
+  use crate::oss::{
+    self,
+    api::{self, ApiResultFrom},
+    entities::log::{BucketLoggingStatus, LoggingEnabled},
+    http,
+  };
+
+  pub struct PutBucketLoggingBuilder<'a> {
+    pub client: &'a oss::Client<'a>,
+    pub enabled: Option<bool>,
+    pub target_prefix: Option<&'a str>,
   }
 
-  pub fn with_enabled(mut self, value: bool) -> Self {
-    if value {
-      let bucket = self.client.options.bucket.to_string();
-      let mut loggin_enabled = match self.bucket_logging_status.logging_enabled {
-        Some(mut loggin_status) => {
-          loggin_status.target_bucket = Some(bucket);
-          loggin_status
-        }
-        None => LoggingEnabled {
-          target_bucket: Some(bucket),
-          target_prefix: Default::default(),
-        },
+  impl<'a> PutBucketLoggingBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        enabled: None,
+        target_prefix: None,
+      }
+    }
+
+    pub fn with_enabled(mut self, value: bool) -> Self {
+      self.enabled = Some(value);
+      self
+    }
+
+    pub fn with_target_prefix(mut self, value: &'a str) -> Self {
+      self.target_prefix = Some(value);
+      self
+    }
+
+    // todo 确认生成方式时候合理
+    pub(crate) fn config(&self) -> String {
+      let config = BucketLoggingStatus {
+        logging_enabled: Some(LoggingEnabled {
+          target_bucket: Some(self.client.options.bucket.to_string()),
+          target_prefix: Some(self.target_prefix.unwrap().to_string()),
+        }),
       };
-      self.bucket_logging_status.logging_enabled = Some(loggin_enabled);
-    } else {
-      self.bucket_logging_status = BucketLoggingStatus::default();
+      quick_xml::se::to_string(&config).unwrap()
     }
-    self
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/?{}", self.client.options.bucket, "logging");
+      let url = format!("{}/?{}", self.client.options.base_url(), "logging");
+      let config = self.config();
+      let data = oss::Bytes::from(config);
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_body(data)
+        .with_resource(&res)
+        .execute()
+        .await;
+
+      ApiResultFrom(resp).to_empty().await
+    }
   }
 
-  pub fn with_target_prefix(mut self, value: &'a str) -> Self {
-    let bucket = self.client.options.bucket.to_string();
-    self = self.with_enabled(true);
-    let mut loggin_enabled = self.bucket_logging_status.logging_enabled.unwrap();
-    loggin_enabled.target_prefix = Some(value.to_string());
-    self.bucket_logging_status.logging_enabled = Some(loggin_enabled);
-    self
+  pub struct GetBucketLoggingBuilder<'a> {
+    pub client: &'a oss::Client<'a>,
   }
 
-  pub(crate) fn config(&self) -> String {
-    quick_xml::se::to_string(&self.bucket_logging_status).unwrap()
+  impl<'a> GetBucketLoggingBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<BucketLoggingStatus> {
+      let res = format!("{}/?{}", self.client.options.bucket, "logging");
+      let url = format!("{}/?{}", self.client.options.base_url(), "logging");
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await;
+      ApiResultFrom(resp).to_type().await
+    }
   }
 
-  pub async fn send(&self) -> oss::Result<()> {
-    let query = "logging";
-    let url = format!("{}/?{}", self.client.options.base_url(), query);
-    let config = self.config();
+  pub struct DeleteBucketLoggingBuilder<'a> {
+    pub client: &'a oss::Client<'a>,
+  }
 
-    let data = oss::Bytes::from(config);
-    let resp = self
-      .client
-      .request
-      .task()
-      .url(&url)
-      .method(oss::Method::PUT)
-      .body(data)
-      .resourse(query)
-      .send()
-      .await?;
+  impl<'a> DeleteBucketLoggingBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
 
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-    Ok(result)
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("{}/?{}", self.client.options.bucket, "logging");
+      let url = format!("{}/?{}", self.client.options.base_url(), "logging");
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_method(http::Method::DELETE)
+        .execute()
+        .await;
+      ApiResultFrom(resp).to_empty().await
+    }
   }
 }
 
@@ -88,45 +132,13 @@ impl<'a> oss::Client<'a> {
 
   /// GetBucketLogging接口用于查看存储空间（Bucket）的访问日志配置。
   /// 只有Bucket的拥有者才能查看Bucket的访问日志配置。
-  pub async fn GetBucketLogging(&self) -> oss::Result<BucketLoggingStatus> {
-    let query = "logging";
-    let url = format!("{}/?{}", self.options.base_url(), query);
-
-    let resp = self.request.task().url(&url).resourse(query).send().await?;
-
-    let data = String::from_utf8_lossy(&resp.data);
-    let loggin_status = quick_xml::de::from_str(&data).unwrap();
-
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: loggin_status,
-    };
-
-    Ok(result)
+  pub fn GetBucketLogging(&self) -> GetBucketLoggingBuilder {
+    GetBucketLoggingBuilder::new(&self)
   }
 
   /// DeleteBucketLogging用于关闭存储空间（Bucket）的访问日志记录功能。
   /// 只有Bucket的拥有者才有权限关闭Bucket访问日志记录功能
-  pub async fn DeleteBucketLogging(&self) -> oss::Result<()> {
-    let query = "logging";
-    let url = format!("{}/?{}", self.options.base_url(), query);
-
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .method(oss::Method::DELETE)
-      .resourse(query)
-      .send()
-      .await?;
-
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-
-    Ok(result)
+  pub fn DeleteBucketLogging(&self) -> DeleteBucketLoggingBuilder {
+    DeleteBucketLoggingBuilder::new(&self)
   }
 }
