@@ -1,8 +1,8 @@
 use crate::oss;
 
-use self::builders::{GetBucketWebsiteBuilder, PutBucketWebsiteBuilder};
-
-use super::cors::builders::DeleteBucketCorsBuilder;
+use self::builders::{
+  DeleteBucketWebsiteBuilder, GetBucketWebsiteBuilder, PutBucketWebsiteBuilder,
+};
 
 pub mod builders {
   use crate::oss::{
@@ -154,7 +154,7 @@ pub mod builders {
 impl<'a> oss::Client<'a> {
   /// 调用PutBucketWebsite接口将存储空间（Bucket）设置为静态网站托管模式并设置跳转
   /// 规则（RoutingRule
-  /// 
+  ///
   /// **Example**:
   ///
   /// ```no_run
@@ -192,8 +192,8 @@ impl<'a> oss::Client<'a> {
   }
 
   /// DeleteBucketWebsite接口用于关闭存储空间（Bucket）的静态网站托管模式以及跳转规则。只有Bucket的拥有者才能关闭Bucket的静态网站托管模式。
-  pub fn DeleteBucketWebsite(&self) -> DeleteBucketCorsBuilder {
-    DeleteBucketCorsBuilder::new(self)
+  pub fn DeleteBucketWebsite(&self) -> DeleteBucketWebsiteBuilder {
+    DeleteBucketWebsiteBuilder::new(self)
   }
 }
 
