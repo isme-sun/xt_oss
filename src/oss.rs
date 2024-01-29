@@ -7,6 +7,8 @@ pub(crate) const DEFAULT_TIMEOUT: u64 = 60;
 pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 // pub(crate) const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
+use std::time::Duration;
+
 // re-export
 pub use bytes::Bytes;
 pub mod http {
@@ -30,13 +32,13 @@ use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
 use hmacsha1;
 use reqwest::{header::HeaderMap, Response, Result};
-use std::time::Duration;
 
+#[allow(unused)]
 #[derive(Debug)]
 struct Authorization<'a> {
   access_key_id: &'a str,
   access_key_secret: &'a str,
-  sts_token: &'a str,
+  sts_token: Option<&'a str>,
   headers: &'a http::HeaderMap,
   method: &'a http::Method,
   date: &'a String,
@@ -142,7 +144,7 @@ impl<'a> RequestTask<'a> {
   fn authorization(&self, headers: &HeaderMap, date: &String) -> String {
     let access_key_id = self.request.access_key_id.unwrap_or_default();
     let access_key_secret = self.request.access_key_secret.unwrap_or_default();
-    let sts_token = self.request.sts_token.unwrap_or_default();
+    let sts_token = self.request.sts_token;
     let resourse = self.resource;
     Authorization {
       access_key_id,
@@ -160,23 +162,24 @@ impl<'a> RequestTask<'a> {
     let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
     let mut headers = http::HeaderMap::new();
     headers.insert(DATE, date.parse().unwrap());
+
+    if let Some(sts_token) = self.request.sts_token {
+      headers.insert("x-oss-security-token", sts_token.parse().unwrap());
+    }
     headers.extend(self.headers.to_owned());
     let auth = self.authorization(&headers, &date);
     headers.insert(AUTHORIZATION, auth.parse().unwrap());
 
-    let builder = self
+    let timeout = Duration::from_secs(timeout.unwrap_or(oss::DEFAULT_TIMEOUT));
+    self
       .request
       .client
       .request(self.method.to_owned(), self.url)
       .headers(headers)
-      .body(self.body.to_owned());
-
-    let timeout = Duration::from_secs(timeout.unwrap_or(oss::DEFAULT_TIMEOUT));
-
-    let builder = builder.timeout(timeout);
-
-    let result = builder.send().await;
-    result
+      .timeout(timeout)
+      .body(self.body.to_owned())
+      .send()
+      .await
   }
 }
 
@@ -214,6 +217,11 @@ impl<'a> Request<'a> {
 
   pub fn with_access_key_secret(mut self, value: &'a str) -> Self {
     self.access_key_secret = Some(value);
+    self
+  }
+
+  pub fn with_sts_token(mut self, value: Option<&'a str>) -> Self {
+    self.sts_token = value;
     self
   }
 
@@ -336,6 +344,10 @@ impl<'a> Options<'a> {
     }
   }
 
+  pub fn object_url(&self, object: &'a str) -> String {
+    format!("{}/{}", self.base_url(), object)
+  }
+
   fn schema(&self) -> String {
     match self.secure {
       true => "https".to_string(),
@@ -344,23 +356,25 @@ impl<'a> Options<'a> {
   }
 
   fn host(&self) -> String {
-    match self.cname {
-      true => match self.endpoint.is_empty() {
-        true => panic!("must set endpoint"),
-        false => {
-          if self.endpoint.starts_with("http://") {
-            self.endpoint["https://".len() - 1..].to_string()
-          } else if self.endpoint.starts_with("https://") {
-            self.endpoint["http://".len() - 1..].to_string()
-          } else {
-            self.endpoint.to_string()
-          }
-        }
-      },
-      false => match self.internal {
-        true => format!("{}-internal.{}", self.region, oss::BASE_URL),
-        false => format!("{}.{}", self.region, oss::BASE_URL),
-      },
+    if self.cname {
+      if self.endpoint.is_empty() {
+        panic!("must set endpoint");
+      }
+      let https_prefix = "https://";
+      let http_prefix = "http://";
+      self
+        .endpoint
+        .strip_prefix(https_prefix)
+        .or_else(|| self.endpoint.strip_prefix(http_prefix))
+        .unwrap_or(&self.endpoint)
+        .to_string()
+    } else {
+      format!(
+        "{}{}.{}",
+        self.region,
+        if self.internal { "-internal" } else { "" },
+        oss::BASE_URL
+      )
     }
   }
 }
@@ -375,42 +389,21 @@ impl<'a> Client<'a> {
   pub fn new(options: Options<'a>) -> Self {
     let request = self::Request::new()
       .with_access_key_id(options.access_key_id)
-      .with_access_key_secret(options.access_key_secret);
+      .with_access_key_secret(options.access_key_secret)
+      .with_sts_token((!options.sts_token.is_empty()).then_some(options.sts_token));
     Self { options, request }
   }
 
-  pub fn options(&self) -> &oss::Options {
-    &self.options
+  pub fn root_url(&self) -> String {
+    self.options.root_url()
   }
 
-  pub fn with_region(mut self, value: &'a str) -> Self {
-    self.options.region = value;
-    self
+  pub fn base_url(&self) -> String {
+    self.options.base_url()
   }
 
-  pub fn with_bucket(mut self, value: &'a str) -> Self {
-    self.options.bucket = value;
-    self
-  }
-
-  pub fn with_internal(mut self, value: bool) -> Self {
-    self.options.internal = value;
-    self
-  }
-
-  pub fn with_cname(mut self, value: bool) -> Self {
-    self.options.cname = value;
-    self
-  }
-
-  pub fn with_secure(mut self, value: bool) -> Self {
-    self.options.secure = value;
-    self
-  }
-
-  pub fn with_timeout(mut self, value: u64) -> Self {
-    self.options.timeout = value;
-    self
+  pub fn object_url(&self, object: &'a str) -> String {
+    self.options.object_url(object)
   }
 }
 
@@ -419,7 +412,7 @@ pub mod tests {
   use crate::oss;
 
   #[test]
-  fn options_new_normal() {
+  fn options_new_normal_1() {
     let options = oss::Options::new()
       .with_access_key_id("access_key_id")
       .with_access_key_secret("access_key_secret")
@@ -431,6 +424,24 @@ pub mod tests {
     let host = "oss-sn-shanghai1-internal.aliyuncs.com";
     let root_url = "https://oss-sn-shanghai1-internal.aliyuncs.com";
     let base_url = "https://xtoss-t1.oss-sn-shanghai1-internal.aliyuncs.com";
+
+    assert_eq!(options.host(), host);
+    assert_eq!(options.root_url(), root_url);
+    assert_eq!(options.base_url(), base_url);
+  }
+
+  #[test]
+  fn options_new_normal_2() {
+    let options = oss::Options::new()
+      .with_access_key_id("access_key_id")
+      .with_access_key_secret("access_key_secret")
+      .with_region("oss-sn-shanghai1")
+      .with_bucket("xtoss-t1")
+      .with_secret(false);
+
+    let host = "oss-sn-shanghai1.aliyuncs.com";
+    let root_url = "http://oss-sn-shanghai1.aliyuncs.com";
+    let base_url = "http://xtoss-t1.oss-sn-shanghai1.aliyuncs.com";
 
     assert_eq!(options.host(), host);
     assert_eq!(options.root_url(), root_url);

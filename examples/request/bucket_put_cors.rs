@@ -1,5 +1,5 @@
-use std::env;
-use xt_oss::oss::{self, http, Request};
+use std::{env, process};
+use xt_oss::oss;
 #[tokio::main]
 async fn main() {
   dotenv::dotenv().ok();
@@ -30,28 +30,28 @@ async fn main() {
 
   let data = oss::Bytes::from(cors_config);
 
-  let resp = Request::new()
+  let resp = oss::Request::new()
     .with_access_key_id(&access_key_id)
     .with_access_key_secret(&access_key_secret)
     .task()
     .with_url(&url)
     .with_resource("/xtoss-t1/?cors")
-    .with_method(http::Method::PUT)
+    .with_method(oss::http::Method::PUT)
     .with_body(data)
     .execute_timeout(30)
-    .await;
+    .await
+    .unwrap_or_else(|error| {
+      println!("reqwest error: {}", error);
+      process::exit(-1);
+    });
 
-  match resp {
-    Ok(resp) => {
-      println!("is success: {}", resp.status().is_success());
-      let status = resp.status();
-      let bytes = resp.bytes().await.unwrap();
-      let content = String::from_utf8_lossy(&bytes);
-      println!("{}", status);
-      println!("{}", content);
-    }
-    Err(error) => {
-      println!("{:#?}", error);
-    }
+  match resp.status().is_success() {
+    true => println!("oss api sucess:"),
+    false => println!("oss api fail:"),
   }
+
+  println!("status: {}", resp.status());
+  println!("headers: {:#?}", resp.headers());
+  let data = resp.text().await.unwrap();
+  println!("data: {}", data);
 }

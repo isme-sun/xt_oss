@@ -6,7 +6,7 @@ pub mod builder {
 
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::acceleration::TransferAccelerationConfiguration,
     http,
   };
@@ -43,21 +43,21 @@ pub mod builder {
         enabled: self.enabled.unwrap(),
       };
       let data = oss::Bytes::from(quick_xml::se::to_string(&config).unwrap());
-
       let res = format!("/{}/?transferAcceleration", bucket);
-
-      let resp = self
-        .client
-        .request
-        .task()
-        .with_url(&url)
-        .with_resource(&res)
-        .with_method(http::Method::PUT)
-        .with_body(data)
-        .execute_timeout(self.timeout())
-        .await;
-
-      ApiResultFrom(resp).to_empty().await
+      Ok(
+        self
+          .client
+          .request
+          .task()
+          .with_url(&url)
+          .with_resource(&res)
+          .with_method(http::Method::PUT)
+          .with_body(data)
+          .execute_timeout(self.timeout())
+          .await
+          .map(move |resp| async { ApiResponseFrom(resp).as_empty().await })?
+          .await,
+      )
     }
   }
 
@@ -89,7 +89,6 @@ pub mod builder {
       let bucket = self.client.options.bucket;
       let url = format!("{}/?transferAcceleration", base_url);
       let res = format!("/{}/?transferAcceleration", bucket);
-
       let resp = self
         .client
         .request
@@ -97,9 +96,9 @@ pub mod builder {
         .with_url(&url)
         .with_resource(&res)
         .execute_timeout(self.timeout())
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_type().await
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 }

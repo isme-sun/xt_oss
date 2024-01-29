@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process};
 use xt_oss::oss::Request;
 
 #[tokio::main]
@@ -16,16 +16,19 @@ async fn main() {
     // default Method::GET
     // .with_method(http::Method::GET)
     .execute()
-    .await;
+    .await
+    .unwrap_or_else(|error| {
+      println!("reqwest error: {}", error);
+      process::exit(-1);
+    });
 
-  match resp {
-    Ok(resp) => {
-      let bytes = resp.bytes().await.unwrap();
-      let content = String::from_utf8_lossy(&bytes);
-      println!("{}", content);
-    }
-    Err(error) => {
-      println!("reqwest error: {}", error)
-    }
+  match resp.status().is_success() {
+    true => println!("oss api sucess:"),
+    false => println!("oss api fail:"),
   }
+
+  println!("status: {}", resp.status());
+  println!("headers: {:#?}", resp.headers());
+  let data = resp.text().await.unwrap();
+  println!("data: {}", data);
 }

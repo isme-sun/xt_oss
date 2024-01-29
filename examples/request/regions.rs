@@ -1,6 +1,6 @@
-use std::env;
+use std::{env, process};
 
-use xt_oss::oss::Request;
+use xt_oss::oss;
 #[tokio::main]
 async fn main() {
   dotenv::dotenv().ok();
@@ -9,7 +9,7 @@ async fn main() {
   let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions=oss-us-west-1";
   // let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions";
 
-  let resp = Request::new()
+  let resp = oss::Request::new()
     .with_access_key_id(&access_key_id)
     .with_access_key_secret(&access_key_secret)
     .task()
@@ -19,16 +19,19 @@ async fn main() {
     .execute_timeout(30)
     // default timeout = 60
     // .execute()
-    .await;
+    .await
+    .unwrap_or_else(|error| {
+      println!("reqwest error: {}", error);
+      process::exit(-1);
+    });
 
-  match resp {
-    Ok(resp) => {
-      let bytes = resp.bytes().await.unwrap();
-      let content = String::from_utf8_lossy(&bytes);
-      println!("{}", content);
-    }
-    Err(error) => {
-      println!("reqwest error: {}", error)
-    }
+  match resp.status().is_success() {
+    true => println!("oss api sucess:"),
+    false => println!("oss api fail:"),
   }
+
+  println!("status: {}", resp.status());
+  println!("headers: {:#?}", resp.headers());
+  let data = resp.text().await.unwrap();
+  println!("data: {}", data);
 }
