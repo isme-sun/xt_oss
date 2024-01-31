@@ -319,7 +319,6 @@ pub mod builders {
     query: GetObjectBuilderQuery<'a>,
   }
 
-  #[allow(unused)]
   impl<'a> GetObjectBuilder<'a> {
     pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
       Self {
@@ -447,7 +446,7 @@ pub mod builders {
 
       let query_origin = urlencoding::decode(&query).unwrap();
       // println!("{}", query_origin);
-      let mut task = self
+      let task = self
         .client
         .request
         .task()
@@ -466,7 +465,6 @@ pub mod builders {
     }
   }
 
-  #[allow(unused)]
   #[derive(Debug)]
   pub struct DeleteObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
@@ -474,7 +472,6 @@ pub mod builders {
     version_id: Option<&'a str>,
   }
 
-  #[allow(unused)]
   impl<'a> DeleteObjectBuilder<'a> {
     pub fn new(client: &'a oss::Client, object: &'a str) -> Self {
       Self {
@@ -514,7 +511,6 @@ pub mod builders {
     }
   }
 
-  #[allow(unused)]
   pub struct HeadObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
@@ -525,7 +521,6 @@ pub mod builders {
     none_match: Option<&'a str>,
   }
 
-  #[allow(unused)]
   impl<'a> HeadObjectBuilder<'a> {
     pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
       Self {

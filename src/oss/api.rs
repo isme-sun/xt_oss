@@ -77,7 +77,7 @@ impl<T> ApiData<T> {
 type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
 
 // api 返回体， 包含请求错误， 和api返回数据
-type ApiResult<T> = Result<ApiResponse<T>, reqwest::Error>;
+type ApiResult<T=()> = Result<ApiResponse<T>, reqwest::Error>;
 
 pub(crate) struct ApiResultFrom(Result<reqwest::Response, reqwest::Error>);
 

@@ -1,89 +1,109 @@
-use crate::oss::{self, entities::acl::AccessControlPolicy, Client};
-use builders::PutObjectACLBuilder;
+use crate::oss;
+use builders::{GetObjectAclBuilder, PutObjectACLBuilder};
 
 pub mod builders {
-    use crate::oss::{self, entities::ObjectACL, header::HeaderMap};
+  use crate::oss::{
+    self,
+    api::{self, ApiResponseFrom},
+    entities::{acl::AccessControlPolicy, ObjectACL},
+    http,
+  };
 
-    pub struct PutObjectACLBuilder<'a> {
-        client: &'a oss::Client<'a>,
-        object: &'a str,
-        acl: ObjectACL,
+  pub struct PutObjectACLBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    version_id: Option<&'a str>,
+    acl: ObjectACL,
+  }
+
+  #[allow(unused)]
+  impl<'a> PutObjectACLBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+      Self {
+        client,
+        object,
+        version_id: None,
+        acl: ObjectACL::Default,
+      }
     }
 
-    #[allow(unused)]
-    impl<'a> PutObjectACLBuilder<'a> {
-        pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
-            Self {
-                client,
-                object,
-                acl: ObjectACL::Default,
-            }
-        }
-
-        pub fn acl(mut self, acl: ObjectACL) -> Self {
-            self.acl = acl;
-            self
-        }
-
-        pub async fn send(&self) -> oss::Result<()> {
-            let query = "acl";
-            let url = {
-                let base_url = &self.client.options.base_url();
-                format!("{}/{}?{}", base_url, self.object, query)
-            };
-
-            let mut headers = HeaderMap::new();
-            headers.insert("x-oss-object-acl", self.acl.to_string().parse().unwrap());
-
-            let resp = self
-                .client
-                .request
-                .task()
-                .url(&url)
-                .method(oss::Method::PUT)
-                .headers(headers)
-                .resourse(query)
-                .send()
-                .await?;
-
-            let result = oss::Data {
-                status: resp.status,
-                headers: resp.headers,
-                data: (),
-            };
-            Ok(result)
-        }
+    pub fn acl(mut self, acl: ObjectACL) -> Self {
+      self.acl = acl;
+      self
     }
+
+    pub async fn execute(&self) -> api::ApiResult {
+      let mut res = format!("/{}/{}?{}", self.client.bucket(), self.object, "acl");
+      let mut url = { format!("{}?{}", self.client.object_url(self.object), res) };
+      if let Some(version_id) = self.version_id {
+        res = format!("{}&versionId={}", res, version_id);
+        url = format!("{}&versionId={}", url, version_id);
+      }
+
+      let mut headers = http::HeaderMap::new();
+      headers.insert("x-oss-object-acl", self.acl.to_string().parse().unwrap());
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_headers(headers)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
+    }
+  }
+
+  pub struct GetObjectAclBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    version_id: Option<&'a str>,
+  }
+
+  impl<'a> GetObjectAclBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+      Self {
+        client,
+        object,
+        version_id: None,
+      }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<AccessControlPolicy> {
+      let mut res = format!("/{}/{}?{}", self.client.bucket(), self.object, "acl");
+      let mut url = { format!("{}?{}", self.client.object_url(self.object), res) };
+      if let Some(version_id) = self.version_id {
+        res = format!("{}&versionId={}", res, version_id);
+        url = format!("{}&versionId={}", url, version_id);
+      }
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
+  }
 }
 
 /// 基础操作
 #[allow(non_snake_case)]
-impl<'a> Client<'a> {
-    /// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
-    /// 初始化一个Multipart Upload事件
-    pub fn PutObjectACL(&self, object: &'a str) -> PutObjectACLBuilder {
-        PutObjectACLBuilder::new(self, object)
-    }
+impl<'a> oss::Client<'a> {
+  /// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
+  /// 初始化一个Multipart Upload事件
+  pub fn PutObjectACL(&self, object: &'a str) -> PutObjectACLBuilder {
+    PutObjectACLBuilder::new(self, object)
+  }
 
-    /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）
-    /// 上传数据
-    pub async fn GetObjectACL(&self, object: &'a str) -> oss::Result<AccessControlPolicy> {
-        let res = "acl";
-        let url = {
-            let base_url = &self.options.base_url();
-            format!("{}/{}?{}", base_url, object, res)
-        };
-
-        let resp = self.request.task().url(&url).resourse(res).send().await?;
-        let content = String::from_utf8_lossy(&resp.data);
-        let data: AccessControlPolicy = quick_xml::de::from_str(&content).unwrap();
-
-        let data = oss::Data {
-            status: resp.status,
-            headers: resp.headers,
-            data,
-        };
-
-        Ok(data)
-    }
+  /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）
+  /// 上传数据
+  pub async fn GetObjectACL(&self, object: &'a str) -> GetObjectAclBuilder {
+    GetObjectAclBuilder::new(self, object)
+  }
 }
