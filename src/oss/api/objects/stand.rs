@@ -2,7 +2,9 @@ use builders::{DeleteObjectBuilder, GetObjectBuilder, PutObjectBuilder};
 
 use crate::oss::{self, api::objects::stand::builders::GetObjectMetaBuilder};
 
-use self::builders::{HeadObjectBuilder, RestoreObjectBuilder};
+use self::builders::{
+  AppendObjectBuilder, CopyObjectBuilder, HeadObjectBuilder, RestoreObjectBuilder,
+};
 
 pub mod builders {
 
@@ -14,7 +16,7 @@ pub mod builders {
     self,
     api::{self, ApiResponseFrom},
     entities::{
-      object::{JobParameters, RestoreRequest, Tier},
+      object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
       tag::Tagging,
       ObjectACL, ServerSideEncryption, StorageClass,
     },
@@ -28,7 +30,6 @@ pub mod builders {
     content: oss::Bytes,
   }
 
-  #[allow(unused)]
   impl<'a> PutObjectBuilder<'a> {
     pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
       Self {
@@ -66,40 +67,148 @@ pub mod builders {
     }
   }
 
-  #[allow(unused)]
-  pub struct AppendObjectBuilder<'a> {
+  #[derive(Debug, Default)]
+  struct CopyObjectBuilderArguments<'a> {
+    source_version_id: Option<&'a str>,
+    version_id: Option<&'a str>,
+    forbid_overwrite: Option<bool>,
+    if_match: Option<&'a str>,
+    if_none_match: Option<&'a str>,
+    if_unmodified_since: Option<DateTime<Utc>>,
+    if_modified_since: Option<DateTime<Utc>>,
+    metadata_directive: Option<MetadataDirective>,
+    encryption: Option<ServerSideEncryption>,
+    enc_key_id: Option<&'a str>,
+    object_acl: Option<ObjectACL>,
+    storage_class: Option<StorageClass>,
+    oss_tagging: Option<Tagging>,
+    tagging_directive: Option<TaggingDirective>,
+  }
+
+  #[derive(Debug)]
+  pub struct CopyObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
-    object: String,
-    position: u64,
+    object: &'a str,
+    copy_source: &'a str,
+    arguments: CopyObjectBuilderArguments<'a>,
+  }
+
+  impl<'a> CopyObjectBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+      Self {
+        client,
+        object,
+        copy_source: Default::default(),
+        arguments: CopyObjectBuilderArguments::default(),
+      }
+    }
+
+    pub fn with_source_version_id(mut self, value: &'a str) -> Self {
+      self.arguments.source_version_id = Some(value);
+      self
+    }
+
+    pub fn with_version_id(mut self, value: &'a str) -> Self {
+      self.arguments.version_id = Some(value);
+      self
+    }
+
+    pub fn with_forbid_overwrite(mut self, value: bool) -> Self {
+      self.arguments.forbid_overwrite = Some(value);
+      self
+    }
+
+    pub fn with_if_match(mut self, value: &'a str) -> Self {
+      self.arguments.if_match = Some(value);
+      self
+    }
+
+    pub fn with_if_none_match(mut self, value: &'a str) -> Self {
+      self.arguments.if_none_match = Some(value);
+      self
+    }
+
+    pub fn with_if_unmodified_since(mut self, value: DateTime<Utc>) -> Self {
+      self.arguments.if_unmodified_since = Some(value);
+      self
+    }
+
+    pub fn with_if_modified_since(mut self, value: DateTime<Utc>) -> Self {
+      self.arguments.if_modified_since = Some(value);
+      self
+    }
+
+    pub fn with_metadata_directive(mut self, value: MetadataDirective) -> Self {
+      self.arguments.metadata_directive = Some(value);
+      self
+    }
+
+    pub fn with_encryption(mut self, value: ServerSideEncryption) -> Self {
+      self.arguments.encryption = Some(value);
+      self
+    }
+
+    pub fn with_enc_key_id(mut self, value: &'a str) -> Self {
+      self.arguments.enc_key_id = Some(value);
+      self
+    }
+
+    pub fn with_object_acl(mut self, value: ObjectACL) -> Self {
+      self.arguments.object_acl = Some(value);
+      self
+    }
+
+    pub fn with_storage_class(mut self, value: StorageClass) -> Self {
+      self.arguments.storage_class = Some(value);
+      self
+    }
+
+    pub fn with_oss_tagging(mut self, value: Tagging) -> Self {
+      self.arguments.oss_tagging = Some(value);
+      self
+    }
+
+    pub fn with_tagging_directive(mut self, value: TaggingDirective) -> Self {
+      self.arguments.tagging_directive = Some(value);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      self.client;
+      self.object;
+      self.copy_source;
+      todo!()
+    }
+  }
+
+  #[derive(Debug, Default)]
+  struct AppendObjectBuilderArguments {
     cache_control: Option<String>,
     content_disposition: Option<String>,
     content_encoding: Option<String>,
-    content_md5: Option<String>,
+    // content_md5: Option<String>,
     expires: Option<DateTime<Utc>>,
     server_side_encryption: Option<ServerSideEncryption>,
     object_acl: Option<ObjectACL>,
     storage_class: Option<StorageClass>,
-    meta: Option<Vec<String>>,
-    tagging: Option<Tagging>,
+    // meta: Option<Vec<String>>,
+    // tagging: Option<Tagging>,
   }
 
-  #[allow(unused)]
+  pub struct AppendObjectBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: String,
+    position: u64,
+    arguments: AppendObjectBuilderArguments,
+  }
+
   impl<'a> AppendObjectBuilder<'a> {
     pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
       Self {
         client,
         object: object.to_string(),
         position: 0,
-        cache_control: None,
-        content_disposition: None,
-        content_encoding: None,
-        content_md5: None,
-        expires: None,
-        server_side_encryption: None,
-        object_acl: None,
-        storage_class: None,
-        meta: None,
-        tagging: None,
+        arguments: AppendObjectBuilderArguments::default(),
       }
     }
 
@@ -109,56 +218,61 @@ pub mod builders {
     }
 
     pub fn cache_control(mut self, value: &'a str) -> Self {
-      self.cache_control = Some(value.to_string());
+      self.arguments.cache_control = Some(value.to_string());
       self
     }
     pub fn content_disposition(mut self, value: &'a str) -> Self {
-      self.content_disposition = Some(value.to_string());
+      self.arguments.content_disposition = Some(value.to_string());
       self
     }
     pub fn content_encoding(mut self, value: &str) -> Self {
-      self.content_encoding = Some(value.to_string());
+      self.arguments.content_encoding = Some(value.to_string());
       self
     }
 
     pub fn expires(mut self, value: DateTime<Utc>) -> Self {
-      self.expires = Some(value);
+      self.arguments.expires = Some(value);
       self
     }
 
     pub fn server_side_encryption(mut self, value: ServerSideEncryption) -> Self {
-      self.server_side_encryption = Some(value);
+      self.arguments.server_side_encryption = Some(value);
       self
     }
 
     pub fn object_acl(mut self, value: ObjectACL) -> Self {
-      self.object_acl = Some(value);
+      self.arguments.object_acl = Some(value);
       self
     }
 
     pub fn storage_class(mut self, value: StorageClass) -> Self {
-      self.storage_class = Some(value);
+      self.arguments.storage_class = Some(value);
       self
     }
 
-    pub fn metas(mut self) -> Self {
-      self
-    }
+    // pub fn metas(mut self) -> Self {
+    //   self
+    // }
 
-    pub fn add_meta(mut self) -> Self {
-      self
-    }
+    // pub fn add_meta(mut self) -> Self {
+    //   self
+    // }
 
-    pub fn tagging(mut self) -> Self {
-      self
-    }
+    // pub fn tagging(mut self) -> Self {
+    //   self
+    // }
 
-    pub fn add_tag(mut self) -> Self {
-      self
+    // pub fn add_tag(mut self) -> Self {
+    //   self
+    // }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      self.client;
+      let _ = self.object;
+      todo!()
     }
   }
 
-  #[allow(unused)]
   #[derive(Debug, Default, Serialize, Deserialize)]
   pub struct GetObjectBuilderQuery<'a> {
     #[serde(
@@ -192,26 +306,6 @@ pub mod builders {
     version_id: Option<&'a str>,
   }
 
-  // #[allow(unused)]
-  // #[derive(Debug, Default)]
-  // pub struct GetObjectBuilderQuery2<'a> {
-  //     version_id: Option<&'a str>,
-  //     content_encoding: Option<&'a str>,
-  //     content_type: Option<&'a str>,
-  //     content_language: Option<&'a str>,
-  //     expires: Option<&'a str>,
-  //     cache_control: Option<&'a str>,
-  //     content_disposition: Option<&'a str>,
-  // }
-
-  // #[allow(unused)]
-  // impl<'a> GetObjectBuilderQuery2<'a> {
-  //     pub fn to_query() -> String {
-  //         "".to_string()
-  //     }
-  // }
-
-  #[allow(unused)]
   #[derive(Debug)]
   pub struct GetObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
@@ -281,62 +375,26 @@ pub mod builders {
       self
     }
 
-    /// 如果指定的时间早于实际修改时间或指定的时间不符合规范，则直接返回Object，
-    /// 并返回200 OK；如果指定的时间等于或者晚于实际修改时间，则返回304 Not Modified。
-    ///
-    /// 时间格式：GMT，例如Fri, 13 Nov 2015 14:47:53 GMT
-    ///
-    /// 默认值：无
     pub fn with_modified_since(mut self, value: DateTime<Utc>) -> Self {
       self.modified_since = Some(value);
       self
     }
 
-    /// 如果指定的时间等于或者晚于Object实际修改时间，则正常传输Object，并返回200 OK；
-    /// 如果指定的时间早于实际修改时间，则返回412 Precondition Failed。
-    ///
-    /// 时间格式：GMT，例如Fri, 13 Nov 2015 14:47:53 GMTIf-Modified-Since和
-    /// If-Unmodified-Since可以同时使用。
-    ///
-    /// 默认值：无
     pub fn with_unmodified_since(mut self, value: DateTime<Utc>) -> Self {
       self.unmodified_since = Some(value);
       self
     }
 
-    /// ### 设置 If-Match
-    ///
-    /// 如果传入的ETag和Object的ETag匹配，则正常传输Object，并返回200 OK；
-    /// 如果传入的ETag和Object的ETag不匹配，则返回412 Precondition Failed。
-    ///
-    /// Object的ETag值用于验证数据是否发生了更改，您可以基于ETag值验证数据完整性。
-    ///
-    /// 默认值：无
     pub fn with_match(mut self, value: &'a str) -> Self {
       self.r#match = Some(value);
       self
     }
 
-    /// ### 设置 If-None-Match
-    ///
-    /// 如果传入的ETag值和Object的ETag不匹配，则正常传输Object，并返回200 OK；
-    ///
-    /// 如果传入的ETag和Object的ETag匹配，则返回304 Not Modified。
-    /// `If-Match`和`If-None-Match`可以同时使用。
-    ///
-    /// 默认值：无
     pub fn with_none_match(mut self, value: &'a str) -> Self {
       self.none_match = Some(value);
       self
     }
 
-    /// ### 指定客户端的编码类型。
-    ///
-    /// 如果要对返回内容进行Gzip压缩传输，您需要在请求头中以显示方式加入Accept-Encoding:gzip
-    ///  OSS会根据Object的Content-Type和Object大小（不小于1 KB）判断是否返回经过Gzip压缩
-    /// 的数据。
-    /// 1. 如果采用了Gzip压缩，则不会附带ETag信息。
-    /// 2. 目前OSS支持Gzip压缩的`Content-Type`为`text/cache-manifest`、 `text/xml`、`text/plain`、`text/css`、`application/javascript`、`application/x-javascript`、`application/rss+xml`、`application/json和text/json`。
     pub fn with_accept_encoding(mut self, value: &'a str) -> Self {
       self.accept_encoding = Some(value);
       self
@@ -409,29 +467,6 @@ pub mod builders {
   }
 
   #[allow(unused)]
-  #[derive(Debug, Default)]
-  pub struct CopyObjectBuilder<'a> {
-    from_bucket: &'a str,
-    form_object: &'a str,
-    to_bucket: &'a str,
-    to_object: &'a str,
-    source_version_id: Option<&'a str>,
-    version_id: Option<&'a str>,
-    forbid_overwrite: Option<bool>,
-    if_match: Option<&'a str>,
-    if_none_match: Option<&'a str>,
-    if_unmodified_since: Option<DateTime<Utc>>,
-    if_modified_since: Option<DateTime<Utc>>,
-    metadata_directive: (),
-    encryption: Option<ServerSideEncryption>,
-    enc_key_id: Option<&'a str>,
-    object_acl: Option<ObjectACL>,
-    storage_class: Option<StorageClass>,
-    oss_tagging: Option<Tagging>,
-    tagging_directive: (),
-  }
-
-  #[allow(unused)]
   #[derive(Debug)]
   pub struct DeleteObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
@@ -455,15 +490,16 @@ pub mod builders {
     }
 
     pub async fn execute(&self) -> api::ApiResult<()> {
-      let object_url = self.client.object_url(self.object);
-      let url = match self.version_id {
-        Some(version_id) => format!("{}/?versionId={}", object_url, version_id),
-        None => object_url,
+      let base_res = format!("/{}/{}", self.client.bucket(), self.object);
+      let base_url = self.client.object_url(self.object);
+      let version_param = if let Some(version_id) = self.version_id {
+        format!("?versionId={}", version_id)
+      } else {
+        String::new()
       };
-      let res = format!(
-        "/{}/{}/",
-        self.client.options.region, self.client.options.bucket
-      );
+      let res = format!("{}{}", base_res, version_param);
+      let url = format!("{}{}", base_url, version_param);
+
       let resp = self
         .client
         .request
@@ -551,15 +587,12 @@ pub mod builders {
             .unwrap(),
         );
       }
-
       if let Some(r#match) = self.r#match {
         headers.insert("If-Match", r#match.parse().unwrap());
       }
-
       if let Some(none_match) = self.none_match {
         headers.insert("If-None-Match", none_match.parse().unwrap());
       }
-
       headers
     }
 
@@ -632,7 +665,6 @@ pub mod builders {
     }
   }
 
-  #[allow(unused)]
   pub struct RestoreObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
@@ -641,7 +673,6 @@ pub mod builders {
     tier: Option<Tier>,
   }
 
-  #[allow(unused)]
   impl<'a> RestoreObjectBuilder<'a> {
     pub fn new(client: &'a oss::Client, object: &'a str) -> Self {
       Self {
@@ -715,14 +746,14 @@ impl<'a> oss::Client<'a> {
   }
 
   /// 调用CopyObject接口拷贝同一地域下相同或不同存储空间（Bucket）之间的文件（Object）
-  pub async fn CopyObject(&self) {
-    todo!()
+  pub fn CopyObject(&self, object: &'a str) -> CopyObjectBuilder {
+    CopyObjectBuilder::new(self, object)
   }
 
   /// 调用AppendObject接口用于以追加写的方式上传文件（Object）。通过AppendObject操
   /// 作创建的Object类型为Appendable Object，而通过PutObject上传的Object是Normal Object。
-  pub async fn AppendObject(&self) {
-    todo!()
+  pub fn AppendObject(&self, object: &'a str) -> AppendObjectBuilder {
+    AppendObjectBuilder::new(self, object)
   }
 
   /// 调用DeleteObject删除某个文件（Object）
@@ -734,14 +765,11 @@ impl<'a> oss::Client<'a> {
   /// - 文件删除后无法恢复，请谨慎操作。关于删除文件的更多信息，请参见删除文件。
   /// - 无论要删除的Object是否存在，删除成功后均会返回204状态码。
   /// - 如果Object类型为软链接，使用DeleteObject接口只会删除该软链接。
-  #[allow(unused)]
-  pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder<'_> {
-    todo!()
-    // DeleteObjectBuilder::new(self, object)
+  pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder {
+    DeleteObjectBuilder::new(self, object)
   }
 
   /// DeleteMultipleObjects接口用于删除同一个存储空间（Bucket）中的多个文件（Object）
-  #[allow(unused)]
   pub fn DeleteMultipleObjects() {
     todo!()
   }

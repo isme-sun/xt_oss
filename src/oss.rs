@@ -230,7 +230,7 @@ impl<'a> Request<'a> {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Options<'a> {
   /// 通过阿里云控制台创建的AccessKey ID
   access_key_id: &'a str,
@@ -256,27 +256,36 @@ pub struct Options<'a> {
   timeout: u64,
 }
 
-impl<'a> Default for Options<'a> {
-  fn default() -> Self {
+// impl<'a> Default for Options<'a> {
+//   fn default() -> Self {
+//     Self {
+//       // access_key_id: Default::default(),
+//       // access_key_secret: Default::default(),
+//       // sts_token: Default::default(),
+//       // bucket: Default::default(),
+//       // endpoint: Default::default(),
+//       region: oss::DEFAULT_REGION,
+//       internal: false,
+//       cname: false,
+//       is_request_pay: false,
+//       secure: false,
+//       timeout: 60u64,
+//       ..Self::default()
+//     }
+//   }
+// }
+
+impl<'a> Options<'a> {
+  pub fn new() -> Self {
     Self {
-      access_key_id: Default::default(),
-      access_key_secret: Default::default(),
-      sts_token: Default::default(),
-      bucket: Default::default(),
-      endpoint: Default::default(),
       region: oss::DEFAULT_REGION,
       internal: false,
       cname: false,
       is_request_pay: false,
       secure: false,
       timeout: 60u64,
+      ..Self::default()
     }
-  }
-}
-
-impl<'a> Options<'a> {
-  pub fn new() -> Self {
-    Self::default()
   }
 
   pub fn with_access_key_id(mut self, value: &'a str) -> Self {

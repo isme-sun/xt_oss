@@ -49,6 +49,21 @@ pub struct RestoreRequest {
   pub job_parameters: Option<JobParameters>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub enum MetadataDirective {
+  #[default]
+  COPY,
+  REPLACE
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub enum TaggingDirective {
+  #[default]
+  COPY,
+  REPLACE
+}
+
 #[cfg(test)]
 pub mod tests {
   use crate::oss::entities::object::RestoreRequest;
