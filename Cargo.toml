@@ -52,6 +52,10 @@ path = "examples/service/api_list_buckets.rs"
 name = "put_bucket_transfer_acceleration"
 path = "examples/buckets/put_bucket_transfer_acceleration.rs"
 
+[[example]]
+name = "get_object_meta"
+path = "examples/objects/get_object_meta.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 

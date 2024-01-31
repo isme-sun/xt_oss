@@ -394,6 +394,14 @@ impl<'a> Client<'a> {
     Self { options, request }
   }
 
+  pub fn region(&self) -> &'a str {
+    self.options.region
+  }
+
+  pub fn bucket(&self) -> &'a str {
+    self.options.bucket
+  }
+
   pub fn root_url(&self) -> String {
     self.options.root_url()
   }

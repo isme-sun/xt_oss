@@ -1,8 +1,11 @@
 use builders::{DeleteObjectBuilder, GetObjectBuilder, PutObjectBuilder};
 
-use crate::oss;
+use crate::oss::{self, api::objects::stand::builders::GetObjectMetaBuilder};
+
+use self::builders::{HeadObjectBuilder, RestoreObjectBuilder};
 
 pub mod builders {
+
   use chrono::{DateTime, Utc};
   use serde::{Deserialize, Serialize};
   use urlencoding;
@@ -10,8 +13,12 @@ pub mod builders {
   use crate::oss::{
     self,
     api::{self, ApiResponseFrom},
-    entities::{tag::Tagging, ObjectACL, ServerSideEncryption, StorageClass},
-    http, Bytes,
+    entities::{
+      object::{JobParameters, RestoreRequest, Tier},
+      tag::Tagging,
+      ObjectACL, ServerSideEncryption, StorageClass,
+    },
+    http, Bytes, GMT_DATE_FMT,
   };
 
   pub struct PutObjectBuilder<'a> {
@@ -470,6 +477,228 @@ pub mod builders {
       Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
+
+  #[allow(unused)]
+  pub struct HeadObjectBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    version_id: Option<&'a str>,
+    modified_since: Option<DateTime<Utc>>,
+    unmodified_since: Option<DateTime<Utc>>,
+    r#match: Option<&'a str>,
+    none_match: Option<&'a str>,
+  }
+
+  #[allow(unused)]
+  impl<'a> HeadObjectBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+      Self {
+        client,
+        object,
+        version_id: None,
+        modified_since: None,
+        unmodified_since: None,
+        r#match: None,
+        none_match: None,
+      }
+    }
+
+    pub fn with_version_id(mut self, version_id: &'a str) -> Self {
+      self.version_id = Some(version_id);
+      self
+    }
+
+    pub fn with_modified_since(mut self, value: DateTime<Utc>) -> Self {
+      self.modified_since = Some(value);
+      self
+    }
+
+    pub fn with_unmodified_since(mut self, value: DateTime<Utc>) -> Self {
+      self.unmodified_since = Some(value);
+      self
+    }
+
+    pub fn with_match(mut self, value: &'a str) -> Self {
+      self.r#match = Some(value);
+      self
+    }
+
+    pub fn with_none_match(mut self, value: &'a str) -> Self {
+      self.none_match = Some(value);
+      self
+    }
+
+    fn headers(&self) -> http::HeaderMap {
+      let mut headers = http::HeaderMap::new();
+      if let Some(modified_since) = self.modified_since {
+        headers.insert(
+          "If-Modified-Since",
+          modified_since
+            .format(GMT_DATE_FMT)
+            .to_string()
+            .parse()
+            .unwrap(),
+        );
+      }
+
+      if let Some(unmodified_since) = self.unmodified_since {
+        headers.insert(
+          "If-Modified-Since",
+          unmodified_since
+            .format(GMT_DATE_FMT)
+            .to_string()
+            .parse()
+            .unwrap(),
+        );
+      }
+
+      if let Some(r#match) = self.r#match {
+        headers.insert("If-Match", r#match.parse().unwrap());
+      }
+
+      if let Some(none_match) = self.none_match {
+        headers.insert("If-None-Match", none_match.parse().unwrap());
+      }
+
+      headers
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let mut res = format!("/{}/{}", self.client.bucket(), self.object);
+      let mut url = format!("{}", self.client.object_url(self.object));
+      if let Some(version_id) = self.version_id {
+        res = format!("{}?versionId={}", res, version_id);
+        url = format!("{}?versionId={}", url, version_id);
+      };
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::HEAD)
+        .with_headers(self.headers())
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
+    }
+  }
+
+  pub struct GetObjectMetaBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    version_id: Option<&'a str>,
+  }
+
+  impl<'a> GetObjectMetaBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+      Self {
+        client,
+        object,
+        version_id: None,
+      }
+    }
+
+    pub fn with_version_id(mut self, version_id: &'a str) -> Self {
+      self.version_id = Some(version_id);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let mut res = format!(
+        "/{}/{}?{}",
+        self.client.options.bucket, self.object, "objectMeta"
+      );
+
+      let mut url = format!("{}?{}", self.client.object_url(self.object), "objectMeta");
+
+      if let Some(version_id) = self.version_id {
+        res = format!("{}&versionId={}", res, version_id);
+        url = format!("{}&versionId={}", url, version_id);
+      }
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
+    }
+  }
+
+  #[allow(unused)]
+  pub struct RestoreObjectBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    object: &'a str,
+    version_id: Option<&'a str>,
+    days: Option<u8>,
+    tier: Option<Tier>,
+  }
+
+  #[allow(unused)]
+  impl<'a> RestoreObjectBuilder<'a> {
+    pub fn new(client: &'a oss::Client, object: &'a str) -> Self {
+      Self {
+        client,
+        object,
+        version_id: None,
+        days: None,
+        tier: None,
+      }
+    }
+
+    pub fn with_days(mut self, days: u8) -> Self {
+      self.days = Some(days);
+      self
+    }
+
+    pub fn with_tier(mut self, tier: Tier) -> Self {
+      self.tier = Some(tier);
+      self
+    }
+
+    fn config(&self) -> Option<String> {
+      let days = self.days?;
+      let request = RestoreRequest {
+        days,
+        job_parameters: self
+          .tier
+          .as_ref()
+          .map(|tier| JobParameters { tier: tier.clone() }),
+      };
+      quick_xml::se::to_string(&request).ok()
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<()> {
+      let mut res = format!("/{}/{}?{}", self.client.bucket(), self.object, "restore");
+      let mut url = format!("{}?{}", self.client.object_url(self.object), "restore");
+      if let Some(version_id) = self.version_id {
+        res = format!("{}&versionId={}", res, version_id);
+        url = format!("{}&versionId={}", url, version_id);
+      };
+
+      let config = Bytes::from(self.config().unwrap_or("".to_string()));
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_body(config)
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
+    }
+  }
 }
 
 /// 基础操作
@@ -505,71 +734,33 @@ impl<'a> oss::Client<'a> {
   /// - 文件删除后无法恢复，请谨慎操作。关于删除文件的更多信息，请参见删除文件。
   /// - 无论要删除的Object是否存在，删除成功后均会返回204状态码。
   /// - 如果Object类型为软链接，使用DeleteObject接口只会删除该软链接。
+  #[allow(unused)]
   pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder<'_> {
     todo!()
     // DeleteObjectBuilder::new(self, object)
   }
 
   /// DeleteMultipleObjects接口用于删除同一个存储空间（Bucket）中的多个文件（Object）
+  #[allow(unused)]
   pub fn DeleteMultipleObjects() {
     todo!()
   }
 
   /// HeadObject接口用于获取某个文件（Object）的元信息
-  pub async fn HeadObject(&self, object: &'a str) -> oss::Result<()> {
-    todo!()
-    // let url = {
-    //   let base_url = self.options.base_url();
-    //   format!("{base_url}/{object}")
-    // };
-    // let resp = self
-    //   .request
-    //   .task()
-    //   .url(&url)
-    //   .method(oss::Method::HEAD)
-    //   .send()
-    //   .await
-    //   .unwrap();
-
-    // let result = oss::Data {
-    //   status: resp.status,
-    //   headers: resp.headers,
-    //   data: (),
-    // };
-    // Ok(result)
+  pub fn HeadObject(&self, object: &'a str) -> HeadObjectBuilder {
+    HeadObjectBuilder::new(self, object)
   }
 
   /// 调用GetObjectMeta接口获取一个文件（Object）的元数据信息
   ///
   /// 包括该Object的ETag、Size、LastModified信息，并且不返回该Object的内容。
-  pub async fn GetObjectMeta(&self, object: &'a str) -> oss::Result<()> {
-    todo!()
-    // let url = {
-    //   let base_url = self.options.base_url();
-    //   format!("{base_url}/{object}?objectMeta")
-    // };
-
-    // let resp = self
-    //   .request
-    //   .task()
-    //   .url(&url)
-    //   .method(oss::Method::HEAD)
-    //   .resourse("objectMeta")
-    //   .send()
-    //   .await
-    //   .unwrap();
-
-    // let result = oss::Data {
-    //   status: resp.status,
-    //   headers: resp.headers,
-    //   data: (),
-    // };
-    // Ok(result)
+  pub fn GetObjectMeta(&self, object: &'a str) -> GetObjectMetaBuilder {
+    GetObjectMetaBuilder::new(self, object)
   }
 
   /// 调用RestoreObject接口解冻归档类型、冷归档、深度冷归档类型的文件（Object）
-  pub async fn RestoreObject(&self) {
-    todo!()
+  pub fn RestoreObject(&self, object: &'a str) -> RestoreObjectBuilder {
+    RestoreObjectBuilder::new(self, object)
   }
 }
 

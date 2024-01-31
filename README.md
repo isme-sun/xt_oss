@@ -42,26 +42,17 @@
 ### 关于Service/Region
 
 - [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets)
-<small>调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）</small>
 - [★ `DescribeRegions`](https://www.example.com) 
-<small>调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息</small>
 
 ### Bucket - 基础操作
 
 - [★ `PutBucket`](https://www.example.com)
-<small>调用PutBucket接口创建存储空间（Bucket）</small>
 - [★ `DeleteBucket`](https://www.example.com)
-<small>调用DeleteBucket删除某个存储空间（Bucket）</small>
 - [★ `ListObjects`](https://www.example.com)
-<small>当您需要列举存储空间（Bucket）中所有文件（Object）的信息</small>
 - [★ `ListObjectsV2`](https://www.example.com)
-<small>ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息</small>
 - [★ `GetBucketInfo`](https://www.example.com)
-<small>调用GetBucketInfo接口查看存储空间（Bucket）的相关信息</small>
 - [★ `GetBucketLocation`](https://www.example.com)
-<small>GetBucketLocation接口用于查看存储空间（Bucket）的位置信息</small>
 - [★ `GetBucketStat`](https://www.example.com)
-<small>调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件（Object）数量</small>
 
 ### 合规保留策略（WORM）
 
@@ -450,3 +441,4 @@ async fn main() {
 ```
 
 ## 五、其他
+
