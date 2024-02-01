@@ -40,8 +40,24 @@ name = "put_bucket"
 path = "examples/buckets/put_bucket.rs"
 
 [[example]]
+name = "delete_bucket"
+path = "examples/buckets/delete_bucket.rs"
+
+[[example]]
 name = "bucket_get_stat"
 path = "examples/buckets/bucket_get_stat.rs"
+
+[[example]]
+name = "get_bucket_info"
+path = "examples/buckets/get_bucket_info.rs"
+
+[[example]]
+name = "get_bucket_location"
+path = "examples/buckets/get_bucket_location.rs"
+
+[[example]]
+name = "get_bucket_stat"
+path = "examples/buckets/get_bucket_stat.rs"
 
 [[example]]
 name = "describe_regions"

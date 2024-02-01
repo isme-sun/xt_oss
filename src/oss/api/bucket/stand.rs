@@ -1,16 +1,19 @@
-use crate::oss::{
-  self,
-  entities::bucket::{BucketInfo, LocationConstraint},
-};
+use crate::oss;
 
-use self::builders::{ListObjectBuilder, ListObjectsV2Builder, PutBucketBuilder};
+use self::builders::{
+  DeleteBucketBuilder, GetBucketInfoBuilder, GetBucketLocationBuilder, GetBucketStatBuilder,
+  ListObjectBuilder, ListObjectsV2Builder, PutBucketBuilder,
+};
 
 pub mod builders {
   use crate::oss::{
     self,
     api::{self, ApiResponseFrom},
     entities::{
-      bucket::{CreateBucketConfiguration, ListBucketResult, ListBucketResult2},
+      bucket::{
+        BucketInfo, BucketStat, CreateBucketConfiguration, ListBucketResult, ListBucketResult2,
+        LocationConstraint,
+      },
       DataRedundancyType, OssAcl, StorageClass,
     },
     http,
@@ -123,6 +126,62 @@ pub mod builders {
         .with_resource(&res)
         .with_headers(headers)
         .with_body(config)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
+    }
+  }
+
+  pub struct DeleteBucketBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    region: Option<&'a str>,
+    bucket: Option<&'a str>,
+  }
+
+  impl<'a> DeleteBucketBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        region: None,
+        bucket: None,
+      }
+    }
+
+    pub fn with_region(mut self, region: &'a str) -> Self {
+      self.region = Some(region);
+      self
+    }
+
+    pub fn with_bucket(mut self, bucket: &'a str) -> Self {
+      self.bucket = Some(bucket);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult {
+      let res = format!("/{}/", self.bucket.unwrap_or(self.client.bucket()),);
+      let url = format!(
+        "{}://{}.{}",
+        self.client.options.schema(),
+        self.bucket.unwrap_or(self.client.options.bucket),
+        format!(
+          "{}{}.{}",
+          self.region.unwrap_or(self.client.options.region),
+          match self.client.options.internal {
+            true => "-internal",
+            false => "",
+          },
+          oss::BASE_URL
+        )
+      );
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_method(http::Method::DELETE)
         .execute()
         .await?;
 
@@ -326,16 +385,175 @@ pub mod builders {
         .await?;
 
       Ok(ApiResponseFrom(resp).as_type().await)
+    }
+  }
 
-      // let content = String::from_utf8_lossy(&resp.data);
+  pub struct GetBucketInfoBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    bucket: Option<&'a str>,
+  }
 
-      // let buckets: ListBucketResult2 = quick_xml::de::from_str(&content).unwrap();
-      // let result = oss::Data {
-      //   status: resp.status,
-      //   headers: resp.headers,
-      //   data: buckets,
-      // };
-      // Ok(result)
+  impl<'a> GetBucketInfoBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        bucket: None,
+      }
+    }
+
+    pub fn with_bucket(mut self, bucket: &'a str) -> Self {
+      self.bucket = Some(bucket);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<BucketInfo> {
+      let res = format!(
+        "/{}/?{}",
+        self.bucket.unwrap_or(self.client.bucket()),
+        "bucketInfo"
+      );
+      let url = format!(
+        "{}://{}.{}/?{}",
+        self.client.options.schema(),
+        self.bucket.unwrap_or(self.client.options.bucket),
+        format!(
+          "{}{}.{}",
+          self.client.options.region,
+          match self.client.options.internal {
+            true => "-internal",
+            false => "",
+          },
+          oss::BASE_URL
+        ),
+        "bucketInfo"
+      );
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_method(http::Method::GET)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
+  }
+
+  pub struct GetBucketLocationBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    bucket: Option<&'a str>,
+  }
+
+  impl<'a> GetBucketLocationBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        bucket: None,
+      }
+    }
+
+    pub fn with_bucket(mut self, bucket: &'a str) -> Self {
+      self.bucket = Some(bucket);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<LocationConstraint> {
+      let res = format!(
+        "/{}/?{}",
+        self.bucket.unwrap_or(self.client.bucket()),
+        "location"
+      );
+      let url = format!(
+        "{}://{}.{}/?{}",
+        self.client.options.schema(),
+        self.bucket.unwrap_or(self.client.options.bucket),
+        format!(
+          "{}{}.{}",
+          self.client.options.region,
+          match self.client.options.internal {
+            true => "-internal",
+            false => "",
+          },
+          oss::BASE_URL
+        ),
+        "location"
+      );
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_method(http::Method::GET)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
+  }
+
+  pub struct GetBucketStatBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    region: Option<&'a str>,
+    bucket: Option<&'a str>,
+  }
+
+  impl<'a> GetBucketStatBuilder<'a> {
+    pub fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        region: None,
+        bucket: None,
+      }
+    }
+
+    pub fn with_region(mut self, region: &'a str) -> Self {
+      self.region = Some(region);
+      self
+    }
+
+    pub fn with_bucket(mut self, bucket: &'a str) -> Self {
+      self.bucket = Some(bucket);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<BucketStat> {
+      let res = format!(
+        "/{}/?{}",
+        self.bucket.unwrap_or(self.client.bucket()),
+        "stat"
+      );
+      let url = format!(
+        "{}://{}.{}/?{}",
+        self.client.options.schema(),
+        self.bucket.unwrap_or(self.client.options.bucket),
+        format!(
+          "{}{}.{}",
+          self.region.unwrap_or(self.client.options.region),
+          match self.client.options.internal {
+            true => "-internal",
+            false => "",
+          },
+          oss::BASE_URL
+        ),
+        "stat"
+      );
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_method(http::Method::GET)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 }
@@ -347,27 +565,10 @@ impl<'a> oss::Client<'a> {
   }
 
   /// 调用DeleteBucket删除某个存储空间（Bucket）。
-  /// - 只有Bucket的拥有者才有权限删除该Bucket。
-  /// - 为了防止误删除的发生，OSS不允许删除一个非空的Bucket。
-  #[allow(private_interfaces)]
-  #[allow(unused)]
-  pub async fn DeleteBucket(&self, bucket: &'a str) -> oss::Result<()> {
-    todo!()
-    // let url = self.options.base_url();
-    // let resp = self
-    //   .request
-    //   .task()
-    //   .url(&url)
-    //   .method(oss::Method::DELETE)
-    //   .send()
-    //   .await?;
-
-    // let result = oss::Data {
-    //   status: resp.status,
-    //   headers: resp.headers,
-    //   data: (),
-    // };
-    // Ok(result)
+  ///
+  /// See [Engine::encode].
+  pub fn DeleteBucket(&self) -> DeleteBucketBuilder {
+    DeleteBucketBuilder::new(self)
   }
 
   /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
@@ -383,62 +584,18 @@ impl<'a> oss::Client<'a> {
   }
 
   // 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
-  pub async fn GetBucketInfo(&self) -> oss::Result<BucketInfo> {
-    todo!()
-    // let query = "bucketInfo";
-    // let url = format!("{}/?{}", self.options.base_url(), query);
-
-    // let resp = self
-    //   .request
-    //   .task()
-    //   .url(&url)
-    //   .resourse(query)
-    //   .send()
-    //   .await
-    //   .unwrap();
-
-    // let content = String::from_utf8_lossy(&resp.data);
-    // let bucket_info = quick_xml::de::from_str(&content).unwrap();
-    // let result = oss::Data {
-    //   status: resp.status,
-    //   headers: resp.headers,
-    //   data: bucket_info,
-    // };
-    // Ok(result)
+  pub fn GetBucketInfo(&self) -> GetBucketInfoBuilder<'_> {
+    GetBucketInfoBuilder::new(self)
   }
 
   /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
   /// 只有Bucket的拥有者才能查看Bucket的位置信息。
-  pub async fn GetBucketLocation(&self) -> oss::Result<LocationConstraint> {
-    todo!()
-    //   let query = "location";
-    //   let url = format!("{}/?{}", self.options.base_url(), query);
+  pub fn GetBucketLocation(&self) -> GetBucketLocationBuilder<'_> {
+    GetBucketLocationBuilder::new(self)
+  }
 
-    //   let resp = self.request.task().url(&url).resourse(query).send().await?;
-
-    //   let content = String::from_utf8_lossy(&resp.data);
-    //   let bucket_stat = quick_xml::de::from_str(&content).unwrap();
-    //   let result = oss::Data {
-    //     status: resp.status,
-    //     headers: resp.headers,
-    //     data: bucket_stat,
-    //   };
-    //   Ok(result)
-    // }
-
-    // pub async fn GetBucketStat(&self) -> oss::Result<BucketStat> {
-    //   let query = "stat";
-    //   let url = format!("{}/?{}", self.options.base_url(), query);
-
-    //   let resp = self.request.task().url(&url).resourse(query).send().await?;
-
-    //   let content = String::from_utf8_lossy(&resp.data);
-    //   let bucket_stat = quick_xml::de::from_str(&content).unwrap();
-    //   let result = oss::Data {
-    //     status: resp.status,
-    //     headers: resp.headers,
-    //     data: bucket_stat,
-    //   };
-    //   Ok(result)
+  /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件（Object）数量
+  pub fn GetBucketStat(&self) -> GetBucketStatBuilder {
+    GetBucketStatBuilder::new(self)
   }
 }

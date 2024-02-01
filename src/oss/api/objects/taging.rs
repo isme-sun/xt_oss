@@ -167,6 +167,6 @@ impl<'a> oss::Client<'a> {
 
   /// 调用DeleteObjectTagging接口删除指定对象（Object）的标签（Tagging）信息。
   pub fn DeleteObjectTagging(&self, object: &'a str) -> DeleteObjectTaggingBuilder {
-      DeleteObjectTaggingBuilder::new(self, object)
+    DeleteObjectTaggingBuilder::new(self, object)
   }
 }
