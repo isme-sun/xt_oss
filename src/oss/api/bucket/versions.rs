@@ -1,6 +1,6 @@
 use crate::oss;
 use crate::oss::{
-  api::{self, ApiResultFrom},
+  api::{self, ApiResponseFrom},
   entities::version::{VersioningConfiguration, VersioningStatus},
 };
 
@@ -9,7 +9,7 @@ use self::builders::PutBucketVersioningBuilder;
 pub mod builders {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::version::{VersioningConfiguration, VersioningStatus},
     http,
   };
@@ -24,7 +24,7 @@ pub mod builders {
       Self { client, status }
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?{}", self.client.options.bucket, "versioning");
       let url = format!("{}/?{}", self.client.options.base_url(), "versioning");
 
@@ -43,8 +43,8 @@ pub mod builders {
         .with_resource(&res)
         .with_body(data)
         .execute()
-        .await;
-      ApiResultFrom(resp).to_empty().await
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 }
@@ -67,8 +67,8 @@ impl<'a> GetBucketVersioningBuilder<'a> {
       .with_url(&url)
       .with_resource(&res)
       .execute()
-      .await;
-    ApiResultFrom(resp).to_type().await
+      .await?;
+    Ok(ApiResponseFrom(resp).as_type().await)
   }
 }
 

@@ -5,7 +5,7 @@ use self::builders::{DeleteBucketCorsBuilder, GetBucketCorsBuilder, PutBucketCor
 pub mod builders {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::cors::CORSConfiguration,
     http,
   };
@@ -43,9 +43,9 @@ pub mod builders {
         .with_resource(&res)
         .with_body(data)
         .execute_timeout(self.client.options.timeout)
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_type().await
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
@@ -69,9 +69,9 @@ pub mod builders {
         .with_url(&url)
         .with_resource(&res)
         .execute_timeout(self.client.options.timeout)
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_type().await
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
@@ -96,9 +96,9 @@ pub mod builders {
         .with_resource(&res)
         .with_method(http::Method::DELETE)
         .execute_timeout(self.client.options.timeout)
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_empty().await
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 }

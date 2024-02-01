@@ -5,7 +5,7 @@ use self::builders::{DeleteStyleBuilder, GetStyleBuilder, ListStyleBuilder, PutS
 pub mod builders {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::style::{Style, StyleList},
     http,
   };
@@ -42,27 +42,25 @@ pub mod builders {
       quick_xml::se::to_string(&self.style).unwrap()
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?{}", self.client.options.bucket, "style");
       let query = format!("style&styleName={}", self.style.name);
       let url = { format!("{}?{}", self.client.options.base_url(), query) };
 
       let data = oss::Bytes::from(self.style());
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::PUT)
-          .with_resource(&res)
-          .with_body(data)
-          .execute()
-          .await,
-      )
-      .to_empty()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_resource(&res)
+        .with_body(data)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -78,18 +76,15 @@ pub mod builders {
     pub async fn execute(&self) -> api::ApiResult<StyleList> {
       let res = format!("/{}/?{}", self.client.options.bucket, "style");
       let url = format!("{}/?{}", self.client.options.base_url(), "style");
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_type()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
@@ -111,19 +106,17 @@ pub mod builders {
         "style",
         self.name
       );
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::GET)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_type()
-      .await
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::GET)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
@@ -137,7 +130,7 @@ pub mod builders {
       Self { client, name }
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?{}", self.client.options.bucket, "style");
       let url = format!(
         "{}/?{}&styleName={}",
@@ -146,19 +139,16 @@ pub mod builders {
         self.name
       );
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::DELETE)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_empty()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::DELETE)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 }

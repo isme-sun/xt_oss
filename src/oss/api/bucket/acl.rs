@@ -1,6 +1,6 @@
 use crate::oss::{
   self,
-  api::{self, ApiResultFrom},
+  api::{self, ApiResponseFrom},
   entities::acl::AccessControlPolicy,
   http,
 };
@@ -42,9 +42,9 @@ impl<'a> PutBucketAclBuilder<'a> {
       .with_headers(headers)
       .with_resource(&res)
       .execute_timeout(self.client.options.timeout)
-      .await;
+      .await?;
 
-    ApiResultFrom(resp).to_empty().await
+    Ok(ApiResponseFrom(resp).as_empty().await)
   }
 }
 
@@ -68,9 +68,8 @@ impl<'a> GetBucketAclBuilder<'a> {
       .with_url(&url)
       .with_resource(&res)
       .execute_timeout(self.client.options.timeout)
-      .await;
-
-    ApiResultFrom(resp).to_type().await
+      .await?;
+    Ok(ApiResponseFrom(resp).as_type().await)
   }
 }
 

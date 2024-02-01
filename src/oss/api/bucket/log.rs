@@ -7,7 +7,7 @@ use self::builders::{
 pub mod builders {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::log::{BucketLoggingStatus, LoggingEnabled},
     http,
   };
@@ -48,7 +48,7 @@ pub mod builders {
       quick_xml::se::to_string(&config).unwrap()
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?{}", self.client.options.bucket, "logging");
       let url = format!("{}/?{}", self.client.options.base_url(), "logging");
       let config = self.config();
@@ -63,9 +63,8 @@ pub mod builders {
         .with_body(data)
         .with_resource(&res)
         .execute()
-        .await;
-
-      ApiResultFrom(resp).to_empty().await
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -89,8 +88,8 @@ pub mod builders {
         .with_url(&url)
         .with_resource(&res)
         .execute()
-        .await;
-      ApiResultFrom(resp).to_type().await
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
@@ -103,7 +102,7 @@ pub mod builders {
       Self { client }
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("{}/?{}", self.client.options.bucket, "logging");
       let url = format!("{}/?{}", self.client.options.base_url(), "logging");
 
@@ -115,8 +114,8 @@ pub mod builders {
         .with_resource(&res)
         .with_method(http::Method::DELETE)
         .execute()
-        .await;
-      ApiResultFrom(resp).to_empty().await
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 }

@@ -5,7 +5,7 @@ use self::builders::{DeleteBucketPolicyBuilder, GetBucketPolicyBuilder, PutBucke
 pub mod builders {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     http, Bytes,
   };
 
@@ -41,9 +41,9 @@ pub mod builders {
         .with_resource(&res)
         .with_body(data)
         .execute()
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_empty().await
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -67,9 +67,9 @@ pub mod builders {
         .with_url(&url)
         .with_resource(&res)
         .execute()
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_bytes().await
+      Ok(ApiResponseFrom(resp).as_bytes().await)
     }
   }
 
@@ -82,7 +82,7 @@ pub mod builders {
       Self { client }
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?{}", self.client.options.bucket, "policy");
       let url = format!("{}/?{}", self.client.options.base_url(), "policy");
 
@@ -94,9 +94,9 @@ pub mod builders {
         .with_resource(&res)
         .with_method(http::Method::DELETE)
         .execute()
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_empty().await
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 }

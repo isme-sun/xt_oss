@@ -9,7 +9,7 @@ pub mod builders {
 
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::worm::{ExtendWormConfiguration, InitiateWormConfiguration, WormConfiguration},
     http,
   };
@@ -36,26 +36,23 @@ pub mod builders {
       quick_xml::se::to_string(&config).unwrap()
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?{}", self.client.options.bucket, "worm");
       let url = format!("{}/?{}", self.client.options.base_url(), res);
 
       let config = self.config();
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::POST)
-          .with_body(oss::Bytes::from(config))
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_empty()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_body(oss::Bytes::from(config))
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -91,7 +88,7 @@ pub mod builders {
       quick_xml::se::to_string(&config).unwrap()
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!(
         "/{}/?{}&wormId={}",
         self.client.options.bucket,
@@ -101,20 +98,18 @@ pub mod builders {
       let url = { format!("{}/?{}", self.client.options.base_url(), res) };
       let config = self.config();
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::POST)
-          .with_body(oss::Bytes::from(config))
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_empty()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_body(oss::Bytes::from(config))
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -128,7 +123,7 @@ pub mod builders {
       Self { client, worm_id }
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!("/{}/?wormId={}", self.client.options.bucket, self.worm_id);
       let url = format!(
         "{}/?wormId={}",
@@ -136,19 +131,16 @@ pub mod builders {
         self.worm_id
       );
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::POST)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_empty()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -170,19 +162,16 @@ pub mod builders {
         self.worm_id
       );
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::POST)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_type()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 }

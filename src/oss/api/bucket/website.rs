@@ -7,7 +7,7 @@ use self::builders::{
 pub mod builders {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::website::{
       ErrorDocument, IndexDocument, RoutingRule, RoutingRules, WebsiteConfiguration,
     },
@@ -85,9 +85,9 @@ pub mod builders {
         .with_resource(&res)
         .with_body(data)
         .execute()
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_empty().await
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -103,19 +103,15 @@ pub mod builders {
     pub async fn execute(&self) -> api::ApiResult<WebsiteConfiguration> {
       let res = format!("/{}/?{}", self.client.options.bucket, "website");
       let url = format!("{}/?{}", self.client.options.base_url(), "website");
-
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_type()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
@@ -131,20 +127,16 @@ pub mod builders {
     pub async fn execute(&self) -> api::ApiResult<WebsiteConfiguration> {
       let res = format!("/{}/?{}", self.client.options.bucket, "website");
       let url = format!("{}/?{}", self.client.options.base_url(), "website");
-
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::DELETE)
-          .with_resource(&res)
-          .execute()
-          .await,
-      )
-      .to_type()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::DELETE)
+        .with_resource(&res)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 }

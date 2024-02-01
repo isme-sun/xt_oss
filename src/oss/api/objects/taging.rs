@@ -7,7 +7,7 @@ pub mod builders {
 
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::tag::{Tag, TagSet, Tagging},
     http,
   };
@@ -55,7 +55,7 @@ pub mod builders {
       quick_xml::se::to_string(&self.tagging()).unwrap()
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!(
         "/{}/{}/?{}",
         self.client.options.bucket, self.object, "tagging"
@@ -64,20 +64,17 @@ pub mod builders {
 
       let data = oss::Bytes::from(self.tagging_xml());
 
-      ApiResultFrom(
-        self
-          .client
-          .request
-          .task()
-          .with_url(&url)
-          .with_method(http::Method::PUT)
-          .with_resource(&res)
-          .with_body(data)
-          .execute()
-          .await,
-      )
-      .to_empty()
-      .await
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_resource(&res)
+        .with_body(data)
+        .execute()
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -103,7 +100,7 @@ pub mod builders {
       self
     }
 
-    pub async fn execute(&self) -> api::ApiResult<()> {
+    pub async fn execute(&self) -> api::ApiResult {
       let res = format!(
         "/{}/{}/?{}",
         self.client.options.bucket, self.object, "tagging"
@@ -127,9 +124,9 @@ pub mod builders {
         .with_method(http::Method::DELETE)
         .with_resource(&res)
         .execute()
-        .await;
+        .await?;
 
-      ApiResultFrom(resp).to_empty().await
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 }

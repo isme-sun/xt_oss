@@ -5,7 +5,7 @@ use self::builder::DescribeRegionsBuilder;
 pub mod builder {
   use crate::oss::{
     self,
-    api::{self, ApiResultFrom},
+    api::{self, ApiResponseFrom},
     entities::region::RegionInfoList,
   };
 
@@ -50,11 +50,11 @@ pub mod builder {
       let task = self.client.request.task().with_url(&url).with_resource("/");
 
       let resp = match self.timeout {
-        Some(timeout) => task.execute_timeout(timeout).await,
-        None => task.execute().await,
+        Some(timeout) => task.execute_timeout(timeout).await?,
+        None => task.execute().await?,
       };
 
-      ApiResultFrom(resp).to_type().await
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 }
