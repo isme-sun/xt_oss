@@ -22,5 +22,9 @@ pub fn options_from_env() -> oss::Options<'static> {
     .with_cname(get_env_bool("OSS_CNAME", false))
     .with_is_request_pay(get_env_bool("OSS_IS_REQUEST_PAY", false))
     .with_secret(get_env_bool("OSS_SECURE", false))
-    .with_timeout(get_env("OSS_TIMEOUT", "60").parse().unwrap())
+    .with_timeout(
+      get_env("OSS_TIMEOUT", "60")
+        .parse::<u64>()
+        .unwrap_or(oss::DEFAULT_TIMEOUT),
+    )
 }
