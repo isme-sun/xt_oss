@@ -142,7 +142,7 @@ impl fmt::Display for Status {
 }
 
 /// 指定存储空间的数据容灾类型
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[serde(tag = "DataRedundancyType")]
 pub enum DataRedundancyType {
   /// 本地冗余LRS将您的数据冗余存储在同一个可用区的不同存储设备上，可支持两个存储设备并发损坏时，仍维持数据不丢失，可正常访问

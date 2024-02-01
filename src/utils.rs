@@ -28,7 +28,7 @@ pub fn options_from_env() -> oss::Options<'static> {
         .unwrap_or(false),
     )
     .with_secret(
-      env::var("OSS_SECRET")
+      env::var("OSS_SECURE")
         .unwrap_or_default()
         .parse::<bool>()
         .unwrap_or(false),

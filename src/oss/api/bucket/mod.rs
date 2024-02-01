@@ -7,7 +7,7 @@ pub(crate) mod lifecycle;
 pub(crate) mod log;
 pub(crate) mod policy;
 pub(crate) mod referer;
-// pub(crate) mod stand;
+pub(crate) mod stand;
 pub(crate) mod style;
 pub(crate) mod tags;
 pub(crate) mod versions;

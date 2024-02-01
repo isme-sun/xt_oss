@@ -5,7 +5,7 @@ edition = "2021"
 rust-version = "1.73"
 authors = ["isme.sun <isme.sun@icloud.com>"]
 description = "Aliyun OSS SDK"
-license = "MIT OR Apache-2.0"
+# license = "MIT OR Apache-2.0"
 homepage = "https://www.xuetube.com/res/xuetiube-oss"
 keywords = ["oss", "aliyun"]
 categories = ["filesystem"]
@@ -36,9 +36,12 @@ name = "request_bucket_put_cors"
 path = "examples/request/bucket_put_cors.rs"
 
 [[example]]
+name = "put_bucket"
+path = "examples/buckets/put_bucket.rs"
+
+[[example]]
 name = "bucket_get_stat"
 path = "examples/buckets/bucket_get_stat.rs"
-
 
 [[example]]
 name = "describe_regions"

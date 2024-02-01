@@ -1,36 +1,132 @@
-use crate::oss::entities::bucket::{BucketInfo, LocationConstraint};
-use crate::oss::{self, entities::bucket::BucketStat};
+use crate::oss::{
+  self,
+  entities::bucket::{BucketInfo, LocationConstraint},
+};
 
-use self::builder::{ListObjectBuilder, ListObjectsV2Builder, PutBucketBuilder};
+use self::builders::{ListObjectBuilder, ListObjectsV2Builder, PutBucketBuilder};
 
-pub mod builder {
+pub mod builders {
   use crate::oss::{
     self,
+    api::{self, ApiResponseFrom},
     entities::{
-      bucket::{ListBucketResult, ListBucketResult2},
+      bucket::{CreateBucketConfiguration, ListBucketResult, ListBucketResult2},
       DataRedundancyType, OssAcl, StorageClass,
     },
+    http,
   };
   use reqwest::header::HeaderMap;
   use serde::{Deserialize, Serialize};
   use std::fmt;
 
-  #[derive(Debug, Serialize, Default)]
-  pub(crate) struct PutBucketConfiguration {
-    #[serde(rename = "StorageClass")]
-    pub(crate) storage_class: StorageClass,
-    #[serde(
-      rename = "data_redundancy_type",
-      skip_serializing_if = "Option::is_none"
-    )]
-    pub(crate) data_redundancy_type: Option<DataRedundancyType>,
+  #[derive(Debug)]
+  pub struct PutBucketBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    region: Option<&'a str>,
+    bucket: Option<&'a str>,
+    acl: Option<OssAcl>,
+    group_id: Option<&'a str>,
+    storage_class: Option<StorageClass>,
+    data_redundancy_type: Option<DataRedundancyType>,
   }
 
-  #[allow(unused)]
-  impl PutBucketConfiguration {
-    pub(crate) fn to_xml(&self) -> String {
-      let content = quick_xml::se::to_string(&self).unwrap();
-      format!("{}{}", oss::XML_DOCTYPE, content)
+  impl<'a> PutBucketBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        region: None,
+        bucket: None,
+        acl: None,
+        group_id: None,
+        // config: None,
+        storage_class: None,
+        data_redundancy_type: None,
+      }
+    }
+
+    pub fn with_region(mut self, value: &'a str) -> Self {
+      self.region = Some(value);
+      self
+    }
+
+    pub fn with_bucket(mut self, value: &'a str) -> Self {
+      self.bucket = Some(value);
+      self
+    }
+
+    pub fn with_acl(mut self, value: OssAcl) -> Self {
+      self.acl = Some(value);
+      self
+    }
+
+    pub fn with_group_id(mut self, value: &'a str) -> Self {
+      self.group_id = Some(value);
+      self
+    }
+
+    pub fn with_storage_class(mut self, value: StorageClass) -> Self {
+      self.storage_class = Some(value);
+      self
+    }
+
+    pub fn with_data_redundancy_type(mut self, value: DataRedundancyType) -> Self {
+      self.data_redundancy_type = Some(value);
+      self
+    }
+
+    fn headers(&self) -> HeaderMap {
+      let mut headers = HeaderMap::default();
+      if let Some(acl) = &self.acl {
+        headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
+      }
+      if let Some(group_id) = &self.group_id {
+        headers.insert("x-oss-resource-group-id", group_id.parse().unwrap());
+      }
+      headers
+    }
+
+    fn config(&self) -> String {
+      let config = CreateBucketConfiguration {
+        storage_class: self.storage_class.clone(),
+        data_redundancy_type: self.data_redundancy_type.clone(),
+      };
+      quick_xml::se::to_string(&config).unwrap()
+    }
+
+    /// 调用PutBucket接口创建存储空间（Bucket）。
+    pub async fn execute(&self) -> api::ApiResult {
+      let res = format!("/{}/", self.bucket.unwrap_or(self.client.bucket()),);
+      let url = format!(
+        "{}://{}.{}",
+        self.client.options.schema(),
+        self.bucket.unwrap_or(self.client.options.bucket),
+        format!(
+          "{}{}.{}",
+          self.region.unwrap_or(self.client.options.region),
+          match self.client.options.internal {
+            true => "-internal",
+            false => "",
+          },
+          oss::BASE_URL
+        )
+      );
+
+      let headers = self.headers();
+      let config = oss::Bytes::from(self.config());
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_resource(&res)
+        .with_headers(headers)
+        .with_body(config)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 
@@ -63,6 +159,7 @@ pub mod builder {
     }
   }
 
+  #[allow(unused)]
   pub struct ListObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     query: ListObjectQuery<'a>,
@@ -102,147 +199,22 @@ pub mod builder {
     }
 
     pub async fn send(&self) -> oss::Result<ListBucketResult> {
-      let url = {
-        let base_url = self.client.options.base_url();
-        format!("{}?{}", base_url, self.query)
-      };
+      // let url = {
+      //   let base_url = self.client.options.base_url();
+      //   format!("{}?{}", base_url, self.query)
+      // };
 
-      let resp = self.client.request.task().url(&url).send().await?;
+      // let resp = self.client.request.task().url(&url).send().await?;
 
-      let content = String::from_utf8_lossy(&resp.data);
-      let buckets = quick_xml::de::from_str(&content).unwrap();
-      let result = oss::Data {
-        status: resp.status,
-        headers: resp.headers,
-        data: buckets,
-      };
-      Ok(result)
-    }
-  }
-
-  #[derive(Debug)]
-  pub struct PutBucketBuilder<'a> {
-    client: &'a oss::Client<'a>,
-    name: Option<&'a str>,
-    acl: Option<OssAcl>,
-    group_id: Option<&'a str>,
-    config: Option<PutBucketConfiguration>,
-  }
-
-  impl<'a> PutBucketBuilder<'a> {
-    pub(crate) fn new(client: &'a oss::Client) -> Self {
-      Self {
-        client,
-        name: Default::default(),
-        acl: None,
-        group_id: None,
-        config: None,
-      }
-    }
-
-    pub fn name(mut self, value: &'a str) -> Self {
-      self.name = Some(value);
-      self
-    }
-
-    pub fn acl(mut self, value: OssAcl) -> Self {
-      self.acl = Some(value);
-      self
-    }
-
-    pub fn group_id(mut self, value: &'a str) -> Self {
-      self.group_id = Some(value);
-      self
-    }
-
-    pub fn storage_class(mut self, value: StorageClass) -> Self {
-      match self.config {
-        None => {
-          self.config = Some(PutBucketConfiguration {
-            storage_class: value,
-            ..PutBucketConfiguration::default()
-          });
-        }
-        Some(mut config) => {
-          config.storage_class = value;
-          self.config = Some(config);
-        }
-      }
-      self
-    }
-
-    pub fn data_redundancy_type(mut self, value: DataRedundancyType) -> Self {
-      match self.config {
-        None => {
-          self.config = Some(PutBucketConfiguration {
-            data_redundancy_type: Some(value),
-            ..PutBucketConfiguration::default()
-          });
-        }
-        Some(mut config) => {
-          config.data_redundancy_type = Some(value);
-          self.config = Some(config);
-        }
-      }
-      self
-    }
-
-    fn headers(&self) -> HeaderMap {
-      let mut headers = HeaderMap::default();
-      if let Some(acl) = &self.acl {
-        headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
-      }
-      if let Some(group_id) = &self.group_id {
-        headers.insert("x-oss-resource-group-id", group_id.parse().unwrap());
-      }
-      headers
-    }
-
-    fn config(&self) -> Option<oss::Bytes> {
-      self
-        .config
-        .as_ref()
-        .map(|config| oss::Bytes::from(config.to_xml()))
-    }
-
-    /// 调用PutBucket接口创建存储空间（Bucket）。
-    pub async fn send(&self) -> oss::Result<()> {
-      let bucket = if let Some(name) = self.name {
-        name
-      } else {
-        self.client.options.bucket
-      };
-      let url = {
-        format!(
-          "{}://{}.{}",
-          self.client.options.schema(),
-          bucket,
-          self.client.options.host(),
-        )
-      };
-
-      let headers = self.headers();
-      let builder = self
-        .client
-        .request
-        .task()
-        .url(&url)
-        .method(oss::Method::PUT)
-        .headers(headers);
-      let builder = if let Some(data) = self.config() {
-        builder.body(data)
-      } else {
-        builder
-      };
-
-      let resp = builder.send().await?;
-
-      let result = oss::Data {
-        status: resp.status,
-        headers: resp.headers,
-        data: (),
-      };
-      Ok(result)
+      // let content = String::from_utf8_lossy(&resp.data);
+      // let buckets = quick_xml::de::from_str(&content).unwrap();
+      // let result = oss::Data {
+      //   status: resp.status,
+      //   headers: resp.headers,
+      //   data: buckets,
+      // };
+      // Ok(result)
+      todo!()
     }
   }
 
@@ -338,7 +310,7 @@ pub mod builder {
       self
     }
 
-    pub async fn send(&self) -> oss::Result<ListBucketResult2> {
+    pub async fn execute(&self) -> api::ApiResult<ListBucketResult2> {
       let url = {
         let base_url = self.client.options.base_url();
         format!("{}/?{}", base_url, self.query)
@@ -348,20 +320,22 @@ pub mod builder {
         .client
         .request
         .task()
-        .url(&url)
-        .method(oss::Method::GET)
-        .send()
+        .with_url(&url)
+        .with_method(http::Method::GET)
+        .execute()
         .await?;
 
-      let content = String::from_utf8_lossy(&resp.data);
+      Ok(ApiResponseFrom(resp).as_type().await)
 
-      let buckets: ListBucketResult2 = quick_xml::de::from_str(&content).unwrap();
-      let result = oss::Data {
-        status: resp.status,
-        headers: resp.headers,
-        data: buckets,
-      };
-      Ok(result)
+      // let content = String::from_utf8_lossy(&resp.data);
+
+      // let buckets: ListBucketResult2 = quick_xml::de::from_str(&content).unwrap();
+      // let result = oss::Data {
+      //   status: resp.status,
+      //   headers: resp.headers,
+      //   data: buckets,
+      // };
+      // Ok(result)
     }
   }
 }
@@ -376,22 +350,24 @@ impl<'a> oss::Client<'a> {
   /// - 只有Bucket的拥有者才有权限删除该Bucket。
   /// - 为了防止误删除的发生，OSS不允许删除一个非空的Bucket。
   #[allow(private_interfaces)]
-  pub async fn DeleteBucket(&self) -> oss::Result<()> {
-    let url = self.options.base_url();
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .method(oss::Method::DELETE)
-      .send()
-      .await?;
+  #[allow(unused)]
+  pub async fn DeleteBucket(&self, bucket: &'a str) -> oss::Result<()> {
+    todo!()
+    // let url = self.options.base_url();
+    // let resp = self
+    //   .request
+    //   .task()
+    //   .url(&url)
+    //   .method(oss::Method::DELETE)
+    //   .send()
+    //   .await?;
 
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-    Ok(result)
+    // let result = oss::Data {
+    //   status: resp.status,
+    //   headers: resp.headers,
+    //   data: (),
+    // };
+    // Ok(result)
   }
 
   /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
@@ -408,76 +384,61 @@ impl<'a> oss::Client<'a> {
 
   // 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
   pub async fn GetBucketInfo(&self) -> oss::Result<BucketInfo> {
-    let query = "bucketInfo";
-    let url = format!("{}/?{}", self.options.base_url(), query);
+    todo!()
+    // let query = "bucketInfo";
+    // let url = format!("{}/?{}", self.options.base_url(), query);
 
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .resourse(query)
-      .send()
-      .await
-      .unwrap();
+    // let resp = self
+    //   .request
+    //   .task()
+    //   .url(&url)
+    //   .resourse(query)
+    //   .send()
+    //   .await
+    //   .unwrap();
 
-    let content = String::from_utf8_lossy(&resp.data);
-    let bucket_info = quick_xml::de::from_str(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: bucket_info,
-    };
-    Ok(result)
+    // let content = String::from_utf8_lossy(&resp.data);
+    // let bucket_info = quick_xml::de::from_str(&content).unwrap();
+    // let result = oss::Data {
+    //   status: resp.status,
+    //   headers: resp.headers,
+    //   data: bucket_info,
+    // };
+    // Ok(result)
   }
 
   /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
   /// 只有Bucket的拥有者才能查看Bucket的位置信息。
   pub async fn GetBucketLocation(&self) -> oss::Result<LocationConstraint> {
-    let query = "location";
-    let url = format!("{}/?{}", self.options.base_url(), query);
+    todo!()
+    //   let query = "location";
+    //   let url = format!("{}/?{}", self.options.base_url(), query);
 
-    let resp = self.request.task().url(&url).resourse(query).send().await?;
+    //   let resp = self.request.task().url(&url).resourse(query).send().await?;
 
-    let content = String::from_utf8_lossy(&resp.data);
-    let bucket_stat = quick_xml::de::from_str(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: bucket_stat,
-    };
-    Ok(result)
-  }
+    //   let content = String::from_utf8_lossy(&resp.data);
+    //   let bucket_stat = quick_xml::de::from_str(&content).unwrap();
+    //   let result = oss::Data {
+    //     status: resp.status,
+    //     headers: resp.headers,
+    //     data: bucket_stat,
+    //   };
+    //   Ok(result)
+    // }
 
-  pub async fn GetBucketStat(&self) -> oss::Result<BucketStat> {
-    let query = "stat";
-    let url = format!("{}/?{}", self.options.base_url(), query);
+    // pub async fn GetBucketStat(&self) -> oss::Result<BucketStat> {
+    //   let query = "stat";
+    //   let url = format!("{}/?{}", self.options.base_url(), query);
 
-    let resp = self.request.task().url(&url).resourse(query).send().await?;
+    //   let resp = self.request.task().url(&url).resourse(query).send().await?;
 
-    let content = String::from_utf8_lossy(&resp.data);
-    let bucket_stat = quick_xml::de::from_str(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: bucket_stat,
-    };
-    Ok(result)
-  }
-}
-
-#[cfg(test)]
-pub mod tests {
-  use crate::oss::{
-    api::bucket::stand::builder::PutBucketConfiguration, entities::DataRedundancyType,
-  };
-
-  #[test]
-  fn put_bucket_configuration() {
-    let mut config = PutBucketConfiguration::default();
-
-    config.data_redundancy_type = Some(DataRedundancyType::LRS);
-    println!("{:#?}", config);
-    println!("{}", config.to_xml());
-    assert_eq!(1, 1);
+    //   let content = String::from_utf8_lossy(&resp.data);
+    //   let bucket_stat = quick_xml::de::from_str(&content).unwrap();
+    //   let result = oss::Data {
+    //     status: resp.status,
+    //     headers: resp.headers,
+    //     data: bucket_stat,
+    //   };
+    //   Ok(result)
   }
 }

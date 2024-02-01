@@ -1,6 +1,17 @@
-use super::{acl::AccessControlList, object::Object, oss, StorageClass};
+use super::{acl::AccessControlList, object::Object, oss, DataRedundancyType, StorageClass};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Default, Clone)]
+pub struct CreateBucketConfiguration {
+  #[serde(rename = "StorageClass", skip_serializing_if = "Option::is_none")]
+  pub storage_class: Option<StorageClass>,
+  #[serde(
+    rename = "data_redundancy_type",
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub data_redundancy_type: Option<DataRedundancyType>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Owner {
