@@ -1,265 +1,216 @@
-use crate::oss::{
-  self,
-  entities::cname::{
-    BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken, ListCnameResult,
-  },
-};
+use crate::oss;
+use builders::{CreateCnameTokenBuilder, GetCnameTokenBuilder, ListCnameBuilder, PutCnameBuilder};
 
-pub mod builder {
+use self::builders::DeleteCnameBuilder;
 
-}
+use super::stand::builders::DeleteBucketBuilder;
 
-#[allow(unused)]
-pub struct PutCnameBuilder<'a> {
-  client: &'a oss::Client<'a>,
-  bucket_cname_configuration: BucketCnameConfiguration,
-}
+pub mod builders {
+  use crate::oss::{
+    self,
+    api::{self, ApiResponseFrom},
+    entities::cname::{BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken},
+    http,
+  };
 
-#[allow(unused)]
-impl<'a> PutCnameBuilder<'a> {
-  pub(crate) fn new(client: &'a oss::Client) -> Self {
-    PutCnameBuilder {
-      client,
-      bucket_cname_configuration: BucketCnameConfiguration {
-        cname: Cname {
-          certificate_configuration: Some(CertificateConfiguration::default()),
-          ..Cname::default()
-        },
-      },
+  pub struct CreateCnameTokenBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    cname: &'a str,
+  }
+
+  impl<'a> CreateCnameTokenBuilder<'a> {
+    pub fn new(client: &'a oss::Client, cname: &'a str) -> Self {
+      Self { client, cname }
+    }
+
+    fn config(&self) -> String {
+      let mut config = BucketCnameConfiguration::default();
+      config.cname.domain = self.cname.to_string();
+      quick_xml::se::to_string(&config).unwrap()
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<CnameToken> {
+      let res = format!("/{}/?cname&comp=token", self.client.bucket());
+      let url = format!("{}/?cname&comp=token", &self.client.base_url());
+
+      let data = oss::Bytes::from(self.config());
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_resource(&res)
+        .with_body(data)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
-  pub fn with_domain(mut self, value: &str) -> Self {
-    self.bucket_cname_configuration.cname.domain = value.to_string();
-    self
+  pub struct GetCnameTokenBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    cname: &'a str,
   }
 
-  pub fn with_cert_id(mut self, value: &str) -> Self {
-    let mut config = self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration
-      .unwrap();
-    config.cert_id = value.to_string();
-    self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration = Some(config);
-    self
+  impl<'a> GetCnameTokenBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, cname: &'a str) -> Self {
+      Self { client, cname }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<CnameToken> {
+      let res = format!("/{}/?cname={}&comp=token", self.client.bucket(), self.cname);
+      let url = format!(
+        "{}/?cname={}&comp==token",
+        self.client.base_url(),
+        self.cname
+      );
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
   }
 
-  pub fn with_certificate(mut self, value: &str) -> Self {
-    let mut config = self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration
-      .unwrap();
-    config.certificate = value.to_string();
-    self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration = Some(config);
-    self
+  pub struct PutCnameBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    bucket_cname_configuration: BucketCnameConfiguration,
   }
 
-  pub fn with_private_key(mut self, value: &str) -> Self {
-    let mut config = self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration
-      .unwrap();
-    config.private_key = value.to_string();
-    self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration = Some(config);
-    self
+  impl<'a> PutCnameBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        bucket_cname_configuration: BucketCnameConfiguration {
+          cname: Cname {
+            certificate_configuration: Some(CertificateConfiguration::default()),
+            ..Cname::default()
+          },
+        },
+      }
+    }
+
+    pub fn config(&self) -> String {
+      quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
+    }
+
+    pub async fn execute(&self) -> api::ApiResult {
+      let res = format!("/{}/?cname&comp=add", self.client.bucket());
+      let url = format!("{}/?cname&comp=add", self.client.base_url());
+
+      let data = oss::Bytes::from(self.config());
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::POST)
+        .with_body(data)
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_empty().await)
+    }
   }
 
-  pub fn with_previous_cert_id(mut self, value: &str) -> Self {
-    let mut config = self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration
-      .unwrap();
-    config.previous_cert_id = value.to_string();
-    self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration = Some(config);
-    self
+  pub struct ListCnameBuilder<'a> {
+    client: &'a oss::Client<'a>,
   }
 
-  pub fn with_force(mut self, value: bool) -> Self {
-    let mut config = self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration
-      .unwrap();
-    config.force = value;
-    self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration = Some(config);
-    self
+  impl<'a> ListCnameBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<BucketCnameConfiguration> {
+      let res = format!("/{}/?cname&comp=add", self.client.bucket());
+      let url = format!("{}/?cname&comp=add", self.client.base_url());
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
+
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
   }
 
-  pub fn with_delete_certificate(mut self, value: bool) -> Self {
-    let mut config = self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration
-      .unwrap();
-    config.delete_certificate = value;
-    self
-      .bucket_cname_configuration
-      .cname
-      .certificate_configuration = Some(config);
-    self
+  pub struct DeleteCnameBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    cname: &'a str,
   }
 
-  pub fn config(&self) -> String {
-    quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
-  }
+  impl<'a> DeleteCnameBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client, cname: &'a str) -> Self {
+      Self { client, cname }
+    }
 
-  pub async fn send(&self) -> oss::Result<()> {
-    let query = "cname&comp=add";
-    let url = format!("{}/?{}", self.client.options.base_url(), query);
+    fn config(&self) -> String {
+      let mut config = BucketCnameConfiguration::default();
+      config.cname.domain = self.cname.to_string();
+      quick_xml::se::to_string(&config).unwrap()
+    }
 
-    let config = self.config();
+    pub async fn execute(&self) -> api::ApiResult<BucketCnameConfiguration> {
+      let res = format!("/{}/?cname&comp=delete", self.client.bucket());
+      let url = format!("{}/?cname&comp=delete", self.client.base_url());
 
-    println!("===");
-    println!("{}", &config);
-    println!("===");
+      let data = oss::Bytes::from(self.config());
 
-    let data = oss::Bytes::from(config);
-    let resp = self
-      .client
-      .request
-      .task()
-      .url(&url)
-      .method(oss::Method::POST)
-      .body(data)
-      .resourse(query)
-      .send()
-      .await?;
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .with_body(data)
+        .execute()
+        .await?;
 
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-    Ok(result)
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
   }
 }
 
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
   /// 调用CreateCnameToken接口创建域名所有权验证所需的CnameToken
-  pub async fn CreateCnameToken(&self, cname: &'a str) -> oss::Result<CnameToken> {
-    let query = "cname&comp=token";
-    let url = format!("{}/?{}", &self.options.base_url(), query);
-
-    let mut config = BucketCnameConfiguration::default();
-    config.cname.domain = cname.to_string();
-    let config_content = quick_xml::se::to_string(&config).unwrap();
-    let data = oss::Bytes::from(config_content);
-
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .method(oss::Method::POST)
-      .resourse(query)
-      .body(data)
-      .send()
-      .await?;
-
-    let content = String::from_utf8_lossy(&resp.data);
-    let cname_token = quick_xml::de::from_str::<CnameToken>(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: cname_token,
-    };
-    Ok(result)
+  pub fn CreateCnameToken(&self, cname: &'a str) -> CreateCnameTokenBuilder<'_> {
+    CreateCnameTokenBuilder::new(self, cname)
   }
 
   /// 调用GetCnameToken接口获取已创建的CnameToken
-  pub async fn GetCnameToken(&self, cname: &'a str) -> oss::Result<CnameToken> {
-    let query = format!("cname={}&comp=token", cname);
-    let url = format!("{}/?{}", self.options.base_url(), &query);
-
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .resourse(&query)
-      .send()
-      .await?;
-
-    let content = String::from_utf8_lossy(&resp.data);
-    let cname_token = quick_xml::de::from_str::<CnameToken>(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: cname_token,
-    };
-    Ok(result)
+  pub fn GetCnameToken(&self, cname: &'a str) -> GetCnameTokenBuilder<'_> {
+    GetCnameTokenBuilder::new(self, cname)
   }
 
   /// 调用PutCname接口为某个存储空间（Bucket）绑定自定义域名
-  pub fn PutCname(&self) -> PutCnameBuilder {
+  pub fn PutCname(&self) -> PutCnameBuilder<'_> {
     PutCnameBuilder::new(self)
   }
 
   /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
-  pub async fn ListCname(&self) -> oss::Result<ListCnameResult> {
-    let res = "cname";
-    let url = {
-      let base_url = self.options.base_url();
-      format!("{base_url}?{res}")
-    };
-
-    let resp = self.request.task().url(&url).resourse(res).send().await?;
-
-    let content = String::from_utf8_lossy(&resp.data);
-
-    let cnames = quick_xml::de::from_str(&content).unwrap();
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: cnames,
-    };
-    Ok(result)
+  pub fn ListCname(&self) -> ListCnameBuilder<'_> {
+    ListCnameBuilder::new(self)
   }
 
   /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
-  pub async fn DeleteCname(&self, cname: &'a str) -> oss::Result<()> {
-    let res = "cname";
-    let url = {
-      let base_url = &self.options.base_url();
-      format!("{base_url}?{res}")
-    };
-
-    let mut config = BucketCnameConfiguration::default();
-    config.cname.domain = cname.to_string();
-    let data = oss::Bytes::from(quick_xml::se::to_string(&config).unwrap());
-
-    let resp = self
-      .request
-      .task()
-      .url(&url)
-      .body(data)
-      .resourse(res)
-      .send()
-      .await?;
-
-    let result = oss::Data {
-      status: resp.status,
-      headers: resp.headers,
-      data: (),
-    };
-    Ok(result)
+  pub fn DeleteCname(&self, cname: &'a str) -> DeleteCnameBuilder<'_> {
+    DeleteCnameBuilder::new(self, cname)
   }
 }

@@ -72,6 +72,14 @@ name = "put_bucket_transfer_acceleration"
 path = "examples/buckets/put_bucket_transfer_acceleration.rs"
 
 [[example]]
+name = "list_objects"
+path = "examples/buckets/list_objects.rs"
+
+[[example]]
+name = "list_objects_v2"
+path = "examples/buckets/list_objects_v2.rs"
+
+[[example]]
 name = "get_object_meta"
 path = "examples/objects/get_object_meta.rs"
 

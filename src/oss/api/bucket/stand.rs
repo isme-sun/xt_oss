@@ -218,7 +218,6 @@ pub mod builders {
     }
   }
 
-  #[allow(unused)]
   pub struct ListObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     query: ListObjectQuery<'a>,
@@ -232,55 +231,56 @@ pub mod builders {
       }
     }
 
-    pub fn delimiter(mut self, value: &'a str) -> Self {
+    pub fn with_delimiter(mut self, value: &'a str) -> Self {
       self.query.delimiter = Some(value);
       self
     }
 
-    pub fn marker(mut self, value: &'a str) -> Self {
+    pub fn with_marker(mut self, value: &'a str) -> Self {
       self.query.marker = Some(value);
       self
     }
 
-    pub fn max_keys(mut self, value: i32) -> Self {
+    pub fn with_max_keys(mut self, value: i32) -> Self {
       self.query.max_keys = Some(value);
       self
     }
 
-    pub fn prefix(mut self, value: &'a str) -> Self {
+    pub fn with_prefix(mut self, value: &'a str) -> Self {
       self.query.prefix = Some(value);
       self
     }
 
-    pub fn encoding_type(mut self, value: &'a str) -> Self {
+    pub fn with_encoding_type(mut self, value: &'a str) -> Self {
       self.query.encoding_type = Some(value);
       self
     }
 
-    pub async fn send(&self) -> oss::Result<ListBucketResult> {
-      // let url = {
-      //   let base_url = self.client.options.base_url();
-      //   format!("{}?{}", base_url, self.query)
-      // };
+    pub async fn execute(&self) -> api::ApiResult<ListBucketResult> {
+      let res = format!("/{}/", self.client.bucket());
+      let mut url = self.client.base_url();
+      let query = self.query.to_string();
+      if !query.is_empty() {
+        url = format!("{}?{}", url, query);
+      }
 
-      // let resp = self.client.request.task().url(&url).send().await?;
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute()
+        .await?;
 
-      // let content = String::from_utf8_lossy(&resp.data);
-      // let buckets = quick_xml::de::from_str(&content).unwrap();
-      // let result = oss::Data {
-      //   status: resp.status,
-      //   headers: resp.headers,
-      //   data: buckets,
-      // };
-      // Ok(result)
-      todo!()
+      Ok(ApiResponseFrom(resp).as_type().await)
     }
   }
 
   #[derive(Debug, Serialize, Deserialize)]
   pub(crate) struct ListObjectsV2Query<'a> {
     #[serde(rename = "list-type")]
-    pub list_type: i32,
+    pub list_type: u8,
     pub delimiter: Option<&'a str>,
     #[serde(rename = "start-after")]
     pub start_after: Option<&'a str>,
@@ -329,51 +329,45 @@ pub mod builders {
       }
     }
 
-    pub fn list_type(mut self, value: i32) -> Self {
-      self.query.list_type = value;
-      self
-    }
-
-    pub fn delimiter(mut self, value: &'a str) -> Self {
+    pub fn with_delimiter(mut self, value: &'a str) -> Self {
       self.query.delimiter = Some(value);
       self
     }
 
-    pub fn start_after(mut self, value: &'a str) -> Self {
+    pub fn with_start_after(mut self, value: &'a str) -> Self {
       self.query.delimiter = Some(value);
       self
     }
 
-    pub fn continuation_token(mut self, value: &'a str) -> Self {
+    pub fn with_continuation_token(mut self, value: &'a str) -> Self {
       self.query.continuation_token = Some(value);
       self
     }
 
-    pub fn max_keys(mut self, value: i32) -> Self {
+    pub fn with_max_keys(mut self, value: i32) -> Self {
       self.query.max_keys = Some(value);
       self
     }
 
-    pub fn prefix(mut self, value: &'a str) -> Self {
+    pub fn with_prefix(mut self, value: &'a str) -> Self {
       self.query.prefix = Some(value);
       self
     }
 
-    pub fn encoding_type(mut self, value: &'a str) -> Self {
+    pub fn with_encoding_type(mut self, value: &'a str) -> Self {
       self.query.encoding_type = Some(value);
       self
     }
 
-    pub fn fetch_owner(mut self, value: bool) -> Self {
+    pub fn with_fetch_owner(mut self, value: bool) -> Self {
       self.query.fetch_owner = Some(value);
       self
     }
 
     pub async fn execute(&self) -> api::ApiResult<ListBucketResult2> {
-      let url = {
-        let base_url = self.client.options.base_url();
-        format!("{}/?{}", base_url, self.query)
-      };
+      let res = format!("/{}/", self.client.bucket());
+      let query = self.query.to_string();
+      let url = format!("{}?{}", self.client.base_url(), query);
 
       let resp = self
         .client
@@ -381,6 +375,7 @@ pub mod builders {
         .task()
         .with_url(&url)
         .with_method(http::Method::GET)
+        .with_resource(&res)
         .execute()
         .await?;
 
@@ -560,26 +555,24 @@ pub mod builders {
 
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-  pub fn PutBucket(&self) -> PutBucketBuilder {
+  pub fn PutBucket(&self) -> PutBucketBuilder<'_> {
     PutBucketBuilder::new(self)
   }
 
   /// 调用DeleteBucket删除某个存储空间（Bucket）。
   ///
   /// See [Engine::encode].
-  pub fn DeleteBucket(&self) -> DeleteBucketBuilder {
+  pub fn DeleteBucket(&self) -> DeleteBucketBuilder<'_> {
     DeleteBucketBuilder::new(self)
   }
 
   /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-  #[allow(private_interfaces)]
-  pub fn ListObjects(&self) -> ListObjectBuilder {
+  pub fn ListObjects(&self) -> ListObjectBuilder<'_> {
     ListObjectBuilder::new(self)
   }
 
   // ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
-  #[allow(private_interfaces)]
-  pub fn ListObjectsV2(&self) -> ListObjectsV2Builder {
+  pub fn ListObjectsV2(&self) -> ListObjectsV2Builder<'_> {
     ListObjectsV2Builder::new(self)
   }
 
@@ -595,7 +588,7 @@ impl<'a> oss::Client<'a> {
   }
 
   /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件（Object）数量
-  pub fn GetBucketStat(&self) -> GetBucketStatBuilder {
+  pub fn GetBucketStat(&self) -> GetBucketStatBuilder<'_> {
     GetBucketStatBuilder::new(self)
   }
 }

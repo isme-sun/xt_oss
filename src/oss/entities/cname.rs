@@ -1,6 +1,47 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub mod builders {
+
+  use super::BucketCnameConfiguration;
+
+  #[derive(Debug, Default)]
+  pub struct BucketCnameConfigurationBuilder {
+    pub bucket_cname_configuration: BucketCnameConfiguration,
+  }
+
+  impl BucketCnameConfigurationBuilder {
+    pub fn new() -> Self {
+      BucketCnameConfigurationBuilder {
+        bucket_cname_configuration: BucketCnameConfiguration::default(),
+      }
+    }
+
+    pub fn with_domain(mut self, value: &str) -> Self {
+      self.bucket_cname_configuration.cname.domain = value.to_string();
+      self
+    }
+
+    // pub fn with_cert_id(mut self, value: &str) -> Self {
+    //     let certificate =
+    //         if let Some(mut certificate) = self.bucket_cname_configuration.cname.certificate {
+    //             certificate.cert_id = value.to_string();
+    //             certificate
+    //         } else {
+    //             let mut certificate = super::Certificate::default();
+    //             certificate.cert_id = value.to_string();
+    //             certificate
+    //         };
+    //     self.bucket_cname_configuration.cname.certificate = Some(certificate);
+    //     self
+    // }
+
+    pub fn config(&self) -> String {
+      quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
+    }
+  }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ListCnameResult {
   #[serde(rename = "Bucket")]
@@ -86,50 +127,9 @@ pub struct CertificateConfiguration {
   pub delete_certificate: bool,
 }
 
-pub mod builder {
-
-  use super::BucketCnameConfiguration;
-
-  #[derive(Debug, Default)]
-  pub struct BucketCnameConfigurationBuilder {
-    pub bucket_cname_configuration: BucketCnameConfiguration,
-  }
-
-  impl BucketCnameConfigurationBuilder {
-    pub fn new() -> Self {
-      BucketCnameConfigurationBuilder {
-        bucket_cname_configuration: BucketCnameConfiguration::default(),
-      }
-    }
-
-    pub fn with_domain(mut self, value: &str) -> Self {
-      self.bucket_cname_configuration.cname.domain = value.to_string();
-      self
-    }
-
-    // pub fn with_cert_id(mut self, value: &str) -> Self {
-    //     let certificate =
-    //         if let Some(mut certificate) = self.bucket_cname_configuration.cname.certificate {
-    //             certificate.cert_id = value.to_string();
-    //             certificate
-    //         } else {
-    //             let mut certificate = super::Certificate::default();
-    //             certificate.cert_id = value.to_string();
-    //             certificate
-    //         };
-    //     self.bucket_cname_configuration.cname.certificate = Some(certificate);
-    //     self
-    // }
-
-    pub fn config(&self) -> String {
-      quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
-    }
-  }
-}
-
 #[cfg(test)]
 mod tests {
-  use super::builder::BucketCnameConfigurationBuilder;
+  use super::builders::BucketCnameConfigurationBuilder;
   use crate::oss::entities::cname::{CnameToken, ListCnameResult};
 
   #[test]

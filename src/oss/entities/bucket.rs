@@ -143,11 +143,11 @@ pub struct ListBucketResult2 {
   #[serde(rename(deserialize = "MaxKeys"))]
   pub max_keys: i32,
   #[serde(rename(deserialize = "EncodingType"))]
-  pub encoding_type: String,
+  pub encoding_type: Option<String>,
   #[serde(rename(deserialize = "IsTruncated"))]
   pub is_truncated: bool,
   #[serde(rename(deserialize = "KeyCount"))]
-  pub key_count: i32,
+  pub key_count: Option<u32>,
   // #[serde(rename = "$value")]
   #[serde(rename(deserialize = "Contents"))]
   pub contents: Option<Vec<Object>>,

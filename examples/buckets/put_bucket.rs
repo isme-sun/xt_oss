@@ -17,7 +17,7 @@ async fn main() {
   let result = client
     .PutBucket()
     .with_region("oss-cn-beijing")
-    .with_bucket("xtoss-t4")
+    .with_bucket("xtoss-ex4")
     .with_acl(OssAcl::PublicRead)
     // .with_group_id("your_group_name")
     .with_storage_class(StorageClass::Archive)
