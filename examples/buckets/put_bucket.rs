@@ -3,7 +3,9 @@ use std::process;
 
 use xt_oss::{
   oss::{
-    self, entities::{DataRedundancyType, OssAcl, StorageClass}, Options
+    self,
+    entities::{DataRedundancyType, OssAcl, StorageClass},
+    Options,
   },
   utils,
 };
@@ -11,7 +13,7 @@ use xt_oss::{
 #[tokio::main]
 async fn main() {
   dotenv::dotenv().ok();
-  let options:Options = utils::options_from_env();
+  let options: Options = utils::options_from_env();
   println!("{:#?}", options);
   let client = oss::Client::new(options);
   let result = client

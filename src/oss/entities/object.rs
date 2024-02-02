@@ -53,15 +53,14 @@ pub struct RestoreRequest {
 pub enum MetadataDirective {
   #[default]
   COPY,
-  REPLACE
+  REPLACE,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub enum TaggingDirective {
   #[default]
   COPY,
-  REPLACE
+  REPLACE,
 }
 
 #[cfg(test)]
@@ -102,7 +101,7 @@ pub mod tests {
   fn restore_request_3() {
     let restore = RestoreRequest {
       days: 7,
-      job_parameters: None
+      job_parameters: None,
     };
     let left = "<RestoreRequest><days>7</days></RestoreRequest>";
     let right = quick_xml::se::to_string(&restore).unwrap();

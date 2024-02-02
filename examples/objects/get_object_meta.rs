@@ -9,7 +9,7 @@ async fn main() {
   let client = oss::Client::new(options);
   let resp = client
     .GetObjectMeta("xtoss/example/123.png")
-		// .with_version_id("abc123")
+    // .with_version_id("abc123")
     .execute()
     .await
     .unwrap_or_else(|error| {

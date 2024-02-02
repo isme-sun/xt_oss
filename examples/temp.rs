@@ -13,7 +13,6 @@ async fn main() {
   );
 
   let mut headers = HeaderMap::new();
-    headers.insert(DATE, HeaderValue::from_str(&date).unwrap());
+  headers.insert(DATE, HeaderValue::from_str(&date).unwrap());
   println!("{:#?}", headers);
-
 }
