@@ -33,39 +33,35 @@ path = "examples/request/bucket_get_cors.rs"
 
 [[example]]
 name = "request_bucket_put_cors"
-path = "examples/request/bucket_put_cors.rs"
+path = "examples/request/stand/bucket_put_cors.rs"
 
 [[example]]
-name = "put_bucket"
-path = "examples/buckets/put_bucket.rs"
+name = "bucket_put"
+path = "examples/buckets/stand/put_bucket.rs"
 
 [[example]]
-name = "delete_bucket"
-path = "examples/buckets/delete_bucket.rs"
+name = "bucket_delete"
+path = "examples/buckets/stand/delete_bucket.rs"
 
 [[example]]
 name = "bucket_get_stat"
-path = "examples/buckets/bucket_get_stat.rs"
+path = "examples/buckets/stand/bucket_get_stat.rs"
 
 [[example]]
-name = "get_bucket_info"
+name = "bucket_get_info"
 path = "examples/buckets/get_bucket_info.rs"
 
 [[example]]
-name = "get_bucket_location"
-path = "examples/buckets/get_bucket_location.rs"
+name = "bucket_get_location"
+path = "examples/buckets/stand/get_bucket_location.rs"
 
 [[example]]
-name = "get_bucket_stat"
-path = "examples/buckets/get_bucket_stat.rs"
-
-[[example]]
-name = "describe_regions"
+name = "region_describe"
 path = "examples/region/describe_regions.rs"
 
 [[example]]
-name = "api_list_buckets"
-path = "examples/service/api_list_buckets.rs"
+name = "service_list_buckets"
+path = "examples/service/list_buckets.rs"
 
 [[example]]
 name = "put_bucket_transfer_acceleration"
@@ -80,8 +76,28 @@ name = "list_objects_v2"
 path = "examples/buckets/list_objects_v2.rs"
 
 [[example]]
-name = "get_object_meta"
-path = "examples/objects/get_object_meta.rs"
+name = "cname_create_token"
+path = "examples/buckets/cname/create_cname_token.rs"
+
+[[example]]
+name = "cname_delete"
+path = "examples/buckets/cname/delete_cname.rs"
+
+[[example]]
+name = "cname_get_token"
+path = "examples/buckets/cname/get_cname_token.rs"
+
+[[example]]
+name = "cname_list"
+path = "examples/buckets/cname/list_cname.rs"
+
+[[example]]
+name = "cname_put"
+path = "examples/buckets/cname/put_cname.rs"
+
+[[example]]
+name = "object_get_meta"
+path = "examples/objects/stand/get_object_meta.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

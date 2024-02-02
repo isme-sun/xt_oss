@@ -39,10 +39,10 @@ impl fmt::Display for ErrorMessage {
 #[derive(Debug)]
 // api 返回数据， 可能正确也可能错误
 pub struct ApiData<T> {
-  pub url: Url,
-  pub status: StatusCode,
-  pub headers: HeaderMap,
-  pub content: T,
+  pub(crate) url: Url,
+  pub(crate) status: StatusCode,
+  pub(crate) headers: HeaderMap,
+  pub(crate) content: T,
 }
 
 impl<T> ApiData<T> {
@@ -62,14 +62,14 @@ impl<T> ApiData<T> {
     self.content
   }
 
-  pub fn version_id(&self) -> String {
+  pub fn request_id(&self) -> String {
     self
       .headers
-      .get("ok")
+      .get("x-oss-request-id")
       .unwrap()
       .to_str()
       .unwrap()
-      .to_string()
+      .into()
   }
 }
 

@@ -3,8 +3,6 @@ use builders::{CreateCnameTokenBuilder, GetCnameTokenBuilder, ListCnameBuilder, 
 
 use self::builders::DeleteCnameBuilder;
 
-use super::stand::builders::DeleteBucketBuilder;
-
 pub mod builders {
   use crate::oss::{
     self,
@@ -43,7 +41,7 @@ pub mod builders {
         .with_method(http::Method::POST)
         .with_resource(&res)
         .with_body(data)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
 
       Ok(ApiResponseFrom(resp).as_type().await)
@@ -74,7 +72,7 @@ pub mod builders {
         .task()
         .with_url(&url)
         .with_resource(&res)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
 
       Ok(ApiResponseFrom(resp).as_type().await)
@@ -117,7 +115,7 @@ pub mod builders {
         .with_method(http::Method::POST)
         .with_body(data)
         .with_resource(&res)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
 
       Ok(ApiResponseFrom(resp).as_empty().await)
@@ -143,7 +141,7 @@ pub mod builders {
         .task()
         .with_url(&url)
         .with_resource(&res)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
 
       Ok(ApiResponseFrom(resp).as_type().await)
@@ -179,7 +177,7 @@ pub mod builders {
         .with_url(&url)
         .with_resource(&res)
         .with_body(data)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
 
       Ok(ApiResponseFrom(resp).as_type().await)

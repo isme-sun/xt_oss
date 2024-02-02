@@ -23,10 +23,10 @@ async fn main() {
       println!("{:#?}", data.url());
       println!("{:#?}", data.status());
       println!("{:#?}", data.headers());
-      println!("{:#?}", data.content)
+      println!("{:#?}", data.content())
     }
     Err(error) => {
-      println!("{:#?}", error.content)
+      println!("{:#?}", error.content())
     }
   }
 }

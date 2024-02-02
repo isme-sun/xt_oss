@@ -403,6 +403,10 @@ impl<'a> Client<'a> {
   pub fn object_url(&self, object: &'a str) -> String {
     self.options.object_url(object)
   }
+
+  pub fn timeout(&self) -> u64 {
+    self.options.timeout
+  }
 }
 
 #[cfg(test)]

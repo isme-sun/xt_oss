@@ -1,5 +1,5 @@
-use dotenv;
 use std::process;
+
 use xt_oss::{oss, utils};
 
 #[tokio::main]
@@ -7,22 +7,21 @@ async fn main() {
   dotenv::dotenv().ok();
   let options = utils::options_from_env();
   let client = oss::Client::new(options);
-  let result = client
-    .GetBucketLocation()
-    .with_bucket("xtoss-t2")
+  let resp = client
+    .GetObjectMeta("xtoss/example/123.png")
+    // .with_version_id("abc123")
     .execute()
     .await
     .unwrap_or_else(|error| {
       println!("reqwest error: {}", error);
       process::exit(-1);
     });
-
-  match result {
+  match resp {
     Ok(data) => {
-      println!("{:#?}", data.content)
+      println!("{:#?}", data.headers())
     }
-    Err(error) => {
-      println!("{}", error.content)
+    Err(message) => {
+      println!("{:#?}", message.content())
     }
   }
 }
