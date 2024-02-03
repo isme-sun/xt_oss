@@ -18,8 +18,8 @@ async fn main() {
   let client = oss::Client::new(options);
   let result = client
     .PutBucket()
-    .with_region("oss-cn-beijing")
-    .with_bucket("xtoss-ex4")
+    // .with_region("oss-cn-beijing")
+    // .with_bucket("xtoss-ex4")
     .with_acl(OssAcl::PublicRead)
     // .with_group_id("your_group_name")
     .with_storage_class(StorageClass::Archive)

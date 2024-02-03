@@ -1,5 +1,5 @@
+use dotenv;
 use std::process;
-
 use xt_oss::{oss, utils};
 
 #[tokio::main]
@@ -7,21 +7,22 @@ async fn main() {
   dotenv::dotenv().ok();
   let options = utils::options_from_env();
   let client = oss::Client::new(options);
-  let resp = client
-    .GetObjectMeta("tmp/test.txt")
-    .with_version_id("CAEQ2AEYgYCAur2ot.sYIiBmM2M5MDBjNDE0OWE0OGVmYTYwN2Q1OWIyMGNlZDQ3Ng--")
+  let result = client
+    .GetBucketVersioning()
     .execute()
     .await
     .unwrap_or_else(|error| {
       println!("reqwest error: {}", error);
       process::exit(-1);
     });
-  match resp {
+
+  match result {
     Ok(data) => {
-      println!("{:#?}", data.headers())
+      println!("{:#?}", data.content());
     }
-    Err(message) => {
-      println!("{:#?}", message.content())
+    Err(error) => {
+      println!("{}", error.url());
+      println!("{:#?}", error.content());
     }
   }
 }

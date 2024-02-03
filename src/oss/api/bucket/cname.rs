@@ -203,11 +203,39 @@ impl<'a> oss::Client<'a> {
   }
 
   /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
+  /// 
+  /// # Example
+  /// 
+  /// ```no_run
+  ///   /*  省略.... */
+  ///   let options = utils::options_from_env();
+  ///   let client = oss::Client::new(options);
+  ///   let result = client.ListCname().execute().await.unwrap_or_else(|error| {
+  ///     // 请求错误
+  ///    println!("reqwest error: {}", &error);
+  ///    process::exit(-1);
+  ///   });
+  ///
+  ///   match result {
+  ///     Ok(data) => {
+  ///       println!("{:#?}", &content);
+  ///     }
+  ///     Err(error) => {
+  ///       println!("request id: {}", error.request_id());
+  ///       println!("{:#?}", error.content())
+  ///     }
+  ///   }
+  /// ```
   pub fn ListCname(&self) -> ListCnameBuilder<'_> {
     ListCnameBuilder::new(self)
   }
 
   /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
+  /// 
+  /// # Example
+  /// 
+  /// ```
+  /// ```
   pub fn DeleteCname(&self, cname: &'a str) -> DeleteCnameBuilder<'_> {
     DeleteCnameBuilder::new(self, cname)
   }

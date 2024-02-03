@@ -169,7 +169,7 @@
 - [★ `CreateCnameToken`](https://www.example.com)
 - [★ `GetCnameToken`](https://www.example.com)
 - [★ `PutCname`](https://www.example.com)
-- [★ `ListCname`](https://www.example.com)
+- [★ `ListCname`](`xt_oss::oss::Client.ListCname`)
 - [★ `DeleteCname`](https://www.example.com)
 
 ### Bucket 图片样式（Style）

@@ -1,6 +1,9 @@
 use std::process;
 
-use xt_oss::{oss, utils};
+use xt_oss::{
+  oss::{self},
+  utils,
+};
 
 #[tokio::main]
 async fn main() {
@@ -8,14 +11,18 @@ async fn main() {
   let options = utils::options_from_env();
   let client = oss::Client::new(options);
   let resp = client
-    .GetObjectMeta("tmp/test.txt")
-    .with_version_id("CAEQ2AEYgYCAur2ot.sYIiBmM2M5MDBjNDE0OWE0OGVmYTYwN2Q1OWIyMGNlZDQ3Ng--")
+    .PutObject("tmp/test.txt")
+    .with_content(oss::Bytes::from("hello world!"))
     .execute()
     .await
     .unwrap_or_else(|error| {
-      println!("reqwest error: {}", error);
+      println!("{}", error);
       process::exit(-1);
     });
+
+    // CAEQ2AEYgYDA_66nt.sYIiA5NTUzMjE0YzcwZGE0N2MyYTUxY2QxNmY1MGIxNjgzMQ--
+    // CAEQ2AEYgYCAur2ot.sYIiBmM2M5MDBjNDE0OWE0OGVmYTYwN2Q1OWIyMGNlZDQ3Ng--
+    // CAEQ2AEYgYCA1v6ot.sYIiBmZjU2NTQwOGEwZDc0MTMyYTU5ZjhlMmUyNGYwMjc3NA--
   match resp {
     Ok(data) => {
       println!("{:#?}", data.headers())

@@ -1,16 +1,18 @@
-use crate::oss;
-use crate::oss::{
-  api::{self, ApiResponseFrom},
-  entities::version::{VersioningConfiguration, VersioningStatus},
+use crate::oss::{self, entities::version::VersioningStatus};
+
+use self::builders::{
+  GetBucketVersioningBuilder, ListObjectVersionsBuilder, PutBucketVersioningBuilder,
 };
 
-use self::builders::PutBucketVersioningBuilder;
-
 pub mod builders {
+  use std::fmt;
+
+  use serde::{Deserialize, Serialize};
+
   use crate::oss::{
     self,
     api::{self, ApiResponseFrom},
-    entities::version::{VersioningConfiguration, VersioningStatus},
+    entities::version::{ListVersionsResult, VersioningConfiguration, VersioningStatus},
     http,
   };
 
@@ -25,8 +27,8 @@ pub mod builders {
     }
 
     pub async fn execute(&self) -> api::ApiResult {
-      let res = format!("/{}/?{}", self.client.options.bucket, "versioning");
-      let url = format!("{}/?{}", self.client.options.base_url(), "versioning");
+      let res = format!("/{}/?{}", self.client.bucket(), "versioning");
+      let url = format!("{}/?{}", self.client.base_url(), "versioning");
 
       let config = VersioningConfiguration {
         status: Some(self.status.to_owned()),
@@ -42,33 +44,113 @@ pub mod builders {
         .with_method(http::Method::PUT)
         .with_resource(&res)
         .with_body(data)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
       Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
-}
 
-pub struct GetBucketVersioningBuilder<'a> {
-  client: &'a oss::Client<'a>,
-}
-
-impl<'a> GetBucketVersioningBuilder<'a> {
-  pub(crate) fn new(client: &'a oss::Client) -> Self {
-    Self { client }
+  pub struct GetBucketVersioningBuilder<'a> {
+    client: &'a oss::Client<'a>,
   }
-  pub async fn execute(&self) -> api::ApiResult<VersioningConfiguration> {
-    let res = format!("/{}/?{}", self.client.options.bucket, "versioning");
-    let url = format!("{}/?{}", self.client.options.base_url(), res);
-    let resp = self
-      .client
-      .request
-      .task()
-      .with_url(&url)
-      .with_resource(&res)
-      .execute()
-      .await?;
-    Ok(ApiResponseFrom(resp).as_type().await)
+
+  impl<'a> GetBucketVersioningBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self { client }
+    }
+    pub async fn execute(&self) -> api::ApiResult<VersioningConfiguration> {
+      let res = format!("/{}/?{}", self.client.bucket(), "versioning");
+      let url = format!("{}/?{}", self.client.base_url(), "versioning");
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute_timeout(self.client.timeout())
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
+  }
+
+  #[derive(Debug, Serialize, Deserialize, Default)]
+  pub(crate) struct ListObjectVersionsQuery<'a> {
+    pub delimiter: Option<&'a str>,
+    #[serde(rename = "key-marker")]
+    pub key_marker: Option<&'a str>,
+    #[serde(rename = "version_id_marker")]
+    pub version_id_marker: Option<&'a str>,
+    #[serde(rename = "max-keys")]
+    pub max_keys: Option<u32>,
+    pub prefix: Option<&'a str>,
+    #[serde(rename = "encoding-type")]
+    pub encoding_type: Option<&'a str>,
+  }
+
+  impl<'a> fmt::Display for ListObjectVersionsQuery<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      write!(f, "{}", serde_qs::to_string(self).unwrap())
+    }
+  }
+
+  pub struct ListObjectVersionsBuilder<'a> {
+    client: &'a oss::Client<'a>,
+    query: ListObjectVersionsQuery<'a>,
+  }
+
+  impl<'a> ListObjectVersionsBuilder<'a> {
+    pub(crate) fn new(client: &'a oss::Client) -> Self {
+      Self {
+        client,
+        query: ListObjectVersionsQuery::default(),
+      }
+    }
+
+    pub fn with_delimiter(mut self, value: &'a str) -> Self {
+      self.query.delimiter = Some(value);
+      self
+    }
+
+    pub fn with_key_marker(mut self, value: &'a str) -> Self {
+      self.query.key_marker = Some(value);
+      self
+    }
+
+    pub fn with_max_keys(mut self, value: u32) -> Self {
+      self.query.max_keys = Some(value);
+      self
+    }
+
+    pub fn with_prefix(mut self, value: &'a str) -> Self {
+      self.query.prefix = Some(value);
+      self
+    }
+
+    pub fn with_version_id_marker(mut self, value: &'a str) -> Self {
+      self.query.version_id_marker = Some(value);
+      self
+    }
+
+    pub fn with_encoding_type(mut self, value: &'a str) -> Self {
+      self.query.encoding_type = Some(value);
+      self
+    }
+
+    pub async fn execute(&self) -> api::ApiResult<ListVersionsResult> {
+      let query = self.query.to_string();
+      let res = format!("/{}/?versions", self.client.bucket());
+      let url = format!("{}/?versions&{}", self.client.base_url(), query);
+
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_resource(&res)
+        .execute_timeout(self.client.timeout())
+        .await?;
+      Ok(ApiResponseFrom(resp).as_type().await)
+    }
   }
 }
 
@@ -85,7 +167,7 @@ impl<'a> oss::Client<'a> {
   }
 
   /// ## 接口用于列出Bucket中包括删除标记（Delete Marker）在内的所有Object的版本信息
-  pub fn ListObjectVersions() {
-    todo!()
+  pub fn ListObjectVersions(&self) -> ListObjectVersionsBuilder {
+    ListObjectVersionsBuilder::new(self)
   }
 }

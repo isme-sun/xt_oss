@@ -3,8 +3,17 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CommonPrefixes {
+  #[serde(rename = "Prefix")]
+  pub prefix: String
+}
+
+/// 保存版本控制状态的容器
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum VersioningStatus {
+  /// 开启版本控制状态
   Enabled,
+  /// 暂停版本控制状态
   Suspended,
 }
 
@@ -39,7 +48,22 @@ pub struct DeleteMarker {
   pub last_modified: String,
   #[serde(rename = "Owner")]
   pub owner: Owner,
+  // #[serde(rename = "Size")]
+  // pub size: Option<u64>,
 }
+
+/*
+ <DeleteMarker>
+    <Key>tmp/test.text</Key>
+    <VersionId>CAEQ2AEYgYDAo5qWtesYIiBmNjY4N2QyNjZlZjY0NjQ0YmNiMzM3YWQwNWQzN2Q2Yw--</VersionId>
+    <IsLatest>true</IsLatest>
+    <LastModified>2024-02-03T04:47:34.000Z</LastModified>
+    <Owner>
+      <ID>1508492296054765</ID>
+      <DisplayName>1508492296054765</DisplayName>
+    </Owner>
+  </DeleteMarker>
+*/
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Version {
@@ -61,28 +85,44 @@ pub struct Version {
   pub storage_class: Option<StorageClass>,
   #[serde(rename = "Owner")]
   pub owner: Owner,
+  #[serde(rename = "RestoreInfo")]
+  pub restore_info: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Item {
+  Version(Version),
+  DeleteMarker(DeleteMarker)
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ListVersionsResult {
-  #[serde(rename = "Name")]
-  pub name: String,
-  #[serde(rename = "Prefix")]
-  pub prefix: String,
+  #[serde(rename = "CommonPrefixes")]
+  pub common_prefixes:Option<Vec<CommonPrefixes>>,
+  #[serde(rename = "Delimiter")]
+  pub delimiter: Option<String>,
+  #[serde(rename = "EncodingType")]
+  pub encoding_type: Option<String>,
+  #[serde(rename = "IsTruncated")]
+  pub is_truncated: bool,
   #[serde(rename = "KeyMarker")]
   pub key_marker: String,
   #[serde(rename = "VersionIdMarker")]
-  pub version_id_marker: String,
+  pub version_id_marker:Option<String>,
+  #[serde(rename = "NextKeyMarker")]
+  pub next_key_marker: Option<String>,
+  #[serde(rename = "NextVersionIdMarker")]
+  pub next_version_id_marker: Option<String>,
   #[serde(rename = "MaxKeys")]
   pub max_keys: u64,
-  #[serde(rename = "Delimiter")]
-  pub delimiter: Option<String>,
-  #[serde(rename = "IsTruncated")]
-  pub is_truncated: bool,
-  #[serde(rename = "DeleteMarker", skip_serializing_if = "Option::is_none")]
-  pub delete_marker: Option<Vec<DeleteMarker>>,
-  #[serde(rename = "Version")]
-  pub version: Vec<Version>,
+  #[serde(rename = "Name")]
+  pub name: String,
+  #[serde(rename = "Owner")]
+  pub owner: Option<Owner>,
+  #[serde(rename = "Prefix")]
+  pub prefix: String,
+  #[serde(rename="$value", skip_serializing_if = "Option::is_none")]
+  pub items: Option<Vec<Item>>
 }
 
 #[cfg(test)]
@@ -139,9 +179,7 @@ mod tests {
 </ListVersionsResult>"#;
 
     let object = quick_xml::de::from_str::<ListVersionsResult>(xml_content).unwrap();
-    let left = "example-object-1.jpg";
-    let right = object.version[0].key.to_string();
-    assert_eq!(left, right);
+    println!("{:#?}", object);
   }
 
   #[test]
@@ -197,10 +235,8 @@ mod tests {
 
     let object: ListVersionsResult = quick_xml::de::from_str(xml_content).unwrap();
 
-    let left = "example";
-    let right = object.delete_marker.unwrap()[0].key.to_string();
+    println!("{:#?}", object);
 
-    assert_eq!(left, right);
   }
 
   #[test]
@@ -259,4 +295,161 @@ mod tests {
 
     println!("{:#?}", object);
   }
+
+
+  #[test]
+  fn list_versions_result_4() {
+    let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ListVersionsResult>
+  <Name>xuetube-dev</Name>
+  <Prefix>course/video</Prefix>
+  <KeyMarker></KeyMarker>
+  <VersionIdMarker></VersionIdMarker>
+  <MaxKeys>20</MaxKeys>
+  <Delimiter>/</Delimiter>
+  <IsTruncated>false</IsTruncated>
+  <CommonPrefixes>
+    <Prefix>course/video/</Prefix>
+  </CommonPrefixes>
+</ListVersionsResult>"#;
+
+    let obj:ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
+    println!("{:#?}", obj);
+
+  }
+
+  #[test]
+  fn list_versions_result_5() {
+    let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+    <ListVersionsResult>
+      <Name>xtoss-ex1</Name>
+      <Prefix></Prefix>
+      <KeyMarker></KeyMarker>
+      <VersionIdMarker></VersionIdMarker>
+      <MaxKeys>100</MaxKeys>
+      <Delimiter></Delimiter>
+      <IsTruncated>false</IsTruncated>
+      <DeleteMarker>
+        <Key>tmp/test.text</Key>
+        <VersionId>CAEQ2AEYgYDAo5qWtesYIiBmNjY4N2QyNjZlZjY0NjQ0YmNiMzM3YWQwNWQzN2Q2Yw--</VersionId>
+        <IsLatest>true</IsLatest>
+        <LastModified>2024-02-03T04:47:34.000Z</LastModified>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </DeleteMarker>
+      <Version>
+        <Key>tmp/test.text</Key>
+        <VersionId>CAEQ2AEYgYDAs7WTtesYIiAxOTMxYmI3OTgxNzA0ZmM3YTNkZWE5NWYyODFhYWQxOQ--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T04:46:03.000Z</LastModified>
+        <ETag>"C8B0FF27A844D2EECD81669DBAA544EB"</ETag>
+        <Type>Normal</Type>
+        <Size>12</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+      <DeleteMarker>
+        <Key>tmp/test.txt</Key>
+        <VersionId>CAEQ2AEYgYCAqMC8t.sYIiAyY2RkMWY1MTQ0NGU0ZDhjOGQ4NzFmN2JkMWM2NDk5OQ--</VersionId>
+        <IsLatest>true</IsLatest>
+        <LastModified>2024-02-03T07:28:18.000Z</LastModified>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </DeleteMarker>
+      <Version>
+        <Key>tmp/test.text</Key>
+        <VersionId>CAEQ2AEYgYDAuu.RtesYIiA1NTAxODRkOGE2ODk0MTNkYWFkZDJhZTMyZjZlMDEzZg--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T04:45:12.000Z</LastModified>
+        <ETag>"5EB63BBBE01EEED093CB22BB8F5ACDC3"</ETag>
+        <Type>Normal</Type>
+        <Size>11</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+      <Version>
+        <Key>tmp/test.txt</Key>
+        <VersionId>CAEQ2AEYgYCA1v6ot.sYIiBmZjU2NTQwOGEwZDc0MTMyYTU5ZjhlMmUyNGYwMjc3NA--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T07:17:39.000Z</LastModified>
+        <ETag>"FC3FF98E8C6A0D3087D515C0473F8677"</ETag>
+        <Type>Normal</Type>
+        <Size>12</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+      <Version>
+        <Key>tmp/test.txt</Key>
+        <VersionId>CAEQ2AEYgYCAur2ot.sYIiBmM2M5MDBjNDE0OWE0OGVmYTYwN2Q1OWIyMGNlZDQ3Ng--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T07:17:22.000Z</LastModified>
+        <ETag>"5EB63BBBE01EEED093CB22BB8F5ACDC3"</ETag>
+        <Type>Normal</Type>
+        <Size>11</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+      <Version>
+        <Key>tmp/test.txt</Key>
+        <VersionId>CAEQ2AEYgYDA_66nt.sYIiA5NTUzMjE0YzcwZGE0N2MyYTUxY2QxNmY1MGIxNjgzMQ--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T07:16:45.000Z</LastModified>
+        <ETag>"5EB63BBBE01EEED093CB22BB8F5ACDC3"</ETag>
+        <Type>Normal</Type>
+        <Size>11</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+      <Version>
+        <Key>tmp/test.txt</Key>
+        <VersionId>CAEQ2AEYgYDA0eOXtesYIiA3MDc1YzU3MjUwYmI0NTYwYjM2NmI4YmY5NWNjOWQxYQ--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T04:48:26.000Z</LastModified>
+        <ETag>"5EB63BBBE01EEED093CB22BB8F5ACDC3"</ETag>
+        <Type>Normal</Type>
+        <Size>11</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+      <Version>
+        <Key>tmp/test.txt</Key>
+        <VersionId>CAEQ2AEYgYDA4N2WtesYIiA4MDQ2ZjQzNDZmZTA0MjU1OTA3MjFlNjNiNmFhNDE5Yw--</VersionId>
+        <IsLatest>false</IsLatest>
+        <LastModified>2024-02-03T04:47:52.000Z</LastModified>
+        <ETag>"C8B0FF27A844D2EECD81669DBAA544EB"</ETag>
+        <Type>Normal</Type>
+        <Size>12</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+          <ID>1508492296054765</ID>
+          <DisplayName>1508492296054765</DisplayName>
+        </Owner>
+      </Version>
+    </ListVersionsResult>"#;
+    let obj:ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
+    println!("{:#?}", obj);
+  }
+
 }

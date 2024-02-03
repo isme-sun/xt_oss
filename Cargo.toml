@@ -75,6 +75,7 @@ path = "examples/buckets/list_objects.rs"
 name = "list_objects_v2"
 path = "examples/buckets/list_objects_v2.rs"
 
+
 [[example]]
 name = "cname_create_token"
 path = "examples/buckets/cname/create_cname_token.rs"
@@ -95,9 +96,29 @@ path = "examples/buckets/cname/list_cname.rs"
 name = "cname_put"
 path = "examples/buckets/cname/put_cname.rs"
 
+
+[[example]]
+name = "versioning_get_buckets"
+path = "examples/buckets/versions/get_bucket_versioning.rs"
+[[example]]
+name = "versioning_put_bucket"
+path = "examples/buckets/versions/put_bucket_versioning.rs"
+[[example]]
+name = "versions_list_object"
+path = "examples/buckets/versions/list_object_versions.rs"
+
+
 [[example]]
 name = "object_get_meta"
 path = "examples/objects/stand/get_object_meta.rs"
+
+[[example]]
+name = "object_put"
+path = "examples/objects/stand/put_object.rs"
+
+[[example]]
+name = "object_delete"
+path = "examples/objects/stand/delete_object.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -128,7 +128,7 @@ impl ApiResponseFrom {
       let headers = resp.headers().clone();
       let content = resp.bytes().await.unwrap();
       let content = String::from_utf8_lossy(&content);
-      // dbg!(println!("{}", content));
+      dbg!(println!("{}", content));
       let content: T = quick_xml::de::from_str(&content).unwrap();
 
       Ok(ApiData {

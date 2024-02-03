@@ -8,7 +8,12 @@ use self::builders::{
 
 pub mod builders {
 
+  use std::collections::HashMap;
+
   use chrono::{DateTime, Utc};
+  use oss::http::header::{
+    CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,
+  };
   use serde::{Deserialize, Serialize};
   use urlencoding;
 
@@ -17,17 +22,67 @@ pub mod builders {
     api::{self, ApiResponseFrom},
     entities::{
       object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
-      tag::Tagging,
-      ObjectACL, ServerSideEncryption, StorageClass,
+      tag::{Tag, TagSet, Tagging},
+      CacheControl, ContentDisposition, ContentEncoding, ObjectACL, ServerSideEncryption,
+      StorageClass,
     },
     http, Bytes, GMT_DATE_FMT,
   };
 
+  fn insert_header<T: ToString + std::fmt::Display>(
+    headers: &mut http::HeaderMap,
+    key: http::header::HeaderName,
+    value: T,
+  ) {
+    headers.insert(
+      key,
+      value
+        .to_string()
+        .parse()
+        .expect("Failed to parse header value"),
+    );
+  }
+
+  fn insert_custom_header<T: ToString + std::fmt::Display>(
+    headers: &mut http::HeaderMap,
+    key: &str,
+    value: T,
+  ) {
+    let header_name =
+      http::HeaderName::from_bytes(key.as_bytes()).expect("Failed to create header name");
+    headers.insert(
+      header_name,
+      value
+        .to_string()
+        .parse()
+        .expect("Failed to parse header value"),
+    );
+  }
+
+  #[derive(Debug, Default)]
+  struct PutObjectBuilderHeaders {
+    cache_control: Option<CacheControl>,
+    content_disposition: Option<ContentDisposition>,
+    content_encoding: Option<ContentEncoding>,
+    content_md5: Option<String>,
+    content_length: Option<u64>,
+    etag: Option<String>,
+    expires: Option<DateTime<Utc>>,
+    forbid_overwrite: Option<bool>,
+    encryption: Option<ServerSideEncryption>,
+    data_encryption: Option<String>,
+    encryption_key_id: Option<String>,
+    object_acl: Option<ObjectACL>,
+    storage_class: Option<StorageClass>,
+    oss_tagging: HashMap<String, String>,
+    oss_meta: HashMap<String, String>,
+  }
+
   pub struct PutObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
-    headers: Option<http::HeaderMap>,
     content: oss::Bytes,
+    headers: PutObjectBuilderHeaders,
   }
 
   impl<'a> PutObjectBuilder<'a> {
@@ -36,8 +91,89 @@ pub mod builders {
         client,
         object,
         content: oss::Bytes::new(),
-        headers: None,
+        headers: PutObjectBuilderHeaders::default(),
       }
+    }
+
+    pub fn with_cache_control(mut self, value: CacheControl) -> Self {
+      self.headers.cache_control = Some(value);
+      self
+    }
+
+    pub fn with_content_disposition(mut self, value: ContentDisposition) -> Self {
+      self.headers.content_disposition = Some(value);
+      self
+    }
+
+    pub fn with_content_encoding(mut self, value: ContentEncoding) -> Self {
+      self.headers.content_encoding = Some(value);
+      self
+    }
+
+    pub fn with_content_md5(mut self, value: &'a str) -> Self {
+      self.headers.content_md5 = Some(value.to_string());
+      self
+    }
+
+    pub fn with_content_length(mut self, value: u64) -> Self {
+      self.headers.content_length = Some(value);
+      self
+    }
+
+    pub fn with_etag(mut self, value: &'a str) -> Self {
+      self.headers.etag = Some(value.to_string());
+      self
+    }
+
+    pub fn with_expires(mut self, value: DateTime<Utc>) -> Self {
+      self.headers.expires = Some(value);
+      self
+    }
+
+    pub fn with_forbid_overwrite(mut self, value: bool) -> Self {
+      self.headers.forbid_overwrite = Some(value);
+      self
+    }
+
+    pub fn with_encryption(mut self, value: ServerSideEncryption) -> Self {
+      self.headers.encryption = Some(value);
+      self
+    }
+
+    pub fn with_data_encryption(mut self, value: &'a str) -> Self {
+      self.headers.data_encryption = Some(value.to_string());
+      self
+    }
+
+    pub fn with_encryption_key_id(mut self, value: &'a str) -> Self {
+      self.headers.encryption_key_id = Some(value.to_string());
+      self
+    }
+
+    pub fn with_object_acl(mut self, value: ObjectACL) -> Self {
+      self.headers.object_acl = Some(value);
+      self
+    }
+
+    pub fn with_storage_class(mut self, value: StorageClass) -> Self {
+      self.headers.storage_class = Some(value);
+      self
+    }
+
+    pub fn with_oss_tagging(mut self, key: &'a str, value: &'a str) -> Self {
+      self
+        .headers
+        .oss_tagging
+        .insert(key.to_string(), value.to_string());
+      self
+    }
+
+    pub fn with_oss_meta(mut self, key: &'a str, value: &'a str) -> Self {
+      self
+        .headers
+        .oss_meta
+        .insert(key.to_string(), value.to_string());
+      self
     }
 
     pub fn with_content(mut self, content: oss::Bytes) -> Self {
@@ -45,12 +181,96 @@ pub mod builders {
       self
     }
 
-    pub fn with_headers(mut self, headers: http::HeaderMap) -> Self {
-      self.headers = Some(headers);
-      self
+    fn headers(&self) -> http::HeaderMap {
+      let mut headers = http::HeaderMap::new();
+      if let Some(cache_control) = &self.headers.cache_control {
+        insert_header(&mut headers, CACHE_CONTROL, cache_control);
+      }
+
+      if let Some(content_disposition) = &self.headers.content_disposition {
+        insert_header(&mut headers, CONTENT_DISPOSITION, content_disposition);
+      }
+
+      if let Some(content_encoding) = &self.headers.content_encoding {
+        insert_header(&mut headers, CONTENT_ENCODING, content_encoding);
+      }
+
+      if let Some(content_length) = &self.headers.content_length {
+        insert_header(&mut headers, CONTENT_LENGTH, content_length);
+      }
+
+      if let Some(etag) = &self.headers.etag {
+        insert_header(&mut headers, ETAG, etag);
+      }
+
+      if let Some(content_md5) = &self.headers.content_md5 {
+        headers.insert("Content-MD5", content_md5.parse().unwrap());
+      }
+
+      if let Some(expires) = &self.headers.expires {
+        insert_header(&mut headers, EXPIRES, expires.format(oss::GMT_DATE_FMT));
+      }
+
+      if let Some(forbid_overwrite) = &self.headers.forbid_overwrite {
+        insert_custom_header(&mut headers, "x-oss-forbid-overwrite", forbid_overwrite);
+      }
+
+      if let Some(encryption) = &self.headers.encryption {
+        insert_custom_header(&mut headers, "x-oss-server-side-encryption", encryption);
+      }
+
+      if let Some(data_encryption) = &self.headers.data_encryption {
+        headers.insert(
+          "x-oss-server-side-data-encryption",
+          data_encryption.parse().unwrap(),
+        );
+      }
+
+      if let Some(encryption_key_id) = &self.headers.encryption_key_id {
+        insert_custom_header(
+          &mut headers,
+          "x-oss-server-side-encryption-key-id",
+          encryption_key_id,
+        );
+      }
+
+      if let Some(object_acl) = &self.headers.object_acl {
+        insert_custom_header(&mut headers, "x-oss-object-acl", object_acl);
+      }
+
+      if let Some(storage_class) = &self.headers.storage_class {
+        insert_custom_header(&mut headers, "x-oss-storage-class", storage_class);
+      }
+
+      if !self.headers.oss_tagging.is_empty() {
+        let tags = self
+          .headers
+          .oss_tagging
+          .iter()
+          .map(|(k, v)| Tag {
+            key: k.to_string(),
+            value: v.to_string(),
+          })
+          .collect::<Vec<Tag>>();
+        let tagging = Tagging {
+          tag_set: TagSet { tag: Some(tags) },
+        };
+
+        let value = serde_qs::to_string(&tagging).expect("Failed to serialize tags");
+        insert_custom_header(&mut headers, "x-oss-tagging", value);
+      }
+
+      if !self.headers.oss_meta.is_empty() {
+        for (key, value) in &self.headers.oss_meta {
+          insert_custom_header(&mut headers, &format!("x-oss-meta-{}", key), value);
+        }
+      }
+
+      headers
     }
 
     pub async fn execute(&self) -> api::ApiResult<()> {
+      let res = format!("/{}/{}", self.client.bucket(), self.object);
       let url = self.client.object_url(self.object);
 
       let resp = self
@@ -59,9 +279,10 @@ pub mod builders {
         .task()
         .with_url(&url)
         .with_method(http::Method::PUT)
-        .with_headers(self.headers.as_ref().unwrap().clone())
+        .with_headers(self.headers())
         .with_body(self.content.to_owned())
-        .execute()
+        .with_resource(&res)
+        .execute_timeout(self.client.timeout())
         .await?;
       Ok(ApiResponseFrom(resp).as_empty().await)
     }
@@ -487,15 +708,11 @@ pub mod builders {
     }
 
     pub async fn execute(&self) -> api::ApiResult<()> {
-      let base_res = format!("/{}/{}", self.client.bucket(), self.object);
-      let base_url = self.client.object_url(self.object);
-      let version_param = if let Some(version_id) = self.version_id {
-        format!("?versionId={}", version_id)
-      } else {
-        String::new()
-      };
-      let res = format!("{}{}", base_res, version_param);
-      let url = format!("{}{}", base_url, version_param);
+      let res = format!("/{}/{}", self.client.bucket(), self.object);
+      let mut url = self.client.object_url(self.object);
+      if let Some(version_id) = self.version_id {
+        url = format!("{}?versionId={}", url, version_id);
+      }
 
       let resp = self
         .client

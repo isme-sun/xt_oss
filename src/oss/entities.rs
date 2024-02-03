@@ -70,13 +70,13 @@ impl fmt::Display for ContentEncoding {
 }
 
 #[derive(Default, Debug)]
-pub enum ContentDisposition<'a> {
+pub enum ContentDisposition {
   #[default]
   INLINE,
-  ATTACHMENT(Option<&'a str>),
+  ATTACHMENT(Option<String>),
 }
 
-impl<'a> fmt::Display for ContentDisposition<'a> {
+impl fmt::Display for ContentDisposition {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(
       f,
@@ -227,4 +227,18 @@ pub enum ServerSideEncryption {
   KMS,
   // 国密SM4算法。
   SM4,
+}
+
+impl fmt::Display for ServerSideEncryption {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "{}",
+      match self {
+        Self::AES256 => "AES256",
+        Self::KMS => "KMS",
+        Self::SM4 => "SM$",
+      }
+    )
+  }
 }
