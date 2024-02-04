@@ -14,50 +14,21 @@ pub mod builders {
   use oss::http::header::{
     CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,
   };
+  use reqwest::header::{IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE};
   use serde::{Deserialize, Serialize};
   use urlencoding;
 
   use crate::oss::{
     self,
-    api::{self, ApiResponseFrom},
+    api::{self, insert_custom_header, insert_header, ApiResponseFrom},
     entities::{
       object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
       tag::{Tag, TagSet, Tagging},
       CacheControl, ContentDisposition, ContentEncoding, ObjectACL, ServerSideEncryption,
       StorageClass,
     },
-    http, Bytes, GMT_DATE_FMT,
+    http, Bytes
   };
-
-  fn insert_header<T: ToString + std::fmt::Display>(
-    headers: &mut http::HeaderMap,
-    key: http::header::HeaderName,
-    value: T,
-  ) {
-    headers.insert(
-      key,
-      value
-        .to_string()
-        .parse()
-        .expect("Failed to parse header value"),
-    );
-  }
-
-  fn insert_custom_header<T: ToString + std::fmt::Display>(
-    headers: &mut http::HeaderMap,
-    key: &str,
-    value: T,
-  ) {
-    let header_name =
-      http::HeaderName::from_bytes(key.as_bytes()).expect("Failed to create header name");
-    headers.insert(
-      header_name,
-      value
-        .to_string()
-        .parse()
-        .expect("Failed to parse header value"),
-    );
-  }
 
   #[derive(Debug, Default)]
   struct PutObjectBuilderHeaders {
@@ -779,38 +750,24 @@ pub mod builders {
     fn headers(&self) -> http::HeaderMap {
       let mut headers = http::HeaderMap::new();
       if let Some(modified_since) = self.modified_since {
-        headers.insert(
-          "If-Modified-Since",
-          modified_since
-            .format(GMT_DATE_FMT)
-            .to_string()
-            .parse()
-            .unwrap(),
-        );
+        insert_header(&mut headers, IF_MODIFIED_SINCE, modified_since);
       }
 
       if let Some(unmodified_since) = self.unmodified_since {
-        headers.insert(
-          "If-Modified-Since",
-          unmodified_since
-            .format(GMT_DATE_FMT)
-            .to_string()
-            .parse()
-            .unwrap(),
-        );
+        insert_header(&mut headers, IF_UNMODIFIED_SINCE, unmodified_since);
       }
       if let Some(r#match) = self.r#match {
-        headers.insert("If-Match", r#match.parse().unwrap());
+        insert_header(&mut headers, IF_MATCH, r#match);
       }
       if let Some(none_match) = self.none_match {
-        headers.insert("If-None-Match", none_match.parse().unwrap());
+        insert_header(&mut headers, IF_NONE_MATCH, none_match);
       }
       headers
     }
 
     pub async fn execute(&self) -> api::ApiResult<()> {
       let mut res = format!("/{}/{}", self.client.bucket(), self.object);
-      let mut url = format!("{}", self.client.object_url(self.object));
+      let mut url = self.client.object_url(self.object);
       if let Some(version_id) = self.version_id {
         res = format!("{}?versionId={}", res, version_id);
         url = format!("{}?versionId={}", url, version_id);
@@ -824,7 +781,7 @@ pub mod builders {
         .with_method(http::Method::HEAD)
         .with_headers(self.headers())
         .with_resource(&res)
-        .execute()
+        .execute_timeout(self.client.timeout())
         .await?;
 
       Ok(ApiResponseFrom(resp).as_empty().await)

@@ -12,7 +12,7 @@ async fn main() {
   let client = oss::Client::new(options);
   let resp = client
     .PutObject("tmp/test.txt")
-    .with_content(oss::Bytes::from("hello world!"))
+    .with_content(oss::Bytes::from("你好,世界"))
     .execute()
     .await
     .unwrap_or_else(|error| {

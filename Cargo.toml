@@ -107,6 +107,9 @@ path = "examples/buckets/versions/put_bucket_versioning.rs"
 name = "versions_list_object"
 path = "examples/buckets/versions/list_object_versions.rs"
 
+[[example]]
+name = "object_head"
+path = "examples/objects/stand/head_object.rs"
 
 [[example]]
 name = "object_get_meta"

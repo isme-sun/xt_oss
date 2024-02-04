@@ -1,5 +1,5 @@
 use super::{
-  http::{HeaderMap, StatusCode, Url},
+  http::{self, HeaderMap, StatusCode, Url},
   Bytes, Response,
 };
 use base64::{engine::general_purpose, Engine as _};
@@ -128,7 +128,7 @@ impl ApiResponseFrom {
       let headers = resp.headers().clone();
       let content = resp.bytes().await.unwrap();
       let content = String::from_utf8_lossy(&content);
-      dbg!(println!("{}", content));
+      // dbg!(println!("{}", content));
       let content: T = quick_xml::de::from_str(&content).unwrap();
 
       Ok(ApiData {
@@ -170,7 +170,82 @@ impl ApiResponseFrom {
   }
 }
 
+fn insert_header<T: ToString + std::fmt::Display>(
+  headers: &mut http::HeaderMap,
+  key: http::header::HeaderName,
+  value: T,
+) {
+  headers.insert(
+    key,
+    value
+      .to_string()
+      .parse()
+      .expect("Failed to parse header value"),
+  );
+}
+
+fn insert_custom_header<T: ToString + std::fmt::Display>(
+  headers: &mut http::HeaderMap,
+  key: &str,
+  value: T,
+) {
+  let header_name =
+    http::HeaderName::from_bytes(key.as_bytes()).expect("Failed to create header name");
+  headers.insert(
+    header_name,
+    value
+      .to_string()
+      .parse()
+      .expect("Failed to parse header value"),
+  );
+}
+
+struct ByteRange(Option<usize>, Option<isize>);
+
+impl fmt::Display for ByteRange {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match (self.0, self.1) {
+      (None, None) => write!(f, "bytes=0-"),
+      (None, Some(amount)) => {
+        if amount >= 0 {
+          write!(f, "bytes=0-{}", amount - 1)
+        } else {
+          write!(f, "bytes=-{}", amount.abs())
+        }
+      }
+      (Some(start), None) => write!(f, "bytes={}-", start),
+      (Some(start), Some(amount)) if amount > 0 => {
+        write!(f, "bytes={}-{}", start, start + amount as usize - 1)
+      }
+      (Some(start), Some(amount)) => {
+        let start_pos = if start as isize + amount > 0 {
+          start as isize + amount
+        } else {
+          0
+        };
+        write!(f, "bytes={}-{}", start_pos.max(0), start - 1)
+      }
+    }
+  }
+}
+
 pub(crate) mod bucket;
 pub(crate) mod objects;
 pub(crate) mod region;
 pub(crate) mod service;
+
+#[cfg(test)]
+pub mod tests {
+  use crate::oss::api::ByteRange;
+
+  #[test]
+  fn range() {
+    assert_eq!(ByteRange(None, None).to_string(), "bytes=0-");
+    assert_eq!(ByteRange(None, Some(500)).to_string(), "bytes=0-499");
+    assert_eq!(ByteRange(None, Some(-500)).to_string(), "bytes=-500");
+    assert_eq!(ByteRange(Some(100), None).to_string(), "bytes=100-");
+    assert_eq!(ByteRange(Some(100), Some(500)).to_string(), "bytes=100-599");
+    assert_eq!(ByteRange(Some(100), Some(-500)).to_string(), "bytes=0-99");
+    assert_eq!(ByteRange(Some(100), Some(-50)).to_string(), "bytes=50-99");
+  }
+}
