@@ -56,11 +56,31 @@ pub enum MetadataDirective {
   REPLACE,
 }
 
+impl fmt::Display for MetadataDirective {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let value = match self {
+      Self::COPY => "COPY",
+      Self::REPLACE => "REPLACE",
+    };
+    write!(f, "{}", value)
+  }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub enum TaggingDirective {
   #[default]
   COPY,
   REPLACE,
+}
+
+impl fmt::Display for TaggingDirective {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let value = match self {
+      Self::COPY => "COPY",
+      Self::REPLACE => "REPLACE",
+    };
+    write!(f, "{}", value)
+  }
 }
 
 #[cfg(test)]

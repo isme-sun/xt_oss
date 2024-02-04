@@ -14,8 +14,10 @@ pub mod builders {
   use oss::http::header::{
     CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,
   };
-  use reqwest::header::{IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE};
-  use serde::{Deserialize, Serialize};
+  use reqwest::header::{
+    HeaderMap, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
+  };
+  use serde::{de::value, Deserialize, Serialize};
   use urlencoding;
 
   use crate::oss::{
@@ -27,7 +29,7 @@ pub mod builders {
       CacheControl, ContentDisposition, ContentEncoding, ObjectACL, ServerSideEncryption,
       StorageClass,
     },
-    http, Bytes
+    http, Bytes,
   };
 
   #[derive(Debug, Default)]
@@ -261,6 +263,7 @@ pub mod builders {
 
   #[derive(Debug, Default)]
   struct CopyObjectBuilderArguments<'a> {
+    copy_source: Option<&'a str>,
     source_version_id: Option<&'a str>,
     version_id: Option<&'a str>,
     forbid_overwrite: Option<bool>,
@@ -273,7 +276,8 @@ pub mod builders {
     enc_key_id: Option<&'a str>,
     object_acl: Option<ObjectACL>,
     storage_class: Option<StorageClass>,
-    oss_tagging: Option<Tagging>,
+    // oss_tagging: Option<Tagging>,
+    oss_tagging: HashMap<String, String>,
     tagging_directive: Option<TaggingDirective>,
   }
 
@@ -281,7 +285,6 @@ pub mod builders {
   pub struct CopyObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
-    copy_source: &'a str,
     arguments: CopyObjectBuilderArguments<'a>,
   }
 
@@ -290,9 +293,18 @@ pub mod builders {
       Self {
         client,
         object,
-        copy_source: Default::default(),
         arguments: CopyObjectBuilderArguments::default(),
       }
+    }
+
+    pub fn with_forbid_overwrite(mut self, value: bool) -> Self {
+      self.arguments.forbid_overwrite = Some(value);
+      self
+    }
+
+    pub fn with_copy_source(mut self, value: &'a str) -> Self {
+      self.arguments.copy_source = Some(value);
+      self
     }
 
     pub fn with_source_version_id(mut self, value: &'a str) -> Self {
@@ -302,11 +314,6 @@ pub mod builders {
 
     pub fn with_version_id(mut self, value: &'a str) -> Self {
       self.arguments.version_id = Some(value);
-      self
-    }
-
-    pub fn with_forbid_overwrite(mut self, value: bool) -> Self {
-      self.arguments.forbid_overwrite = Some(value);
       self
     }
 
@@ -355,8 +362,11 @@ pub mod builders {
       self
     }
 
-    pub fn with_oss_tagging(mut self, value: Tagging) -> Self {
-      self.arguments.oss_tagging = Some(value);
+    pub fn with_oss_tagging(mut self, key: &'a str, value: &'a str) -> Self {
+      self
+        .arguments
+        .oss_tagging
+        .insert(key.to_string(), value.to_string());
       self
     }
 
@@ -365,11 +375,120 @@ pub mod builders {
       self
     }
 
+    fn headers(&self) -> HeaderMap {
+      let mut headers = HeaderMap::new();
+      if let Some(orbid_overwrite) = self.arguments.forbid_overwrite {
+        let value = if orbid_overwrite == true {
+          "true"
+        } else {
+          "false"
+        };
+        insert_custom_header(&mut headers, "x-oss-forbid-overwrite", value);
+      }
+
+      if let Some(copy_source) = self.arguments.copy_source {
+        let value = if let Some(source_version_id) = self.arguments.source_version_id {
+          format!("{}?versionId={}", copy_source, source_version_id)
+        } else {
+          copy_source.to_string()
+        };
+        let key = "x-oss-copy-source";
+        insert_custom_header(&mut headers, key, value);
+      }
+
+      if let Some(value) = self.arguments.if_match {
+        let key = "x-oss-copy-source-if-match";
+        insert_custom_header(&mut headers, key, value);
+      }
+
+      if let Some(value) = self.arguments.if_none_match {
+        let key = "x-oss-copy-source-if-none-match";
+        insert_custom_header(&mut headers, key, value);
+      }
+
+      if let Some(value) = &self.arguments.if_unmodified_since {
+        let key = "x-oss-copy-source-if-unmodified-since";
+        insert_custom_header(
+          &mut headers,
+          key,
+          value.format(oss::GMT_DATE_FMT).to_string(),
+        )
+      }
+
+      if let Some(value) = &self.arguments.if_modified_since {
+        let key = "x-oss-copy-source-if-modified-since";
+        insert_custom_header(
+          &mut headers,
+          key,
+          value.format(oss::GMT_DATE_FMT).to_string(),
+        )
+      }
+
+      if let Some(value) = &self.arguments.metadata_directive {
+        let key = "x-oss-metadata-directive";
+        insert_custom_header(&mut headers, key, value.to_string())
+      }
+
+      if let Some(value) = &self.arguments.encryption {
+        let key = "x-oss-server-side-encryption";
+        insert_custom_header(&mut headers, key, value.to_string())
+      }
+
+      if let Some(value) = self.arguments.enc_key_id {
+        let key = "x-oss-server-side-encryption-key-id";
+        insert_custom_header(&mut headers, key, value)
+      }
+
+      if let Some(value) = &self.arguments.object_acl {
+        let key = "x-oss-object-acl";
+        insert_custom_header(&mut headers, key, value.to_string())
+      }
+
+      if let Some(value) = &self.arguments.storage_class {
+        let key = "x-oss-storage-class";
+        insert_custom_header(&mut headers, key, value.to_string())
+      }
+
+      if !self.arguments.oss_tagging.is_empty() {
+        let tags = self
+          .arguments
+          .oss_tagging
+          .iter()
+          .map(|(k, v)| Tag {
+            key: k.to_string(),
+            value: v.to_string(),
+          })
+          .collect::<Vec<Tag>>();
+        let tagging = Tagging {
+          tag_set: TagSet { tag: Some(tags) },
+        };
+
+        let value = serde_qs::to_string(&tagging).expect("Failed to serialize tags");
+        insert_custom_header(&mut headers, "x-oss-tagging", value);
+      }
+
+      if let Some(value) = &self.arguments.tagging_directive {
+        let key = "x-oss-tagging-directive";
+        insert_custom_header(&mut headers, key, value.to_string())
+      }
+
+      headers
+    }
+
     pub async fn execute(&self) -> api::ApiResult<()> {
-      self.client;
-      self.object;
-      self.copy_source;
-      todo!()
+      let res = format!("/{}/{}", self.client.bucket(), self.object);
+      let url = self.client.object_url(self.object);
+      let resp = self
+        .client
+        .request
+        .task()
+        .with_url(&url)
+        .with_method(http::Method::PUT)
+        .with_headers(self.headers())
+        .with_resource(&res)
+        .execute_timeout(self.client.timeout())
+        .await?;
+      Ok(ApiResponseFrom(resp).as_empty().await)
     }
   }
 

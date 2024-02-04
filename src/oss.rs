@@ -5,10 +5,8 @@ pub(crate) const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
 pub(crate) const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
 pub(crate) const DEFAULT_TIMEOUT: u64 = 60;
 pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
-// pub(crate) const XML_DOCTYPE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
 use std::time::Duration;
-
 // re-export
 pub use bytes::Bytes;
 pub mod http {
@@ -456,7 +454,7 @@ pub mod tests {
       .with_access_key_id("access_key_id")
       .with_access_key_secret("access_key_secret")
       .with_endpoint("http://cdn-dev.xuetube.com")
-      .with_bucket("xtoss-t1")
+      .with_bucket("xtoss-ex1")
       .with_cname(true)
       .with_secret(false);
 
