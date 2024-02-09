@@ -7,11 +7,9 @@ async fn main() {
   dotenv::dotenv().ok();
   let options = utils::options_from_env();
   let client = oss::Client::new(options);
-  // let version_id = "CAEQ2AEYgYDArOSKxusYIiAxYjQzNWMxYzFhNDA0NDdmYWVlYmY3NDk4YWY0MDkwNA--";
-  let version_id = "CAEQ2AEYgYCA1v6ot.sYIiBmZjU2NTQwOGEwZDc0MTMyYTU5ZjhlMmUyNGYwMjc3NA--";
   let resp = client
-    .HeadObject("tmp/test.txt")
-    .with_version_id(version_id)
+    .HeadObject("tmp/database_book.pdf")
+    // .with_version_id(version_id)
     // .with_match(value)
     // .with_modified_since(value)
     // .with_none_match(value)

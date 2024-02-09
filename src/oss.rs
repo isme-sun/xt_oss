@@ -167,6 +167,7 @@ impl<'a> RequestTask<'a> {
     headers.extend(self.headers.to_owned());
     let auth = self.authorization(&headers, &date);
     headers.insert(AUTHORIZATION, auth.parse().unwrap());
+    // dbg!(&headers);
 
     let timeout = Duration::from_secs(timeout.unwrap_or(oss::DEFAULT_TIMEOUT));
     self

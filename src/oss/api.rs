@@ -73,10 +73,10 @@ impl<T> ApiData<T> {
   }
 }
 
-type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
+pub type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
 
 // api 返回体， 包含请求错误， 和api返回数据
-type ApiResult<T = ()> = Result<ApiResponse<T>, reqwest::Error>;
+pub type ApiResult<T = ()> = Result<ApiResponse<T>, reqwest::Error>;
 
 pub(crate) struct ApiResponseFrom(reqwest::Response);
 
@@ -200,7 +200,8 @@ fn insert_custom_header<T: ToString + std::fmt::Display>(
   );
 }
 
-struct ByteRange(Option<usize>, Option<isize>);
+#[derive(Debug, Default)]
+pub struct ByteRange(Option<usize>, Option<isize>);
 
 impl fmt::Display for ByteRange {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

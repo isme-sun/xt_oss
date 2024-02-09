@@ -15,14 +15,15 @@ pub mod builders {
     CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,
   };
   use reqwest::header::{
-    HeaderMap, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
+    HeaderMap, ACCEPT_ENCODING, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
+    RANGE,
   };
-  use serde::{de::value, Deserialize, Serialize};
+  use serde::{Deserialize, Serialize};
   use urlencoding;
 
   use crate::oss::{
     self,
-    api::{self, insert_custom_header, insert_header, ApiResponseFrom},
+    api::{self, insert_custom_header, insert_header, ApiResponseFrom, ByteRange},
     entities::{
       object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
       tag::{Tag, TagSet, Tagging},
@@ -39,6 +40,7 @@ pub mod builders {
     content_encoding: Option<ContentEncoding>,
     content_md5: Option<String>,
     content_length: Option<u64>,
+    content_type: Option<String>,
     etag: Option<String>,
     expires: Option<DateTime<Utc>>,
     forbid_overwrite: Option<bool>,
@@ -66,6 +68,11 @@ pub mod builders {
         content: oss::Bytes::new(),
         headers: PutObjectBuilderHeaders::default(),
       }
+    }
+
+    pub fn with_content_type(mut self, value: &'a str) -> Self {
+      self.headers.content_type = Some(value.to_string());
+      self
     }
 
     pub fn with_cache_control(mut self, value: CacheControl) -> Self {
@@ -156,6 +163,11 @@ pub mod builders {
 
     fn headers(&self) -> http::HeaderMap {
       let mut headers = http::HeaderMap::new();
+
+      // if let Some(content_type) = &self.headers.content_type {
+      //   insert_header(&mut headers, CONTENT_TYPE, content_type);
+      // }
+
       if let Some(cache_control) = &self.headers.cache_control {
         insert_header(&mut headers, CACHE_CONTROL, cache_control);
       }
@@ -216,20 +228,8 @@ pub mod builders {
       }
 
       if !self.headers.oss_tagging.is_empty() {
-        let tags = self
-          .headers
-          .oss_tagging
-          .iter()
-          .map(|(k, v)| Tag {
-            key: k.to_string(),
-            value: v.to_string(),
-          })
-          .collect::<Vec<Tag>>();
-        let tagging = Tagging {
-          tag_set: TagSet { tag: Some(tags) },
-        };
-
-        let value = serde_qs::to_string(&tagging).expect("Failed to serialize tags");
+        let value =
+          serde_qs::to_string(&self.headers.oss_tagging).expect("Failed to serialize tags");
         insert_custom_header(&mut headers, "x-oss-tagging", value);
       }
 
@@ -621,7 +621,7 @@ pub mod builders {
   pub struct GetObjectBuilder<'a> {
     client: &'a oss::Client<'a>,
     object: &'a str,
-    range: Option<(u64, u64)>,
+    range: Option<ByteRange>,
     modified_since: Option<DateTime<Utc>>,
     unmodified_since: Option<DateTime<Utc>>,
     r#match: Option<&'a str>,
@@ -680,7 +680,7 @@ pub mod builders {
       self
     }
 
-    pub fn with_range(mut self, value: (u64, u64)) -> Self {
+    pub fn with_range(mut self, value: ByteRange) -> Self {
       self.range = Some(value);
       self
     }
@@ -717,25 +717,24 @@ pub mod builders {
 
     pub(crate) fn headers(&self) -> http::HeaderMap {
       let mut headers = http::HeaderMap::new();
-      if let Some(modified_since) = self.modified_since {
-        let dt = modified_since.format(oss::GMT_DATE_FMT).to_string();
-        headers.append(http::header::IF_MODIFIED_SINCE, dt.parse().unwrap());
+      if let Some(range) = &self.range {
+        insert_header(&mut headers, RANGE, range.to_string());
       }
-      if let Some(unmodified_since) = self.unmodified_since {
+      if let Some(modified_since) = &self.modified_since {
+        insert_header(&mut headers, IF_MODIFIED_SINCE, modified_since);
+      }
+      if let Some(unmodified_since) = &self.unmodified_since {
         let dt = unmodified_since.format(oss::GMT_DATE_FMT).to_string();
-        headers.append(http::header::IF_UNMODIFIED_SINCE, dt.parse().unwrap());
+        insert_header(&mut headers, IF_UNMODIFIED_SINCE, dt);
       }
-      if let Some(r#match) = self.r#match {
-        headers.append(http::header::IF_MATCH, r#match.parse().unwrap());
+      if let Some(r#match) = &self.r#match {
+        insert_header(&mut headers, IF_MATCH, r#match);
       }
-      if let Some(none_match) = self.none_match {
-        headers.append(http::header::IF_MATCH, none_match.parse().unwrap());
+      if let Some(none_match) = &self.none_match {
+        insert_header(&mut headers, IF_NONE_MATCH, none_match);
       }
-      if let Some(accept_encoding) = self.accept_encoding {
-        headers.append(
-          http::header::ACCEPT_ENCODING,
-          accept_encoding.parse().unwrap(),
-        );
+      if let Some(accept_encoding) = &self.accept_encoding {
+        insert_header(&mut headers, ACCEPT_ENCODING, accept_encoding);
       }
       headers
     }
@@ -1083,7 +1082,7 @@ impl<'a> oss::Client<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::oss;
+  use crate::oss::{self, api::ByteRange};
   use chrono::Utc;
   #[test]
   fn get_object_builder_arugments() {
@@ -1097,7 +1096,7 @@ mod tests {
       .with_cache_control("cache")
       .with_content_disposition("dis")
       .with_content_encoding("GZIP")
-      .with_range((0, 100))
+      .with_range(ByteRange(Some(500), Some(1000)))
       .with_modified_since(Utc::now())
       .with_unmodified_since(Utc::now())
       .with_match("etag")

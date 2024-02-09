@@ -14,7 +14,6 @@ categories = ["filesystem"]
 [badges]
 maintenance = { status = "actively-developed" }
 
-
 [[example]]
 name = "request_regions"
 path = "examples/request/regions.rs"
@@ -120,6 +119,10 @@ name = "object_put"
 path = "examples/objects/stand/put_object.rs"
 
 [[example]]
+name = "object_get"
+path = "examples/objects/stand/get_object.rs"
+
+[[example]]
 name = "object_delete"
 path = "examples/objects/stand/delete_object.rs"
 
@@ -146,3 +149,4 @@ env_logger = "0.11.0"
 dotenv = "0.15.0"
 serde_json = "1.0.108"
 urlencoding = "2.1.3"
+futures  = "0.3.30"

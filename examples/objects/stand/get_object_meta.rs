@@ -8,8 +8,7 @@ async fn main() {
   let options = utils::options_from_env();
   let client = oss::Client::new(options);
   let resp = client
-    .GetObjectMeta("tmp/test.txt")
-    .with_version_id("CAEQ2AEYgYCAur2ot.sYIiBmM2M5MDBjNDE0OWE0OGVmYTYwN2Q1OWIyMGNlZDQ3Ng--")
+    .GetObjectMeta("tmp/database_book.pdf")
     .execute()
     .await
     .unwrap_or_else(|error| {

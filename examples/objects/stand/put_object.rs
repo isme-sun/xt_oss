@@ -1,5 +1,6 @@
-use std::process;
+use std::{env, fs::File, io::Read, process};
 
+use chrono::Utc;
 use xt_oss::{
   oss::{self},
   utils,
@@ -10,9 +11,21 @@ async fn main() {
   dotenv::dotenv().ok();
   let options = utils::options_from_env();
   let client = oss::Client::new(options);
+
+  println!("{}", env::current_dir().unwrap().to_str().unwrap());
+  let mut content = vec![];
+  let mut file = File::open("examples/assets/database_book.pdf").unwrap();
+  let _ = file.read_to_end(&mut content);
+  let content = oss::Bytes::from(content);
+
   let resp = client
-    .PutObject("tmp/test.txt")
-    .with_content(oss::Bytes::from("你好,世界"))
+    .PutObject("tmp/database_book.pdf")
+    .with_content(content)
+    .with_expires(Utc::now())
+    .with_content_type("application/pdf")
+    .with_oss_tagging("name", "图书")
+    .with_oss_tagging("cate", "测试")
+    .with_oss_meta("origin-name", "database-book")
     .execute()
     .await
     .unwrap_or_else(|error| {
@@ -20,9 +33,6 @@ async fn main() {
       process::exit(-1);
     });
 
-    // CAEQ2AEYgYDA_66nt.sYIiA5NTUzMjE0YzcwZGE0N2MyYTUxY2QxNmY1MGIxNjgzMQ--
-    // CAEQ2AEYgYCAur2ot.sYIiBmM2M5MDBjNDE0OWE0OGVmYTYwN2Q1OWIyMGNlZDQ3Ng--
-    // CAEQ2AEYgYCA1v6ot.sYIiBmZjU2NTQwOGEwZDc0MTMyYTU5ZjhlMmUyNGYwMjc3NA--
   match resp {
     Ok(data) => {
       println!("{:#?}", data.headers())

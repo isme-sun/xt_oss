@@ -10,7 +10,7 @@ async fn main() {
   let result = client
     .DeleteBucket()
     .with_region("oss-cn-beijing")
-    .with_bucket("xtoss-t4")
+    .with_bucket("xtoss-ex1")
     .execute()
     .await
     .unwrap_or_else(|error| {
@@ -26,6 +26,7 @@ async fn main() {
       println!("{:#?}", data.content())
     }
     Err(error) => {
+      println!("{}", error.url());
       println!("{:#?}", error.content())
     }
   }
