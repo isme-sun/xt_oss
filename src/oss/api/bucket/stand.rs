@@ -304,7 +304,7 @@ pub mod builders {
         continuation_token: None,
         max_keys: Some(100),
         prefix: None,
-        encoding_type: Some("url"),
+        encoding_type: None,
         fetch_owner: None,
       }
     }
@@ -339,8 +339,8 @@ pub mod builders {
       self
     }
 
-    pub fn with_continuation_token(mut self, value: &'a str) -> Self {
-      self.query.continuation_token = Some(value);
+    pub fn with_continuation_token(mut self, value: Option<&'a str>) -> Self {
+      self.query.continuation_token = value;
       self
     }
 
@@ -365,9 +365,15 @@ pub mod builders {
     }
 
     pub async fn execute(&self) -> api::ApiResult<ListBucketResult2> {
-      let res = format!("/{}/", self.client.bucket());
+      let mut res = format!("/{}/", self.client.bucket());
+      let mut url = self.client.base_url();
       let query = self.query.to_string();
-      let url = format!("{}?{}", self.client.base_url(), query);
+      if !query.is_empty() {
+        if let Some(token) = self.query.continuation_token {
+          res = format!("{}?continuation-token={}", res, token);
+        }
+        url = format!("{}?{}", url, query);
+      }
 
       let resp = self
         .client

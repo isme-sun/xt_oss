@@ -12,7 +12,7 @@ pub mod builders {
 
   use chrono::{DateTime, Utc};
   use oss::http::header::{
-    CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,
+    CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,CONTENT_TYPE
   };
   use reqwest::header::{
     HeaderMap, ACCEPT_ENCODING, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
@@ -164,9 +164,9 @@ pub mod builders {
     fn headers(&self) -> http::HeaderMap {
       let mut headers = http::HeaderMap::new();
 
-      // if let Some(content_type) = &self.headers.content_type {
-      //   insert_header(&mut headers, CONTENT_TYPE, content_type);
-      // }
+      if let Some(content_type) = &self.headers.content_type {
+        insert_header(&mut headers, CONTENT_TYPE, content_type);
+      }
 
       if let Some(cache_control) = &self.headers.cache_control {
         insert_header(&mut headers, CACHE_CONTROL, cache_control);

@@ -1,10 +1,10 @@
-pub(crate) const BASE_URL: &str = "aliyuncs.com";
-pub(crate) const DEFAULT_REGION: &str = "oss-cn-hangzhou";
-pub(crate) const USER_AGENT: &str = "xt oss/0.1";
-pub(crate) const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
-pub(crate) const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
-pub(crate) const DEFAULT_TIMEOUT: u64 = 60;
-pub(crate) const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
+pub const BASE_URL: &str = "aliyuncs.com";
+pub const DEFAULT_REGION: &str = "oss-cn-hangzhou";
+pub const USER_AGENT: &str = "xt oss/0.1";
+pub const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
+pub const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
+pub const DEFAULT_TIMEOUT: u64 = 60;
+pub const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 
 use std::time::Duration;
 // re-export

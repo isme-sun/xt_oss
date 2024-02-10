@@ -136,20 +136,21 @@ pub struct BucketStat {
 #[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListBucketResult2 {
-  #[serde(rename(deserialize = "Name"))]
+  #[serde(rename = "Name")]
   pub name: String,
-  #[serde(rename(deserialize = "Prefix"))]
+  #[serde(rename = "Prefix")]
   pub prefix: String,
-  #[serde(rename(deserialize = "MaxKeys"))]
+  #[serde(rename = "MaxKeys")]
   pub max_keys: i32,
-  #[serde(rename(deserialize = "EncodingType"))]
+  #[serde(rename = "EncodingType")]
   pub encoding_type: Option<String>,
-  #[serde(rename(deserialize = "IsTruncated"))]
+  #[serde(rename = "IsTruncated")]
   pub is_truncated: bool,
-  #[serde(rename(deserialize = "KeyCount"))]
+  #[serde(rename = "KeyCount")]
   pub key_count: Option<u32>,
-  // #[serde(rename = "$value")]
-  #[serde(rename(deserialize = "Contents"))]
+  #[serde(rename = "NextContinuationToken")]
+  pub next_continuation_token: Option<String>,
+  #[serde(rename = "Contents")]
   pub contents: Option<Vec<Object>>,
 }
 
@@ -237,5 +238,62 @@ pub mod test {
 "#;
     let obj: ListAllMyBucketsResult = quick_xml::de::from_str(xml).unwrap();
     println!("{:#?}", &obj);
+  }
+
+  #[test]
+  pub fn list_object_v2() {
+    let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+    <ListBucketResult>
+      <Name>xtoss-ex11</Name>
+      <Prefix></Prefix>
+      <MaxKeys>5</MaxKeys>
+      <Delimiter></Delimiter>
+      <IsTruncated>true</IsTruncated>
+      <NextContinuationToken>ChlpbWFnZXMvSlBHSW1hZ2VfMm1ibWIuanBnEAA-</NextContinuationToken>
+      <Contents>
+        <Key>excel/Spreadsheet-1000-rows.xls</Key>
+        <LastModified>2024-02-09T12:11:40.000Z</LastModified>
+        <ETag>"B6DF06A19E3A3AF4F39EBD2E14C64F28"</ETag>
+        <Type>Normal</Type>
+        <Size>217088</Size>
+        <StorageClass>Standard</StorageClass>
+      </Contents>
+      <Contents>
+        <Key>excel/Spreadsheet-5000-rows.xls</Key>
+        <LastModified>2024-02-09T12:11:39.000Z</LastModified>
+        <ETag>"F97C47A00070BC0B945268A26FC8C14A"</ETag>
+        <Type>Normal</Type>
+        <Size>925696</Size>
+        <StorageClass>Standard</StorageClass>
+      </Contents>
+      <Contents>
+        <Key>images/JPGImage_100kbmb.jpg</Key>
+        <LastModified>2024-02-09T12:11:39.000Z</LastModified>
+        <ETag>"12EA14D362611F6CCAB9C66CA0A3FAEF"</ETag>
+        <Type>Normal</Type>
+        <Size>102796</Size>
+        <StorageClass>Standard</StorageClass>
+      </Contents>
+      <Contents>
+        <Key>images/JPGImage_15mbmb.jpg</Key>
+        <LastModified>2024-02-09T12:11:31.000Z</LastModified>
+        <ETag>"AD9D4461988B2D82D53F0DA31CAFEAA5"</ETag>
+        <Type>Normal</Type>
+        <Size>15882755</Size>
+        <StorageClass>Standard</StorageClass>
+      </Contents>
+      <Contents>
+        <Key>images/JPGImage_2mbmb.jpg</Key>
+        <LastModified>2024-02-09T12:11:39.000Z</LastModified>
+        <ETag>"EA5EFC10C2873F1713FDB368E4D25DD7"</ETag>
+        <Type>Normal</Type>
+        <Size>2101546</Size>
+        <StorageClass>Standard</StorageClass>
+      </Contents>
+      <KeyCount>5</KeyCount>
+    </ListBucketResult>"#;
+
+    let entity: ListBucketResult2 = quick_xml::de::from_str(&xml_content).unwrap();
+    println!("{:#?}", entity);
   }
 }
