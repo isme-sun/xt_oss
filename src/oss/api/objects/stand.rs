@@ -592,7 +592,7 @@ pub mod builders {
     }
 
     #[derive(Debug, Default, Serialize, Deserialize)]
-    pub struct GetObjectBuilderQuery<'a> {
+    pub(crate) struct GetObjectBuilderQuery<'a> {
         #[serde(
             rename = "response-cache-control",
             skip_serializing_if = "Option::is_none"
@@ -747,11 +747,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<Bytes> {
-            dbg!(&self.client.options);
             let mut res = format!("/{}/{}", self.client.bucket(), self.object);
             let mut url = self.client.object_url(self.object);
-            dbg!(&res);
-            dbg!(&url);
             let query = self.query();
             if !query.is_empty() {
                 res = format!("{}?{}", res, query);
