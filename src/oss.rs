@@ -28,7 +28,8 @@ use super::oss::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
-use hmacsha1;
+// use hmacsha1;
+use hmac_sha1;
 use reqwest::{header::HeaderMap, Response, Result};
 
 #[allow(unused)]
@@ -68,18 +69,23 @@ impl<'a> Authorization<'a> {
 
   fn signature(&self) -> String {
     let header_str = self.headers_str();
+    let content_type = match self.headers.get(CONTENT_TYPE) {
+        Some(content_type) => content_type.to_str().unwrap(),
+        None => oss::DEFAULT_CONTENT_TYPE
+    };
+    // dbg!(self.headers);
     let value = format!(
       "{VERB}\n\n{ContentType}\n{Date}\n{Header}{Resource}",
       VERB = self.method,
-      Header = header_str,
-      ContentType = oss::DEFAULT_CONTENT_TYPE,
+      ContentType = content_type,
       Date = self.date,
+      Header = header_str,
       Resource = self.resourse.unwrap_or("/")
     );
     // dbg!(println!("{}", value));
     let key = self.access_key_secret.as_bytes();
     let message = value.as_bytes();
-    let value = hmacsha1::hmac_sha1(key, message);
+    let value = hmac_sha1::hmac_sha1(key, message);
     let encoded = general_purpose::STANDARD.encode(value.as_slice());
     encoded
   }

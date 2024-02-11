@@ -14,122 +14,12 @@ categories = ["filesystem"]
 [badges]
 maintenance = { status = "actively-developed" }
 
-[[example]]
-name = "request_regions"
-path = "examples/request/regions.rs"
-
-[[example]]
-name = "request_list_buckets"
-path = "examples/request/list_buckets.rs"
-
-[[example]]
-name = "request_bucket_info"
-path = "examples/request/bucket_info.rs"
-
-[[example]]
-name = "request_bucket_get_cors"
-path = "examples/request/bucket_get_cors.rs"
-
-[[example]]
-name = "request_bucket_put_cors"
-path = "examples/request/stand/bucket_put_cors.rs"
-
-[[example]]
-name = "bucket_put"
-path = "examples/buckets/stand/put_bucket.rs"
-
-[[example]]
-name = "bucket_delete"
-path = "examples/buckets/stand/delete_bucket.rs"
-
-[[example]]
-name = "bucket_get_stat"
-path = "examples/buckets/stand/bucket_get_stat.rs"
-
-[[example]]
-name = "bucket_get_info"
-path = "examples/buckets/get_bucket_info.rs"
-
-[[example]]
-name = "bucket_get_location"
-path = "examples/buckets/stand/get_bucket_location.rs"
-
-[[example]]
-name = "region_describe"
-path = "examples/region/describe_regions.rs"
-
-[[example]]
-name = "service_list_buckets"
-path = "examples/service/list_buckets.rs"
-
-[[example]]
-name = "put_bucket_transfer_acceleration"
-path = "examples/buckets/put_bucket_transfer_acceleration.rs"
-
-[[example]]
-name = "list_objects"
-path = "examples/buckets/list_objects.rs"
-
-[[example]]
-name = "list_objects_v2"
-path = "examples/buckets/list_objects_v2.rs"
-
-[[example]]
-name = "cname_create_token"
-path = "examples/buckets/cname/create_cname_token.rs"
-
-[[example]]
-name = "cname_delete"
-path = "examples/buckets/cname/delete_cname.rs"
-
-[[example]]
-name = "cname_get_token"
-path = "examples/buckets/cname/get_cname_token.rs"
-
-[[example]]
-name = "cname_list"
-path = "examples/buckets/cname/list_cname.rs"
-
-[[example]]
-name = "cname_put"
-path = "examples/buckets/cname/put_cname.rs"
-
-[[example]]
-name = "versioning_get_buckets"
-path = "examples/buckets/versions/get_bucket_versioning.rs"
-[[example]]
-name = "versioning_put_bucket"
-path = "examples/buckets/versions/put_bucket_versioning.rs"
-[[example]]
-name = "versions_list_object"
-path = "examples/buckets/versions/list_object_versions.rs"
-
-[[example]]
-name = "object_head"
-path = "examples/objects/stand/head_object.rs"
-
-[[example]]
-name = "object_get_meta"
-path = "examples/objects/stand/get_object_meta.rs"
-
-[[example]]
-name = "object_put"
-path = "examples/objects/stand/put_object.rs"
-
-[[example]]
-name = "object_get"
-path = "examples/objects/stand/get_object.rs"
-
-[[example]]
-name = "object_delete"
-path = "examples/objects/stand/delete_object.rs"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 base64 = "0.21.5"
 chrono = { version = "0.4.31" }
-hmac-sha1 = "0.2.1"
+hmac-sha1 = "0.2.2"
 rust-crypto = "0.2.36"
 serde_qs = "0.12.0"
 bytes = "1.5.0"
@@ -139,6 +29,7 @@ serde = { version = "1.0.192", features = ["serde_derive"] }
 quick-xml = { version = "0.31.0", features = ["serialize"] }
 url = "2.5.0"
 urlencoding = "2.1.3"
+futures = "0.3.30"
 
 [dev-dependencies]
 log = "0.4.20"
@@ -146,6 +37,5 @@ env_logger = "0.11.0"
 dotenv = "0.15.0"
 serde_json = "1.0.108"
 urlencoding = "2.1.3"
-futures = "0.3.30"
 walkdir = "2.4.0"
 mime_guess = "2.0.4"

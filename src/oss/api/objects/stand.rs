@@ -12,14 +12,11 @@ pub mod builders {
 
   use chrono::{DateTime, Utc};
   use oss::http::header::{
-    CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LENGTH, ETAG, EXPIRES,CONTENT_TYPE
-  };
-  use reqwest::header::{
-    HeaderMap, ACCEPT_ENCODING, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
-    RANGE,
+    HeaderMap, ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING,
+    CONTENT_LANGUAGE, CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, IF_MATCH, IF_MODIFIED_SINCE,
+    IF_NONE_MATCH, IF_UNMODIFIED_SINCE, RANGE,
   };
   use serde::{Deserialize, Serialize};
-  use urlencoding;
 
   use crate::oss::{
     self,
@@ -37,6 +34,7 @@ pub mod builders {
   struct PutObjectBuilderHeaders {
     cache_control: Option<CacheControl>,
     content_disposition: Option<ContentDisposition>,
+    content_language: Option<String>,
     content_encoding: Option<ContentEncoding>,
     content_md5: Option<String>,
     content_length: Option<u64>,
@@ -72,6 +70,11 @@ pub mod builders {
 
     pub fn with_content_type(mut self, value: &'a str) -> Self {
       self.headers.content_type = Some(value.to_string());
+      self
+    }
+
+    pub fn with_content_language(mut self, value: &'a str) -> Self {
+      self.headers.content_language = Some(value.to_string());
       self
     }
 
@@ -164,6 +167,13 @@ pub mod builders {
     fn headers(&self) -> http::HeaderMap {
       let mut headers = http::HeaderMap::new();
 
+      if let Some(content_type) = &self.headers.content_type {
+        insert_header(&mut headers, CONTENT_TYPE, content_type);
+      }
+
+      if let Some(content_language) = &self.headers.content_language {
+        insert_header(&mut headers, CONTENT_LANGUAGE, content_language);
+      }
       if let Some(content_type) = &self.headers.content_type {
         insert_header(&mut headers, CONTENT_TYPE, content_type);
       }
@@ -740,36 +750,28 @@ pub mod builders {
     }
 
     pub async fn execute(&self) -> api::ApiResult<Bytes> {
+      dbg!(&self.client.options);
+      let mut res = format!("/{}/{}", self.client.bucket(), self.object);
+      let mut url = self.client.object_url(self.object);
+      dbg!(&res);
+      dbg!(&url);
       let query = self.query();
-      let url = if !query.is_empty() {
-        format!(
-          "{}/{}?{}",
-          self.client.options.base_url(),
-          self.object,
-          query
-        )
-      } else {
-        format!("{}/{}", self.client.options.base_url(), self.object)
-      };
+      if !query.is_empty() {
+        res = format!("{}?{}", res, query);
+        url = format!("{}?{}", url, query)
+      }
+      
 
       let headers = self.headers();
-
-      let query_origin = urlencoding::decode(&query).unwrap();
-      // println!("{}", query_origin);
-      let task = self
+      let resp = self
         .client
         .request
         .task()
-        .with_resource(&query_origin)
-        .with_url(&url);
-
-      let task = if !headers.is_empty() {
-        task.with_headers(headers)
-      } else {
-        task
-      };
-
-      let resp = task.execute().await?;
+        .with_url(&url)
+        .with_headers(headers)
+        .with_resource(&res)
+        .execute()
+        .await?;
 
       Ok(ApiResponseFrom(resp).as_bytes().await)
     }
