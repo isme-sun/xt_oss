@@ -199,8 +199,8 @@ fn insert_custom_header<T: ToString + std::fmt::Display>(
     );
 }
 
-#[derive(Debug, Default)]
-pub struct ByteRange(Option<usize>, Option<isize>);
+#[derive(Debug, Default, Clone)]
+pub struct ByteRange(pub Option<usize>, pub Option<isize>);
 
 impl fmt::Display for ByteRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
