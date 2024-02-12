@@ -1,7 +1,12 @@
 use bytes::BytesMut;
 use dotenv;
 use reqwest::header::CONTENT_LENGTH;
-use std::{fs, io::Write, path::PathBuf, process};
+use std::{
+    fs,
+    io::{self, Write},
+    path::PathBuf,
+    process,
+};
 use xt_oss::{
     oss::{self, api::ByteRange},
     utils,
@@ -60,10 +65,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None
     };
     println!(
-        "file size: {:.2} MB",
+        "file total size: {:.2} MB",
         size.unwrap() as f64 / (1024 * 1024) as f64
     );
-
     let byte_range_list = byte_range_chunk(size.unwrap(), 1024 * 1024 * 2);
 
     let mut bytes = BytesMut::new();
@@ -79,16 +83,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 process::exit(-1);
             }) {
             Ok(data) => {
-                println!(
-                    "{:5.2}%",
+                let rate = format!(
+                    "complete {:5.2}%",
                     ((index + 1) as f64 / byte_range_list.len() as f64) * 100f64
                 );
+                if index == 0 {
+                    print!("{rate}");
+                    io::stdout().flush()?;
+                } else {
+                    print!("\r{rate}");
+                    io::stdout().flush()?;
+                }
                 bytes.extend(data.content())
             }
             Err(message) => println!("oss error: {}", message.content()),
         }
     }
 
+    println!();
     if let Some(dirname) = save_path.parent() {
         if !dirname.is_dir() {
             fs::create_dir_all(dirname)?;
