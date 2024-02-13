@@ -130,19 +130,29 @@ pub mod builders {
     }
 }
 
+/// # 加密（Encryption）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// PutBucketEncryption接口用于配置存储空间（Bucket）的加密规则。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketEncryption(&self) -> PutBucketEncryptionBuilder {
         PutBucketEncryptionBuilder::new(self)
     }
 
     /// GetBucketEncryption接口用于获取存储空间（Bucket）的加密规则。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketEncryption(&self) -> GetBucketEncryptionBuilder {
         GetBucketEncryptionBuilder::new(&self)
     }
 
     /// DeleteBucketEncryption接口用于删除Bucket加密规则。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn DeleteBucketEncryption(&self) -> DeleteBucketEncryptionBuilder {
         DeleteBucketEncryptionBuilder::new(&self)
     }

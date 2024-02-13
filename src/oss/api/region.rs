@@ -46,6 +46,9 @@ pub mod builders {
 impl<'a> Client<'a> {
     /// 调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息，
     /// 包括外网Endpoint、内网Endpoint和传输加速Endpoint。
+    /// 
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/describeregions)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_describe_regions.rs)
     pub fn DescribeRegions(&self) -> DescribeRegionsBuilder {
         DescribeRegionsBuilder::new(self)
     }

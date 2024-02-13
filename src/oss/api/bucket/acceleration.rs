@@ -101,9 +101,14 @@ pub mod builder {
     }
 }
 
+/// # 传输加速（TransferAcceleration）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 接口用于为存储空间（Bucket）配置传输加速。开启传输加速后，可提升全球各地用户对OSS的访问速度，适用于远距离数据传输、GB或TB级大文件上传和下载的场景。
+    /// 接口用于为存储空间（Bucket）配置传输加速。开启传输加速后，可提升全球各地用户对OSS的访问速度，
+    /// 适用于远距离数据传输、GB或TB级大文件上传和下载的场景。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketTransferAcceleration(
         &self,
         value: bool,
@@ -112,6 +117,9 @@ impl<'a> oss::Client<'a> {
     }
 
     /// 接口用于获取目标存储空间（Bucket）的传输加速配置
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn GetBucketTransferAcceleration(&self) -> GetBucketTransferAccelerationBuilder {
         GetBucketTransferAccelerationBuilder::new(&self)
     }

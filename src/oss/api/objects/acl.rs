@@ -92,17 +92,23 @@ pub mod builders {
     }
 }
 
-/// 基础操作
+/// # 基础操作
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
-    /// 初始化一个Multipart Upload事件
+    /// 调用PutObjectACL接口修改文件（Object）的访问权限（ACL）。
+    /// 此操作只有Bucket Owner有权限执行，且需对Object有读写权限。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutObjectACL(&self, object: &'a str) -> PutObjectACLBuilder {
         PutObjectACLBuilder::new(self, object)
     }
 
-    /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）
-    /// 上传数据
+    /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和
+    /// uploadId来分块（Part）
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn GetObjectACL(&self, object: &'a str) -> GetObjectAclBuilder {
         GetObjectAclBuilder::new(self, object)
     }

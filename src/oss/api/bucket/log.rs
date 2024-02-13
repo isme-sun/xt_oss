@@ -120,23 +120,33 @@ pub mod builders {
     }
 }
 
+/// # 日志管理（Logging）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// PutBucketLogging接口用于为存储空间（Bucket）开启日志转存功能，
     /// 可将OSS的访问日志按照固定命名规则，以小时为单位生成日志文件写入您
     /// 指定的Bucket。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketLogging(&self) -> PutBucketLoggingBuilder {
         PutBucketLoggingBuilder::new(self)
     }
 
     /// GetBucketLogging接口用于查看存储空间（Bucket）的访问日志配置。
     /// 只有Bucket的拥有者才能查看Bucket的访问日志配置。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketLogging(&self) -> GetBucketLoggingBuilder {
         GetBucketLoggingBuilder::new(&self)
     }
 
     /// DeleteBucketLogging用于关闭存储空间（Bucket）的访问日志记录功能。
     /// 只有Bucket的拥有者才有权限关闭Bucket访问日志记录功能
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteBucketLogging(&self) -> DeleteBucketLoggingBuilder {
         DeleteBucketLoggingBuilder::new(&self)
     }

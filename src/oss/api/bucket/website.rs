@@ -141,49 +141,31 @@ pub mod builders {
     }
 }
 
-/// ## 静态网站（Website）
+/// # 静态网站（Website）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用PutBucketWebsite接口将存储空间（Bucket）设置为静态网站托管模式并设置跳转
     /// 规则（RoutingRule
     ///
-    /// **Example**:
-    ///
-    /// ```no_run
-    /// use xt_oss::{oss, utils};
-    ///
-    /// async fn put_bucket_website() {
-    ///     dotenv::dotenv().ok();
-    ///     let options = utils::options_from_env();
-    ///     let client = oss::Client::new(options);
-    ///
-    ///     let result = client.PutBucketWebsite().with_default().send().await;
-    ///
-    ///     match result {
-    ///         Ok(result) => {
-    ///             println!("{:#?}", result);
-    ///         }
-    ///         Err(message) => {
-    ///             println!("{:?}", message);
-    ///         }
-    ///     }
-    /// }
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     put_bucket_website().await;
-    /// }
-    /// ```
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketWebsite(&self) -> PutBucketWebsiteBuilder {
         PutBucketWebsiteBuilder::new(self)
     }
 
     /// 调用GetBucketWebsite接口查看存储空间（Bucket）的静态网站托管状态以及跳转规则
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketWebsite(&self) -> GetBucketWebsiteBuilder {
         GetBucketWebsiteBuilder::new(self)
     }
 
-    /// DeleteBucketWebsite接口用于关闭存储空间（Bucket）的静态网站托管模式以及跳转规则。只有Bucket的拥有者才能关闭Bucket的静态网站托管模式。
+    /// DeleteBucketWebsite接口用于关闭存储空间（Bucket）的静态网站托管模式以及
+    /// 跳转规则。只有Bucket的拥有者才能关闭Bucket的静态网站托管模式。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteBucketWebsite(&self) -> DeleteBucketWebsiteBuilder {
         DeleteBucketWebsiteBuilder::new(self)
     }

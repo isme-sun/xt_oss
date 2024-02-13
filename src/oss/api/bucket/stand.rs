@@ -559,6 +559,7 @@ pub mod builders {
     }
 }
 
+/// # 基础操作
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     pub fn PutBucket(&self) -> PutBucketBuilder<'_> {
@@ -567,33 +568,52 @@ impl<'a> oss::Client<'a> {
 
     /// 调用DeleteBucket删除某个存储空间（Bucket）。
     ///
-    /// See [Engine::encode].
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteBucket(&self) -> DeleteBucketBuilder<'_> {
         DeleteBucketBuilder::new(self)
     }
 
-    /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
+    /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件
+    /// （Object）的信息。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn ListObjects(&self) -> ListObjectBuilder<'_> {
         ListObjectBuilder::new(self)
     }
 
-    // ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件（Object）的信息。
+    /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件
+    ///（Object）的信息。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn ListObjectsV2(&self) -> ListObjectsV2Builder<'_> {
         ListObjectsV2Builder::new(self)
     }
 
-    // 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
+    /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketInfo(&self) -> GetBucketInfoBuilder<'_> {
         GetBucketInfoBuilder::new(self)
     }
 
     /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
     /// 只有Bucket的拥有者才能查看Bucket的位置信息。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketLocation(&self) -> GetBucketLocationBuilder<'_> {
         GetBucketLocationBuilder::new(self)
     }
 
-    /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件（Object）数量
+    /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件
+    /// （Object）数量
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketStat(&self) -> GetBucketStatBuilder<'_> {
         GetBucketStatBuilder::new(self)
     }

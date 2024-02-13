@@ -73,14 +73,22 @@ impl<'a> GetBucketAclBuilder<'a> {
     }
 }
 
+/// # 权限控制（ACL）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketAcl(&self) -> PutBucketAclBuilder {
         PutBucketAclBuilder::new(self)
     }
 
-    /// GetBucketAcl接口用于获取某个存储空间（Bucket）的访问权限（ACL）。只有Bucket的拥有者才能获取Bucket的访问权限。
+    /// GetBucketAcl接口用于获取某个存储空间（Bucket）的访问权限（ACL）。
+    /// 只有Bucket的拥有者才能获取Bucket的访问权限。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn GetBucketAcl(&self) -> GetBucketAclBuilder {
         GetBucketAclBuilder::new(&self)
     }

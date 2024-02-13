@@ -134,16 +134,30 @@ pub mod builders {
     }
 }
 
+/// # 标签（Tags）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
+
+    /// PutBucketTags接口用来给某个存储空间（Bucket）添加或修改标签。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketTags(&self) -> PutBucketTagsBuilder {
         PutBucketTagsBuilder::new(self)
     }
 
+    /// GetBucketTags用于获取存储空间（Bucket）的标签信息。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketTags(&self) -> GetBucketTagsBuilder {
         GetBucketTagsBuilder::new(self)
     }
 
+    /// DeleteBucketTags接口用于删除存储空间（Bucket）标签。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteBucketTags(&self) -> DeleteBucketTagsBuilder {
         DeleteBucketTagsBuilder::new(self)
     }

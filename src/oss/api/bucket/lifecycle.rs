@@ -105,14 +105,21 @@ pub mod builders {
     }
 }
 
+/// # 生命周期（Lifecycle）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 定的过期时间，自动转换与规则相匹配文件（Object）的存储类型或将其删除。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn PutBucketLifecycle(&self) -> PutBucketLifecycleBuilder {
         PutBucketLifecycleBuilder::new(&self)
     }
 
     /// 调用GetBucketLifecycle接口查看存储空间（Bucket）的生命周期规则（Lifecycle）。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     #[allow(non_snake_case)]
     pub fn GetBucketLifecycle(&self) -> GetBucketLifecycleBuilder {
         GetBucketLifecycleBuilder::new(&self)
@@ -121,6 +128,9 @@ impl<'a> oss::Client<'a> {
     /// DeleteBucketLifecycle接口用于删除指定存储空间（Bucket）的生命周期规则。使用DeleteBucketLifecycle
     /// 接口删除指定Bucket所有的生命周期规则后，该Bucket中的文件（Object）不会被自动删除。只有Bucket的拥有者
     /// 才能删除该Bucket的生命周期规则。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteBucketLifecycle(&self) -> DeleteBucketLifecycleBuilder {
         DeleteBucketLifecycleBuilder::new(&self)
     }

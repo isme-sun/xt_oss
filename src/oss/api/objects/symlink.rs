@@ -138,17 +138,22 @@ pub mod builders {
     }
 }
 
-/// 基础操作
+/// # 软链接（Symlink）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS
-    /// 初始化一个Multipart Upload事件
+    /// 调用PutSymlink接口用于为OSS的目标文件（TargetObject）创建软链接
+    /// （Symlink），您可以通过该软链接访问TargetObject。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutSymlink(&self, object: &'a str) -> PutSymlinkBuilder<'_> {
         PutSymlinkBuilder::new(self, object)
     }
 
-    /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）
-    /// 上传数据
+    /// 调用GetSymlink接口获取软链接。此操作需要您对该软链接有读权限。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetSymlink(&self, object: &'a str) -> GetSymlinkBuilder<'_> {
         GetSymlinkBuilder::new(self, object)
     }

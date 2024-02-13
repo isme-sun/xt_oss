@@ -101,16 +101,30 @@ pub mod builders {
     }
 }
 
+/// # 授权策略（Policy）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
+
+    /// PutBucketPolicy接口用于为指定的存储空间（Bucket）设置授权策略（Policy)。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketPolicy(&self) -> PutBucketPolicyBuilder {
         PutBucketPolicyBuilder::new(self)
     }
 
+    /// GetBucketPolicy用于获取指定存储空间（Bucket）的权限策略（Policy）。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketPolicy(&self) -> GetBucketPolicyBuilder {
         GetBucketPolicyBuilder::new(self)
     }
 
+    /// DeleteBucketPolicy用于删除指定存储空间（Bucket）的权限策略（Policy）。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteBucketPolicy(&self) -> DeleteBucketPolicyBuilder {
         DeleteBucketPolicyBuilder::new(self)
     }

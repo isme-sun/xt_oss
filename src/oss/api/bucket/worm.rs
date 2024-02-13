@@ -176,31 +176,40 @@ pub mod builders {
     }
 }
 
+/// # 合规保留策略（WORM）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用InitiateBucketWorm接口新建一条合规保留策略。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     #[allow(non_snake_case)]
     pub fn InitiateBucketWorm(&self) -> InitiateBucketWormBuilder {
         InitiateBucketWormBuilder::new(self)
     }
 
-    /*
     /// AbortBucketWorm用于删除未锁定的合规保留策略。
-    pub fn AbortBucketWorm(&self) -> oss::Result<()> {
-    }*/
-
     /// CompleteBucketWorm用于锁定合规保留策略。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     #[allow(non_snake_case)]
     pub fn CompleteBucketWorm(&self, worm_id: &'a str) -> CompleteBucketWormBuilder {
         CompleteBucketWormBuilder::new(self, worm_id)
     }
 
     /// ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn ExtendBucketWorm(&self) -> ExtendBucketWormBuilder {
         ExtendBucketWormBuilder::new(self)
     }
 
     /// GetBucketWorm用于获取指定存储空间（Bucket）的合规保留策略信息。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketWorm(&self, worm_id: &'a str) -> GetBucketWormBuilder {
         GetBucketWormBuilder::new(self, worm_id)
     }

@@ -110,6 +110,9 @@ pub mod builders {
 impl<'a> Client<'a> {
     /// 调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）。
     /// 您还可以通过设置prefix、marker或者max-keys参数列举满足指定条件的存储空间。
+    /// 
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listbuckets)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_service_list_buckets.rs)
     pub fn ListBuckets(&self) -> ListBucketsBuilder {
         ListBucketsBuilder::new(self)
     }

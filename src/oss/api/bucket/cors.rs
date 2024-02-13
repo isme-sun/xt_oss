@@ -103,19 +103,32 @@ pub mod builders {
     }
 }
 
+/// # 跨域资源共享（CORS）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    // 调用PutBucketCors接口为指定的存储空间（Bucket）设置跨域资源共享CORS（Cross-Origin Resource Sharing）规则
+    /// 调用PutBucketCors接口为指定的存储空间（Bucket）设置跨域资源共享CORS
+    ///（Cross-Origin Resource Sharing）规则
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketCors(&self) -> PutBucketCorsBuilder {
         PutBucketCorsBuilder::new(&self)
     }
 
-    /// GetBucketCors接口用于获取指定存储空间（Bucket）当前的跨域资源共享CORS（Cross-Origin Resource Sharing）规则。
+    /// GetBucketCors接口用于获取指定存储空间（Bucket）当前的跨域资源共享CORS
+    /// （Cross-Origin Resource Sharing）规则。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn GetBucketCors(&self) -> GetBucketCorsBuilder {
         GetBucketCorsBuilder::new(&self)
     }
 
-    /// DeleteBucketCors用于关闭指定存储空间（Bucket）对应的跨域资源共享CORS（Cross-Origin Resource Sharing）功能并清空所有规则
+    /// DeleteBucketCors用于关闭指定存储空间（Bucket）对应的跨域资源共享CORS
+    /// （Cross-Origin Resource Sharing）功能并清空所有规则
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub async fn DeleteBucketCors(&self) -> DeleteBucketCorsBuilder {
         DeleteBucketCorsBuilder::new(&self)
     }

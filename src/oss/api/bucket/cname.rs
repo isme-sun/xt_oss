@@ -185,57 +185,46 @@ pub mod builders {
     }
 }
 
+/// # 自定义域名（CNAME）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用CreateCnameToken接口创建域名所有权验证所需的CnameToken
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn CreateCnameToken(&self, cname: &'a str) -> CreateCnameTokenBuilder<'_> {
         CreateCnameTokenBuilder::new(self, cname)
     }
 
     /// 调用GetCnameToken接口获取已创建的CnameToken
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetCnameToken(&self, cname: &'a str) -> GetCnameTokenBuilder<'_> {
         GetCnameTokenBuilder::new(self, cname)
     }
 
     /// 调用PutCname接口为某个存储空间（Bucket）绑定自定义域名
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutCname(&self) -> PutCnameBuilder<'_> {
         PutCnameBuilder::new(self)
     }
 
     /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
     ///
-    /// # Example
-    ///
-    /// ```no_run
-    ///   /*  省略.... */
-    ///   let options = utils::options_from_env();
-    ///   let client = oss::Client::new(options);
-    ///   let result = client.ListCname().execute().await.unwrap_or_else(|error| {
-    ///     // 请求错误
-    ///    println!("reqwest error: {}", &error);
-    ///    process::exit(-1);
-    ///   });
-    ///
-    ///   match result {
-    ///     Ok(data) => {
-    ///       println!("{:#?}", &content);
-    ///     }
-    ///     Err(error) => {
-    ///       println!("request id: {}", error.request_id());
-    ///       println!("{:#?}", error.content())
-    ///     }
-    ///   }
-    /// ```
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn ListCname(&self) -> ListCnameBuilder<'_> {
         ListCnameBuilder::new(self)
     }
 
     /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
     ///
-    /// # Example
-    ///
-    /// ```
-    /// ```
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn DeleteCname(&self, cname: &'a str) -> DeleteCnameBuilder<'_> {
         DeleteCnameBuilder::new(self, cname)
     }

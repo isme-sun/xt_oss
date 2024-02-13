@@ -157,16 +157,26 @@ pub mod builders {
 /// # 版本控制（Versioning）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// ## 调用PutBucketVersioning设置指定存储空间（Bucket）的版本控制状态。
+    /// 调用PutBucketVersioning设置指定存储空间（Bucket）的版本控制状态。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn PutBucketVersioning(&self, status: VersioningStatus) -> PutBucketVersioningBuilder {
         PutBucketVersioningBuilder::new(self, status)
     }
-    /// ## 接口用于获取指定Bucket的版本控制状态。
+    /// 接口用于获取指定Bucket的版本控制状态。
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn GetBucketVersioning(&self) -> GetBucketVersioningBuilder {
         GetBucketVersioningBuilder::new(self)
     }
 
-    /// ## 接口用于列出Bucket中包括删除标记（Delete Marker）在内的所有Object的版本信息
+    /// 接口用于列出Bucket中包括删除标记（Delete Marker）在内的所有Object
+    /// 的版本信息
+    /// 
+    /// - [official docs]()
+    /// - [xtoss example]()
     pub fn ListObjectVersions(&self) -> ListObjectVersionsBuilder {
         ListObjectVersionsBuilder::new(self)
     }
