@@ -1,32 +1,27 @@
 use crate::oss::Client;
 
-use builder::ListBucketsBuilder;
+use builders::ListBucketsBuilder;
 
-pub mod builder {
-    #[allow(unused)]
-    use bytes::Bytes;
+pub mod builders {
     use serde::{Deserialize, Serialize};
     use std::fmt;
 
     use crate::oss::{
         self,
-        api::{self, ApiResponseFrom},
+        api::{self, insert_custom_header, ApiResponseFrom},
         entities::bucket::ListAllMyBucketsResult,
         http,
     };
 
     #[derive(Debug, Serialize, Deserialize, Default)]
     struct ListBucketsQuery<'a> {
-        /// 设定结果从marker之后按字母排序的第一个开始返回。如果不设定，则从头开始返回数据。
         #[serde(skip_serializing_if = "Option::is_none")]
         marker: Option<&'a str>,
-        /// 限定返回的Bucket名称必须以prefix作为前缀。如果不设定，则不过滤前缀信息。
         #[serde(
             rename(serialize = "max-keys"),
             skip_serializing_if = "Option::is_none"
         )]
         max_keys: Option<i32>,
-        /// 限定此次返回Bucket的最大个数。
         #[serde(skip_serializing_if = "Option::is_none")]
         prefix: Option<&'a str>,
     }
@@ -42,7 +37,6 @@ pub mod builder {
         client: &'a oss::Client<'a>,
         resource_group_id: Option<&'a str>,
         query: ListBucketsQuery<'a>,
-        timeout: Option<u64>,
     }
 
     impl<'a> ListBucketsBuilder<'a> {
@@ -50,14 +44,8 @@ pub mod builder {
             Self {
                 client,
                 resource_group_id: None,
-                timeout: None,
                 query: ListBucketsQuery::default(),
             }
-        }
-
-        pub fn with_timeout(mut self, value: u64) -> Self {
-            self.timeout = Some(value);
-            self
         }
 
         pub fn with_prefix(mut self, value: &'a str) -> Self {
@@ -86,12 +74,9 @@ pub mod builder {
 
         fn headers(&self) -> http::HeaderMap {
             let mut headers = http::HeaderMap::new();
-            let headers = if let Some(group_id) = self.resource_group_id {
-                headers.append("x-oss-resource-group-id", group_id.parse().unwrap());
-                headers
-            } else {
-                headers
-            };
+            if let Some(group_id) = self.resource_group_id {
+                insert_custom_header(&mut headers, "x-oss-resource-group-id", group_id);
+            }
             headers
         }
 
@@ -99,31 +84,21 @@ pub mod builder {
             let query = self.query();
             let headers = self.headers();
 
-            let url = self.client.options.root_url();
+            let mut url = self.client.root_url();
 
-            let url = if !query.is_empty() {
-                format!("{}/?{}", url, query)
-            } else {
-                url
-            };
+            if !query.is_empty() {
+                url = format!("{}/?{}", url, query)
+            }
 
-            let task = self
+            let resp = self
                 .client
                 .request
                 .task()
                 .with_method(http::Method::GET)
+                .with_headers(headers)
                 .with_url(&url)
-                .with_resource("/");
-
-            let task = match headers.is_empty() {
-                true => task.with_headers(headers),
-                false => task,
-            };
-
-            let resp = match self.timeout {
-                Some(timeout) => task.execute_timeout(timeout).await?,
-                None => task.execute().await?,
-            };
+                .execute_timeout(self.client.timeout())
+                .await?;
 
             Ok(ApiResponseFrom(resp).as_type().await)
         }
@@ -133,34 +108,8 @@ pub mod builder {
 #[allow(non_snake_case)]
 /// 关于Region操作
 impl<'a> Client<'a> {
-    /// ## ex1
-    ///
-    ///```no_run
-    /// use xt_oss::oss::api::Error::{OssError, ReqwestError};
-    /// use xt_oss::{oss, utils};
-    ///
-    /// #[tokio::main]
-    /// async fn main() {
-    /// 	dotenv::dotenv().ok();
-    /// 	let options = utils::options_from_env();
-    /// 	let client = oss::Client::new(options);
-    /// 	let resp = client
-    /// 		.ListBuckets()
-    /// 		.with_timeout(30)
-    /// 		.execute()
-    /// 		.await;
-    ///
-    /// 	match resp {
-    /// 		Ok(data) => {
-    /// 			println!("{}", serde_json::to_string_pretty(data.content()).unwrap());
-    /// 		},
-    /// 		Err(error) => match error {
-    /// 			ReqwestError(error) => println!("{}", error),
-    /// 			OssError(error) => println!("{:#?}", error),
-    /// 		},
-    ///     }
-    /// }
-    ///```
+    /// 调用ListBuckets（GetService）接口列举请求者拥有的所有存储空间（Bucket）。
+    /// 您还可以通过设置prefix、marker或者max-keys参数列举满足指定条件的存储空间。
     pub fn ListBuckets(&self) -> ListBucketsBuilder {
         ListBucketsBuilder::new(self)
     }

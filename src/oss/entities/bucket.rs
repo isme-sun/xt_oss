@@ -84,8 +84,6 @@ pub struct ListAllMyBucketsResult {
     pub owner: Owner,
     #[serde(rename(deserialize = "Buckets"))]
     pub buckets: Buckets,
-    // #[serde(rename(deserialize = "Buckets"))]
-    // pub buckets: Vec<Bucket>
 }
 
 impl From<oss::Bytes> for ListAllMyBucketsResult {

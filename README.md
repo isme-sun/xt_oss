@@ -9,10 +9,40 @@
 ## 二、应用示例
 
  ```rust
- fn main() {
-     println!("示例说明")
- }
-  //
+use std::process;
+use xt_oss::oss;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let options = oss::Options::new()
+        .with_access_key_id("-- access key id --")
+        .with_access_key_secret("-- access key secret --");
+
+    let client = oss::Client::new(options);
+
+    match client
+        .DescribeRegions()
+        // .with_region("oss-us-east-1")
+        .execute()
+        .await
+        .unwrap_or_else(|reqwest_error| {
+            println!("reqweset error: {}", reqwest_error);
+            process::exit(-1);
+        }) {
+        Ok(oss_data) => {
+            oss_data
+                .content()
+                .region_info
+                .into_iter()
+                .for_each(|entry| {
+                    println!("{:>20} | https://{}", entry.region, entry.internet_endpoint);
+                });
+        }
+        Err(oss_error_message) => println!("oss error: {}", oss_error_message.content()),
+    }
+    Ok(())
+}
+
  ```
 
 ## 三、配置说明
