@@ -1,6 +1,9 @@
 use dotenv;
 use std::process;
-use xt_oss::{oss::{self, entities::bucket::LocationConstraint}, utils};
+use xt_oss::{
+    oss::{self, entities::bucket::LocationConstraint},
+    utils,
+};
 
 #[tokio::main]
 async fn main() {
@@ -12,20 +15,19 @@ async fn main() {
         .with_bucket("xtoss-t1")
         .execute()
         .await
-        .unwrap_or_else(|error| {
-            println!("reqwest error: {}", error);
+        .unwrap_or_else(|reqwest_error| {
+            println!("reqwest error: {}", reqwest_error);
             process::exit(-1);
         });
 
     match result {
-        Ok(data) => {
-            let LocationConstraint(location) = data.content();
+        Ok(oss_data) => {
+            let LocationConstraint(location) = oss_data.content();
             println!("location: {}", location);
         }
-        Err(error) => {
-            println!("{}", error.url());
-            println!("{:#?}", error.content())
+        Err(oss_error) => {
+            println!("{}", oss_error.url());
+            println!("{:#?}", oss_error.content())
         }
     }
 }
-
