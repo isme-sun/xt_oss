@@ -8,6 +8,7 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
 
+
     match client
         .PutObjectTagging("excel/Spreadsheet-1000-rows.xls")
         .with_tag("key1", "value1")

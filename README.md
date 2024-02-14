@@ -71,8 +71,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### 关于Service/Region
 
-- [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets)
-- [★ `DescribeRegions`](https://www.example.com) 
+- [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets) o
+- [★ `DescribeRegions`](https://www.example.com) o
 
 ### Bucket - 基础操作
 

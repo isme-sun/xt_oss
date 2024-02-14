@@ -202,6 +202,10 @@ pub enum StorageClass {
     IA,
     /// 归档存储
     Archive,
+    /// 冷归档存储
+    ColdArchive,
+    /// 深度冷归档存储
+    DeepColdArchive,
 }
 
 impl fmt::Display for StorageClass {
@@ -210,9 +214,11 @@ impl fmt::Display for StorageClass {
             f,
             "{}",
             match self {
-                Self::Archive => "Archive",
+                Self::Standard => "Standard",
                 Self::IA => "IA",
-                Self::Standard => "STANDARD",
+                Self::Archive => "Archive",
+                Self::ColdArchive => "ColdArchive",
+                Self::DeepColdArchive => "DeepColdArchive",
             }
         )
     }

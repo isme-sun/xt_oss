@@ -1018,7 +1018,7 @@ pub mod builders {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用PutObject接口上传文件（Object）
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn PutObject(&self, object: &'a str) -> PutObjectBuilder {
@@ -1026,7 +1026,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn GetObject(&self, object: &'a str) -> GetObjectBuilder {
@@ -1034,7 +1034,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// 调用CopyObject接口拷贝同一地域下相同或不同存储空间（Bucket）之间的文件（Object）
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn CopyObject(&self, object: &'a str) -> CopyObjectBuilder {
@@ -1042,7 +1042,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// 调用AppendObject接口用于以追加写的方式上传文件（Object）。通过AppendObject操
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn AppendObject(&self, object: &'a str) -> AppendObjectBuilder {
@@ -1065,7 +1065,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// HeadObject接口用于获取某个文件（Object）的元信息
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn HeadObject(&self, object: &'a str) -> HeadObjectBuilder {
@@ -1074,7 +1074,7 @@ impl<'a> oss::Client<'a> {
 
     /// 调用GetObjectMeta接口获取一个文件（Object）的元数据信息
     /// 包括该Object的ETag、Size、LastModified信息，并且不返回该Object的内容。
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn GetObjectMeta(&self, object: &'a str) -> GetObjectMetaBuilder {
@@ -1082,7 +1082,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// 调用RestoreObject接口解冻归档类型、冷归档、深度冷归档类型的文件（Object）
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn RestoreObject(&self, object: &'a str) -> RestoreObjectBuilder {
