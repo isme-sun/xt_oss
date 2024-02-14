@@ -9,7 +9,7 @@ async fn main() {
     let client = oss::Client::new(options);
     let result = client
         .GetBucketInfo()
-        .with_bucket("xuetube")
+        .with_bucket("xtoss-ex1")
         .execute()
         .await
         .unwrap_or_else(|error| {

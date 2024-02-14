@@ -1,7 +1,7 @@
 use crate::oss;
 
 pub fn get_env(key: &str, default: &str) -> String {
-    std::env::var(key).unwrap_or_else(|_| default.to_owned())
+    std::env::var(key).unwrap_or(default.to_string())
 }
 
 pub fn get_env_bool(key: &str, default: bool) -> bool {

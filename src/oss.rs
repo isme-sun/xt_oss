@@ -370,6 +370,10 @@ impl<'a> Options<'a> {
             )
         }
     }
+
+    pub fn client(self) -> oss::Client<'a> {
+        oss::Client::new(self)
+    }
 }
 
 #[derive(Debug, Default)]
@@ -385,6 +389,10 @@ impl<'a> Client<'a> {
             .with_access_key_secret(options.access_key_secret)
             .with_sts_token((!options.sts_token.is_empty()).then_some(options.sts_token));
         Self { options, request }
+    }
+
+    pub fn options(&self) -> &Options {
+        &self.options
     }
 
     pub fn region(&self) -> &'a str {

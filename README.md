@@ -155,9 +155,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 标签（Tags）
 
-- [★ `PutBucketTags`](https://www.example.com)
-- [★ `GetBucketTags`](https://www.example.com)
-- [★ `DeleteBucketTags`](https://www.example.com)
+- [★ `PutBucketTags`](https://www.example.com) o
+- [★ `GetBucketTags`](https://www.example.com) o
+- [★ `DeleteBucketTags`](https://www.example.com) o
 
 ### Bucket 加密（Encryption）
 
