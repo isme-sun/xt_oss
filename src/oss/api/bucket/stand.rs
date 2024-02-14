@@ -8,7 +8,7 @@ use self::builders::{
 pub mod builders {
     use crate::oss::{
         self,
-        api::{self, ApiResponseFrom},
+        api::{self, insert_custom_header, ApiResponseFrom},
         entities::{
             bucket::{
                 BucketInfo, BucketStat, CreateBucketConfiguration, ListBucketResult,
@@ -80,32 +80,34 @@ pub mod builders {
         fn headers(&self) -> HeaderMap {
             let mut headers = HeaderMap::default();
             if let Some(acl) = &self.acl {
-                headers.insert("x-oss-acl", acl.to_string().parse().unwrap());
+                insert_custom_header(&mut headers, "x-oss-acl", acl.to_string());
             }
             if let Some(group_id) = &self.group_id {
-                headers.insert("x-oss-resource-group-id", group_id.parse().unwrap());
+                insert_custom_header(&mut headers, "x-oss-resource-group-id", group_id);
             }
             headers
         }
 
         fn config(&self) -> String {
             let config = CreateBucketConfiguration {
-                storage_class: self.storage_class.clone(),
-                data_redundancy_type: self.data_redundancy_type.clone(),
+                storage_class: self.storage_class.to_owned(),
+                data_redundancy_type: self.data_redundancy_type.to_owned(),
             };
             quick_xml::se::to_string(&config).unwrap()
         }
 
         /// 调用PutBucket接口创建存储空间（Bucket）。
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/", self.bucket.unwrap_or(self.client.bucket()),);
+            let region = self.region.unwrap_or(self.client.options.region);
+            let bucket = self.bucket.unwrap_or(self.client.bucket());
+            let res = format!("/{}/", bucket);
             let url = format!(
                 "{}://{}.{}",
                 self.client.options.schema(),
-                self.bucket.unwrap_or(self.client.options.bucket),
+                bucket,
                 format!(
                     "{}{}.{}",
-                    self.region.unwrap_or(self.client.options.region),
+                    region,
                     match self.client.options.internal {
                         true => "-internal",
                         false => "",
@@ -159,14 +161,16 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/", self.bucket.unwrap_or(self.client.bucket()),);
+            let region = self.region.unwrap_or(self.client.options.region);
+            let bucket = self.bucket.unwrap_or(self.client.bucket());
+            let res = format!("/{}/", bucket);
             let url = format!(
                 "{}://{}.{}",
                 self.client.options.schema(),
-                self.bucket.unwrap_or(self.client.options.bucket),
+                bucket,
                 format!(
                     "{}{}.{}",
-                    self.region.unwrap_or(self.client.options.region),
+                    region,
                     match self.client.options.internal {
                         true => "-internal",
                         false => "",
@@ -391,6 +395,7 @@ pub mod builders {
 
     pub struct GetBucketInfoBuilder<'a> {
         client: &'a oss::Client<'a>,
+        region: Option<&'a str>,
         bucket: Option<&'a str>,
     }
 
@@ -398,35 +403,38 @@ pub mod builders {
         pub fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
+                region: None,
                 bucket: None,
             }
         }
 
-        pub fn with_bucket(mut self, bucket: &'a str) -> Self {
-            self.bucket = Some(bucket);
+        pub fn with_region(mut self, value: &'a str) -> Self {
+            self.region = Some(value);
+            self
+        }
+
+        pub fn with_bucket(mut self, value: &'a str) -> Self {
+            self.bucket = Some(value);
             self
         }
 
         pub async fn execute(&self) -> api::ApiResult<BucketInfo> {
-            let res = format!(
-                "/{}/?{}",
-                self.bucket.unwrap_or(self.client.bucket()),
-                "bucketInfo"
-            );
+            let region = self.region.unwrap_or(self.client.options.region);
+            let bucket = self.bucket.unwrap_or(self.client.bucket());
+            let res = format!("/{}/", bucket);
             let url = format!(
-                "{}://{}.{}/?{}",
+                "{}://{}.{}",
                 self.client.options.schema(),
-                self.bucket.unwrap_or(self.client.options.bucket),
+                bucket,
                 format!(
                     "{}{}.{}",
-                    self.client.options.region,
+                    region,
                     match self.client.options.internal {
                         true => "-internal",
                         false => "",
                     },
                     oss::BASE_URL
-                ),
-                "bucketInfo"
+                )
             );
 
             let resp = self
@@ -445,6 +453,7 @@ pub mod builders {
 
     pub struct GetBucketLocationBuilder<'a> {
         client: &'a oss::Client<'a>,
+        region: Option<&'a str>,
         bucket: Option<&'a str>,
     }
 
@@ -452,6 +461,7 @@ pub mod builders {
         pub fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
+                region: None,
                 bucket: None,
             }
         }
@@ -462,27 +472,23 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<LocationConstraint> {
-            let res = format!(
-                "/{}/?{}",
-                self.bucket.unwrap_or(self.client.bucket()),
-                "location"
-            );
+            let region = self.region.unwrap_or(self.client.options.region);
+            let bucket = self.bucket.unwrap_or(self.client.bucket());
+            let res = format!("/{}/", bucket);
             let url = format!(
-                "{}://{}.{}/?{}",
+                "{}://{}.{}",
                 self.client.options.schema(),
-                self.bucket.unwrap_or(self.client.options.bucket),
+                bucket,
                 format!(
                     "{}{}.{}",
-                    self.client.options.region,
+                    region,
                     match self.client.options.internal {
                         true => "-internal",
                         false => "",
                     },
                     oss::BASE_URL
-                ),
-                "location"
+                )
             );
-
             let resp = self
                 .client
                 .request
@@ -523,25 +529,22 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<BucketStat> {
-            let res = format!(
-                "/{}/?{}",
-                self.bucket.unwrap_or(self.client.bucket()),
-                "stat"
-            );
+            let region = self.region.unwrap_or(self.client.options.region);
+            let bucket = self.bucket.unwrap_or(self.client.bucket());
+            let res = format!("/{}/", bucket);
             let url = format!(
-                "{}://{}.{}/?{}",
+                "{}://{}.{}",
                 self.client.options.schema(),
-                self.bucket.unwrap_or(self.client.options.bucket),
+                bucket,
                 format!(
                     "{}{}.{}",
-                    self.region.unwrap_or(self.client.options.region),
+                    region,
                     match self.client.options.internal {
                         true => "-internal",
                         false => "",
                     },
                     oss::BASE_URL
-                ),
-                "stat"
+                )
             );
 
             let resp = self
@@ -562,6 +565,10 @@ pub mod builders {
 /// # 基础操作
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
+    /// 调用PutBucket接口创建存储空间（Bucket）。
+    /// 
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucket)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_put.rs)
     pub fn PutBucket(&self) -> PutBucketBuilder<'_> {
         PutBucketBuilder::new(self)
     }
@@ -576,7 +583,7 @@ impl<'a> oss::Client<'a> {
 
     /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件
     /// （Object）的信息。
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn ListObjects(&self) -> ListObjectBuilder<'_> {
@@ -585,7 +592,7 @@ impl<'a> oss::Client<'a> {
 
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件
     ///（Object）的信息。
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn ListObjectsV2(&self) -> ListObjectsV2Builder<'_> {
@@ -593,7 +600,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn GetBucketInfo(&self) -> GetBucketInfoBuilder<'_> {
@@ -602,7 +609,7 @@ impl<'a> oss::Client<'a> {
 
     /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
     /// 只有Bucket的拥有者才能查看Bucket的位置信息。
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn GetBucketLocation(&self) -> GetBucketLocationBuilder<'_> {
@@ -611,7 +618,7 @@ impl<'a> oss::Client<'a> {
 
     /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件
     /// （Object）数量
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn GetBucketStat(&self) -> GetBucketStatBuilder<'_> {

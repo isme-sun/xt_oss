@@ -31,4 +31,3 @@ async fn main() {
         }
     }
 }
-

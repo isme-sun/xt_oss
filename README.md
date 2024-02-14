@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket - 基础操作
 
-- [★ `PutBucket`](https://www.example.com)
+- [★ `PutBucket`](https://www.example.com) o
 - [★ `DeleteBucket`](https://www.example.com)
 - [★ `ListObjects`](https://www.example.com)
 - [★ `ListObjectsV2`](https://www.example.com)
