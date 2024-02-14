@@ -9,25 +9,21 @@ async fn main() {
     let client = oss::Client::new(options);
     let result = client
         .DeleteBucket()
-        .with_region("oss-cn-beijing")
-        .with_bucket("xtoss-ex1")
+        // .with_region("oss-cn-beijing")
+        // .with_bucket("xtoss-t1")
         .execute()
         .await
-        .unwrap_or_else(|error| {
-            println!("reqwest error: {}", error);
+        .unwrap_or_else(|reqwest_error| {
+            println!("reqwest error: {}", reqwest_error);
             process::exit(-1);
         });
 
     match result {
-        Ok(data) => {
-            println!("{:#?}", data.url());
-            println!("{:#?}", data.status());
-            println!("{:#?}", data.headers());
-            println!("{:#?}", data.content())
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.headers());
         }
-        Err(error) => {
-            println!("{}", error.url());
-            println!("{:#?}", error.content())
+        Err(oss_error) => {
+            println!("oss error:{}", oss_error.content())
         }
     }
 }

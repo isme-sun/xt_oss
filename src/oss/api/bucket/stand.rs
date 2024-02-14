@@ -565,8 +565,8 @@ impl<'a> oss::Client<'a> {
 
     /// 调用DeleteBucket删除某个存储空间（Bucket）。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucket)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_del.rs)
     pub fn DeleteBucket(&self) -> DeleteBucketBuilder<'_> {
         DeleteBucketBuilder::new(self)
     }
