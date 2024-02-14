@@ -1,6 +1,7 @@
 use dotenv;
 use std::process;
 use xt_oss::{oss, utils};
+use serde_json;
 
 #[tokio::main]
 async fn main() {
@@ -8,9 +9,9 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .DeleteBucket()
+        .GetBucketStat()
         .with_region("oss-cn-beijing")
-        .with_bucket("xtoss-ex1")
+        .with_bucket("xtoss-t1")
         .execute()
         .await
         .unwrap_or_else(|error| {
@@ -20,10 +21,7 @@ async fn main() {
 
     match result {
         Ok(data) => {
-            println!("{:#?}", data.url());
-            println!("{:#?}", data.status());
-            println!("{:#?}", data.headers());
-            println!("{:#?}", data.content())
+            println!("{}", serde_json::to_string_pretty(&data.content()).unwrap());
         }
         Err(error) => {
             println!("{}", error.url());
@@ -31,4 +29,3 @@ async fn main() {
         }
     }
 }
-

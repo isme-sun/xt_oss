@@ -1,6 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{oss, utils};
+use xt_oss::{oss::{self, entities::bucket::LocationConstraint}, utils};
 
 #[tokio::main]
 async fn main() {
@@ -8,9 +8,8 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .DeleteBucket()
-        .with_region("oss-cn-beijing")
-        .with_bucket("xtoss-ex1")
+        .GetBucketLocation()
+        .with_bucket("xtoss-t1")
         .execute()
         .await
         .unwrap_or_else(|error| {
@@ -20,10 +19,8 @@ async fn main() {
 
     match result {
         Ok(data) => {
-            println!("{:#?}", data.url());
-            println!("{:#?}", data.status());
-            println!("{:#?}", data.headers());
-            println!("{:#?}", data.content())
+            let LocationConstraint(location) = data.content();
+            println!("location: {}", location);
         }
         Err(error) => {
             println!("{}", error.url());

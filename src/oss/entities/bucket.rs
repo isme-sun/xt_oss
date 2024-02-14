@@ -24,7 +24,7 @@ pub struct Owner {
 /// Bucket所在的地域
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "$value")]
-pub struct LocationConstraint(String);
+pub struct LocationConstraint(pub String);
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct BucketPolicy {

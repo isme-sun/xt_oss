@@ -81,8 +81,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `ListObjects`](https://www.example.com)
 - [★ `ListObjectsV2`](https://www.example.com)
 - [★ `GetBucketInfo`](https://www.example.com) o
-- [★ `GetBucketLocation`](https://www.example.com)
-- [★ `GetBucketStat`](https://www.example.com)
+- [★ `GetBucketLocation`](https://www.example.com) o
+- [★ `GetBucketStat`](https://www.example.com) o
 
 ### 合规保留策略（WORM）
 

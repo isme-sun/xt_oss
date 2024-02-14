@@ -445,7 +445,6 @@ pub mod builders {
 
     pub struct GetBucketLocationBuilder<'a> {
         client: &'a oss::Client<'a>,
-        region: Option<&'a str>,
         bucket: Option<&'a str>,
     }
 
@@ -453,22 +452,21 @@ pub mod builders {
         pub fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
-                region: None,
                 bucket: None,
             }
         }
 
-        pub fn with_bucket(mut self, bucket: &'a str) -> Self {
-            self.bucket = Some(bucket);
+        pub fn with_bucket(mut self, value: &'a str) -> Self {
+            self.bucket = Some(value);
             self
         }
 
         pub async fn execute(&self) -> api::ApiResult<LocationConstraint> {
-            let region = self.region.unwrap_or(self.client.options.region);
+            let region = self.client.options.region;
             let bucket = self.bucket.unwrap_or(self.client.bucket());
-            let res = format!("/{}/", bucket);
+            let res = format!("/{}/?location", bucket);
             let url = format!(
-                "{}://{}.{}",
+                "{}://{}.{}/?location",
                 self.client.options.schema(),
                 bucket,
                 format!(
@@ -523,9 +521,9 @@ pub mod builders {
         pub async fn execute(&self) -> api::ApiResult<BucketStat> {
             let region = self.region.unwrap_or(self.client.options.region);
             let bucket = self.bucket.unwrap_or(self.client.bucket());
-            let res = format!("/{}/", bucket);
+            let res = format!("/{}/?stat", bucket);
             let url = format!(
-                "{}://{}.{}",
+                "{}://{}.{}/?stat",
                 self.client.options.schema(),
                 bucket,
                 format!(
@@ -558,7 +556,7 @@ pub mod builders {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用PutBucket接口创建存储空间（Bucket）。
-    /// 
+    ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucket)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_put.rs)
     pub fn PutBucket(&self) -> PutBucketBuilder<'_> {
@@ -602,8 +600,8 @@ impl<'a> oss::Client<'a> {
     /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
     /// 只有Bucket的拥有者才能查看Bucket的位置信息。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlocation)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_location.rs)
     pub fn GetBucketLocation(&self) -> GetBucketLocationBuilder<'_> {
         GetBucketLocationBuilder::new(self)
     }
@@ -611,8 +609,8 @@ impl<'a> oss::Client<'a> {
     /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件
     /// （Object）数量
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketstat)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_stat.rs)
     pub fn GetBucketStat(&self) -> GetBucketStatBuilder<'_> {
         GetBucketStatBuilder::new(self)
     }
