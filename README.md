@@ -105,8 +105,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 传输加速（TransferAcceleration）
 
-- [★ `PutBucketTransferAcceleration`](https://www.example.com)
-- [★ `GetBucketTransferAcceleration`](https://www.example.com)
+- [★ `PutBucketTransferAcceleration`](https://www.example.com) o
+- [★ `GetBucketTransferAcceleration`](https://www.example.com) o
 
 ### Bucket 版本控制（Versioning）
 
