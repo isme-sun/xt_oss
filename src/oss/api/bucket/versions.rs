@@ -166,8 +166,8 @@ impl<'a> oss::Client<'a> {
     }
     /// 接口用于获取指定Bucket的版本控制状态。
     /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketversioning)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_get.rs)
     pub fn GetBucketVersioning(&self) -> GetBucketVersioningBuilder {
         GetBucketVersioningBuilder::new(self)
     }

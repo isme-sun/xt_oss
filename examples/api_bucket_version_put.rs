@@ -1,30 +1,25 @@
 use std::process;
 
 use dotenv;
-use xt_oss::utils;
+use xt_oss::{oss::entities::version::VersioningStatus, utils};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     match utils::options_from_env()
         .client()
-        .GetBucketVersioning()
+        .PutBucketVersioning(VersioningStatus::Enabled)
+        // .PutBucketVersioning(VersioningStatus::Suspended)
         .execute()
         .await
-    {
-        Ok(Ok(oss_data)) => {
-            let version_config = oss_data.content();
-            if let Some(status) = version_config.status {
-                println!("version status: {}", status);
-            } else {
-                println!("Version feature not enabled");
-            }
-        }
-        Ok(Err(oss_error_message)) => {
-            println!("{:#?}", oss_error_message.content());
-        }
-        Err(reqwest_error) => {
-            println!("reqwest error {}", reqwest_error);
+        .unwrap_or_else(|error| {
+            println!("reqwest error {}", error);
             process::exit(-1);
+        }) {
+        Ok(_) => {
+            println!("success")
+        }
+        Err(oss_error_message) => {
+            println!("{:#?}", oss_error_message.content());
         }
     };
     Ok(())
