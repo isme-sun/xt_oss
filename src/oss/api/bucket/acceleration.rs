@@ -82,7 +82,7 @@ impl<'a> oss::Client<'a> {
     /// 适用于远距离数据传输、GB或TB级大文件上传和下载的场景。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbuckettransferacceleration)
-    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_put)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_put.rs)
     pub fn PutBucketTransferAcceleration(
         &self,
         value: bool,
@@ -93,7 +93,7 @@ impl<'a> oss::Client<'a> {
     /// 接口用于获取目标存储空间（Bucket）的传输加速配置
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbuckettransferacceleration)
-    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_get)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_get.rs)
     pub fn GetBucketTransferAcceleration(&self) -> GetBucketTransferAccelerationBuilder {
         GetBucketTransferAccelerationBuilder::new(&self)
     }
