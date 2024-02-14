@@ -110,8 +110,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 版本控制（Versioning）
 
-- [★ `PutBucketVersioning`](https://www.example.com)
-- [★ `GetBucketVersioning`](https://www.example.com)
+- [★ `PutBucketVersioning`](https://www.example.com) o
+- [★ `GetBucketVersioning`](https://www.example.com) o
 - [☆ `ListObjectVersions（GetBucketVersions ）x`](https://www.example.com)
 
 <!-- **Bucket 数据复制（Replication）**

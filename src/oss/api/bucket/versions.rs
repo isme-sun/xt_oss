@@ -159,8 +159,8 @@ pub mod builders {
 impl<'a> oss::Client<'a> {
     /// 调用PutBucketVersioning设置指定存储空间（Bucket）的版本控制状态。
     /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketversioning)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_put.rs)
     pub fn PutBucketVersioning(&self, status: VersioningStatus) -> PutBucketVersioningBuilder {
         PutBucketVersioningBuilder::new(self, status)
     }
