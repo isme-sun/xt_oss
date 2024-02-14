@@ -8,9 +8,8 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .DeleteBucket()
-        .with_region("oss-cn-beijing")
-        .with_bucket("xtoss-ex1")
+        .GetBucketInfo()
+        .with_bucket("xtoss-t1")
         .execute()
         .await
         .unwrap_or_else(|error| {
@@ -19,15 +18,14 @@ async fn main() {
         });
 
     match result {
-        Ok(data) => {
-            println!("{:#?}", data.url());
-            println!("{:#?}", data.status());
-            println!("{:#?}", data.headers());
-            println!("{:#?}", data.content())
+        Ok(oss_data) => {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&oss_data.content()).unwrap()
+            );
         }
-        Err(error) => {
-            println!("{}", error.url());
-            println!("{:#?}", error.content())
+        Err(oss_error_message) => {
+            println!("{:#?}", oss_error_message.content())
         }
     }
 }

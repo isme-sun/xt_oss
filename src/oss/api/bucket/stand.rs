@@ -395,7 +395,6 @@ pub mod builders {
 
     pub struct GetBucketInfoBuilder<'a> {
         client: &'a oss::Client<'a>,
-        region: Option<&'a str>,
         bucket: Option<&'a str>,
     }
 
@@ -403,14 +402,8 @@ pub mod builders {
         pub fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
-                region: None,
                 bucket: None,
             }
-        }
-
-        pub fn with_region(mut self, value: &'a str) -> Self {
-            self.region = Some(value);
-            self
         }
 
         pub fn with_bucket(mut self, value: &'a str) -> Self {
@@ -419,11 +412,11 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<BucketInfo> {
-            let region = self.region.unwrap_or(self.client.options.region);
+            let region = self.client.region();
             let bucket = self.bucket.unwrap_or(self.client.bucket());
-            let res = format!("/{}/", bucket);
+            let res = format!("/{}/?bucketInfo", bucket);
             let url = format!(
-                "{}://{}.{}",
+                "{}://{}.{}?bucketInfo",
                 self.client.options.schema(),
                 bucket,
                 format!(
@@ -443,7 +436,6 @@ pub mod builders {
                 .task()
                 .with_url(&url)
                 .with_resource(&res)
-                .with_method(http::Method::GET)
                 .execute()
                 .await?;
 
@@ -601,8 +593,8 @@ impl<'a> oss::Client<'a> {
 
     /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketinfo)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_info.rs)
     pub fn GetBucketInfo(&self) -> GetBucketInfoBuilder<'_> {
         GetBucketInfoBuilder::new(self)
     }
