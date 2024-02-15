@@ -49,9 +49,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = "encryption";
-            let res = format!("/{}/?{}", self.client.options.bucket, "encryption");
-            let url = format!("{}/?{}", self.client.options.base_url(), "encryption");
+            let res = format!("/{}/?{}", self.client.bucket(), "encryption");
+            let url = format!("{}/?{}", self.client.base_url(), "encryption");
 
             let mut content = ServerSideEncryptionRule {
                 apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault {
@@ -88,8 +87,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<ServerSideEncryptionRule> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "encryption");
-            let url = format!("{}/?{}", self.client.options.base_url(), "encryption");
+            let res = format!("/{}/?{}", self.client.bucket(), "encryption");
+            let url = format!("{}/?{}", self.client.base_url(), "encryption");
             let resp = self
                 .client
                 .request
@@ -113,8 +112,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}", self.client.options.bucket, "encryption");
-            let url = format!("{}/?{}", self.client.options.base_url(), "encryption");
+            let res = format!("/{}/?{}", self.client.bucket(), "encryption");
+            let url = format!("{}/?{}", self.client.base_url(), "encryption");
             let resp = self
                 .client
                 .request
@@ -134,26 +133,26 @@ pub mod builders {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// PutBucketEncryption接口用于配置存储空间（Bucket）的加密规则。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketencryption)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_put.rs)
     pub fn PutBucketEncryption(&self) -> PutBucketEncryptionBuilder {
         PutBucketEncryptionBuilder::new(self)
     }
 
     /// GetBucketEncryption接口用于获取存储空间（Bucket）的加密规则。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketencryption)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_get.rs)
     pub fn GetBucketEncryption(&self) -> GetBucketEncryptionBuilder {
         GetBucketEncryptionBuilder::new(&self)
     }
 
     /// DeleteBucketEncryption接口用于删除Bucket加密规则。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
-    pub async fn DeleteBucketEncryption(&self) -> DeleteBucketEncryptionBuilder {
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketencryption)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_del.rs)
+    pub fn DeleteBucketEncryption(&self) -> DeleteBucketEncryptionBuilder {
         DeleteBucketEncryptionBuilder::new(&self)
     }
 }

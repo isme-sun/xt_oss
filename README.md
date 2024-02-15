@@ -161,9 +161,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 加密（Encryption）
 
-- [★ `PutBucketEncryption`](https://www.example.com)
-- [★ `GetBucketEncryption`](https://www.example.com)
-- [★ `DeleteBucketEncryption`](https://www.example.com)
+- [★ `PutBucketEncryption`](https://www.example.com) o
+- [★ `GetBucketEncryption`](https://www.example.com) o
+- [★ `DeleteBucketEncryption`](https://www.example.com) o
 
 ### Bucket 请求者付费（RequestPayment）
 
