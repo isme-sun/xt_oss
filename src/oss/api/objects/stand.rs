@@ -32,15 +32,15 @@ pub mod builders {
 
     #[derive(Debug, Default)]
     struct PutObjectBuilderHeaders {
-        cache_control: Option<CacheControl>,
-        content_disposition: Option<ContentDisposition>,
-        content_language: Option<String>,
-        content_encoding: Option<ContentEncoding>,
-        content_md5: Option<String>,
-        content_length: Option<u64>,
         content_type: Option<String>,
-        etag: Option<String>,
+        content_encoding: Option<ContentEncoding>,
+        content_language: Option<String>,
+        content_disposition: Option<ContentDisposition>,
+        cache_control: Option<CacheControl>,
         expires: Option<DateTime<Utc>>,
+        content_length: Option<u64>,
+        content_md5: Option<String>,
+        etag: Option<String>,
         forbid_overwrite: Option<bool>,
         encryption: Option<ServerSideEncryption>,
         data_encryption: Option<String>,

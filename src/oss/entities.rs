@@ -38,7 +38,7 @@ impl fmt::Display for Directive {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum ContentEncoding {
     /// 表示Object未经过压缩或编码
     #[default]
@@ -69,7 +69,7 @@ impl fmt::Display for ContentEncoding {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub enum ContentDisposition {
     #[default]
     INLINE,
@@ -82,16 +82,16 @@ impl fmt::Display for ContentDisposition {
             f,
             "{}",
             match self {
-                Self::INLINE => "inline".to_string(),
+                Self::INLINE => "inline".to_owned(),
                 Self::ATTACHMENT(Some(filename)) => format!("attachment;filename={}", filename),
-                Self::ATTACHMENT(None) => "attachment".to_string(),
+                Self::ATTACHMENT(None) => "attachment".to_owned(),
             }
         )
     }
 }
 
 /// 指定该Object被下载时网页的缓存行为
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone,Copy)]
 pub enum CacheControl {
     /// 不可直接使用缓存，而是先到服务端验证Object是否已更新。如果Object已更新，表明缓存已过期，需从服务端重新下载Object；如果Object未更新，表明缓存未过期，此时将使用本地缓存。
     NoCache,

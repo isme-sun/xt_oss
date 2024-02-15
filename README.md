@@ -277,8 +277,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Object 软链接（Symlink）
 
-- [★ `PutSymlink`](https://www.example.com)
-- [★ `GetSymlink`](https://www.example.com)
+- [★ `PutSymlink`](https://www.example.com) o
+- [★ `GetSymlink`](https://www.example.com) o
 
 ### Object 标签（Tagging）
 
