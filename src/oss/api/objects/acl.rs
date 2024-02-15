@@ -27,14 +27,19 @@ pub mod builders {
             }
         }
 
-        pub fn acl(mut self, acl: ObjectACL) -> Self {
+        pub fn with_acl(mut self, acl: ObjectACL) -> Self {
             self.acl = acl;
+            self
+        }
+
+        pub fn with_version_id(mut self, value: &'a str) -> Self {
+            self.version_id = Some(value);
             self
         }
 
         pub async fn execute(&self) -> api::ApiResult {
             let mut res = format!("/{}/{}?{}", self.client.bucket(), self.object, "acl");
-            let mut url = { format!("{}?{}", self.client.object_url(self.object), res) };
+            let mut url = { format!("{}?{}", self.client.object_url(self.object), "acl") };
             if let Some(version_id) = self.version_id {
                 res = format!("{}&versionId={}", res, version_id);
                 url = format!("{}&versionId={}", url, version_id);
@@ -72,13 +77,19 @@ pub mod builders {
             }
         }
 
+        pub fn with_version_id(mut self, value: &'a str) -> Self {
+            self.version_id = Some(value);
+            self
+        }
+
         pub async fn execute(&self) -> api::ApiResult<AccessControlPolicy> {
             let mut res = format!("/{}/{}?{}", self.client.bucket(), self.object, "acl");
-            let mut url = { format!("{}?{}", self.client.object_url(self.object), res) };
+            let mut url = { format!("{}?{}", self.client.object_url(self.object), "acl") };
             if let Some(version_id) = self.version_id {
                 res = format!("{}&versionId={}", res, version_id);
                 url = format!("{}&versionId={}", url, version_id);
             }
+
             let resp = self
                 .client
                 .request
@@ -98,8 +109,8 @@ impl<'a> oss::Client<'a> {
     /// 调用PutObjectACL接口修改文件（Object）的访问权限（ACL）。
     /// 此操作只有Bucket Owner有权限执行，且需对Object有读写权限。
     /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjectacl)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_put.rs)
     pub fn PutObjectACL(&self, object: &'a str) -> PutObjectACLBuilder {
         PutObjectACLBuilder::new(self, object)
     }
@@ -107,9 +118,9 @@ impl<'a> oss::Client<'a> {
     /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和
     /// uploadId来分块（Part）
     /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
-    pub async fn GetObjectACL(&self, object: &'a str) -> GetObjectAclBuilder {
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectacl)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_get.rs)
+    pub fn GetObjectACL(&self, object: &'a str) -> GetObjectAclBuilder {
         GetObjectAclBuilder::new(self, object)
     }
 }

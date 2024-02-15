@@ -9,21 +9,19 @@ async fn main() {
     let client = oss::Client::new(options);
 
     match client
-        .PutObjectTagging("excel/Spreadsheet-1000-rows.xls")
-        .with_tag("key1", "value1")
-        .with_tag("key2", "value2")
-        .with_tag("key3", "value3")
+        .GetObjectACL("excel/Spreadsheet-1000-rows.xls")
+        .with_version_id("CAEQmgEYgYDA9I_smO0YIiBhOGJmMTczNzY0ZmM0NTE1YTA5MDJlOWE1YmI1ZTZlNQ--")
         .execute()
         .await
         .unwrap_or_else(|error| {
             println!("{}", error);
             process::exit(-1);
         }) {
-        Ok(data) => {
-            println!("{:#?}", data.headers())
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.content())
         }
-        Err(message) => {
-            println!("{:#?}", message.content())
+        Err(error_message) => {
+            println!("{:#?}", error_message.content())
         }
     }
 }

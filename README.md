@@ -272,8 +272,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Object 权限控制（ACL)
 
-- [★ `PutObjectACL`](https://www.example.com)
-- [★ `GetObjectACL`](https://www.example.com)
+- [★ `PutObjectACL`](https://www.example.com) o
+- [★ `GetObjectACL`](https://www.example.com) o
 
 ### Object 软链接（Symlink）
 
@@ -282,9 +282,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Object 标签（Tagging）
 
-- [★ `PutObjectTagging`](https://www.example.com)
-- [★ `GetObjectTagging`](https://www.example.com)
-- [★ `DeleteObjectTagging`](https://www.example.com)
+- [★ `PutObjectTagging`](https://www.example.com) o
+- [★ `GetObjectTagging`](https://www.example.com) o
+- [★ `DeleteObjectTagging`](https://www.example.com) o
 
 ### 关于LiveChannel的操作
 
