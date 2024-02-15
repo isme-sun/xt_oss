@@ -150,8 +150,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 防盗链（Referer）
 
-- [★ `PutBucketReferer`](https://www.example.com)
-- [★ `GetBucketReferer`](https://www.example.com)
+- [★ `PutBucketReferer`](https://www.example.com) o
+- [★ `GetBucketReferer`](https://www.example.com) o
 
 ### Bucket 标签（Tags）
 

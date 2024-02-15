@@ -71,7 +71,7 @@ pub mod builder {
                         referer: self
                             .referer_list
                             .iter()
-                            .map(|referer| referer.to_string())
+                            .map(|referer| Some(referer.to_string()))
                             .collect(),
                     })
                 },
@@ -82,7 +82,7 @@ pub mod builder {
                         referer: self
                             .referer_blacklist
                             .iter()
-                            .map(|referer| referer.to_string())
+                            .map(|referer| Some(referer.to_string()))
                             .collect(),
                     })
                 },
@@ -93,14 +93,14 @@ pub mod builder {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct RefererList {
-    #[serde(rename = "Referer")]
-    referer: Vec<String>,
+    #[serde(rename = "Referer", skip_serializing_if = "Option::is_none")]
+    referer: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct RefererBlacklist {
-    #[serde(rename = "Referer")]
-    referer: Vec<String>,
+    #[serde(rename = "Referer", skip_serializing_if = "Option::is_none")]
+    referer: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]

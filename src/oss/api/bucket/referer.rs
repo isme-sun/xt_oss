@@ -34,8 +34,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}", self.client.options.bucket, "referer");
-            let url = { format!("{}?{}", self.client.options.base_url(), "referer") };
+            let res = format!("/{}/?{}", self.client.bucket(), "referer");
+            let url = format!("{}/?{}", self.client.base_url(), "referer");
             let config = self.config();
             let data = oss::Bytes::from(config);
 
@@ -43,9 +43,9 @@ pub mod builders {
                 .client
                 .request
                 .task()
-                .with_method(http::Method::PUT)
                 .with_url(&url)
                 .with_resource(&res)
+                .with_method(http::Method::PUT)
                 .with_body(data)
                 .execute()
                 .await?;
@@ -85,16 +85,16 @@ pub mod builders {
 impl<'a> oss::Client<'a> {
     /// 调用PutBucketReferer接口设置存储空间（Bucket）级别的Referer访问白名单以及黑名单
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketreferer)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_put.rs)
     pub fn PutBucketReferer(&self) -> PutBucketRefererBuilder {
         PutBucketRefererBuilder::new(self)
     }
 
     /// GetBucketReferer接口用于查看存储空间（Bucket）的防盗链（Referer）相关配置。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketreferer)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_get.rs)
     pub fn GetBucketReferer(&self) -> GetBucketRefererBuilder {
         GetBucketRefererBuilder::new(self)
     }

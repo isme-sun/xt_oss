@@ -5,6 +5,7 @@ pub const DEFAULT_CONTENT_TYPE: &str = "application/octet-stream";
 pub const DEFAULT_CONNECT_TIMEOUT: u64 = 180;
 pub const DEFAULT_TIMEOUT: u64 = 60;
 pub const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
+pub const XML_CONTENT: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
 use std::time::Duration;
 // re-export
