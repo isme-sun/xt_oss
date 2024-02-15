@@ -1,9 +1,8 @@
-use super::{tag::Tag, StorageClass};
+use super::{tag::Tag, Status, StorageClass};
 use serde::{Deserialize, Serialize};
 
-// todo FilterBuild
 pub mod builder {
-    use crate::oss::entities::StorageClass;
+    use crate::oss::entities::{Status, StorageClass};
 
     use super::{
         AbortMultipartUpload, Expiration, Filter, LifecycleConfiguration,
@@ -24,14 +23,12 @@ pub mod builder {
     }
 
     #[derive(Default)]
-    #[allow(unused)]
     pub struct ExpirationBuilder {
         days: Option<i32>,
         created_before_date: Option<String>,
         expired_object_delete_marker: Option<bool>,
     }
 
-    #[allow(unused)]
     impl ExpirationBuilder {
         pub fn new() -> Self {
             Self::default()
@@ -61,8 +58,7 @@ pub mod builder {
         }
     }
 
-    #[derive(Default)]
-    #[allow(unused)]
+    #[derive(Default, Debug, Clone)]
     pub struct TransitionBuilder {
         days: Option<i32>,
         storage_class: StorageClass,
@@ -112,12 +108,11 @@ pub mod builder {
         }
     }
 
-    #[derive(Default)]
-    #[allow(unused)]
+    #[derive(Default, Debug, Clone)]
     pub struct RuleBuilder<'a> {
         id: &'a str,
         prefix: &'a str,
-        status: &'a str,
+        status: Status,
         transition: Option<Vec<Transition>>,
         filter: Option<Filter>,
         expiration: Option<Expiration>,
@@ -125,7 +120,6 @@ pub mod builder {
         abort_multipart_upload: Option<AbortMultipartUpload>,
     }
 
-    #[allow(unused)]
     impl<'a> RuleBuilder<'a> {
         pub fn new() -> Self {
             Self::default()
@@ -141,7 +135,7 @@ pub mod builder {
             self
         }
 
-        pub fn with_status(mut self, value: &'a str) -> Self {
+        pub fn with_status(mut self, value: Status) -> Self {
             self.status = value;
             self
         }
@@ -184,7 +178,7 @@ pub mod builder {
                 // id: self.id.to_string(),
                 id: self.id.into(),
                 prefix: self.prefix.into(),
-                status: self.status.into(),
+                status: self.status.clone(),
                 transition: self.transition.clone(),
                 filter: self.filter.clone(),
                 expiration: self.expiration.clone(),
@@ -194,13 +188,11 @@ pub mod builder {
         }
     }
 
-    #[derive(Default)]
-    #[allow(unused)]
+    #[derive(Default, Debug, Clone)]
     pub struct LifecycleConfigurationBuilder {
         rules: Vec<Rule>,
     }
 
-    #[allow(unused)]
     impl LifecycleConfigurationBuilder {
         pub fn new() -> Self {
             Self::default()
@@ -219,7 +211,7 @@ pub mod builder {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Not {
     #[serde(rename = "Prefix")]
     pub prefix: String,
@@ -240,13 +232,13 @@ pub struct Filter {
     pub object_size_less_than: Option<i32>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct AbortMultipartUpload {
     #[serde(rename = "Days")]
     pub days: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct NoncurrentVersionTransition {
     #[serde(rename = "NoncurrentDays", skip_serializing_if = "Option::is_none")]
     pub noncurrent_days: Option<bool>,
@@ -297,7 +289,7 @@ pub struct Rule {
     #[serde(rename = "Prefix")]
     pub prefix: String,
     #[serde(rename = "Status")]
-    pub status: String,
+    pub status: Status,
     #[serde(rename = "Transition", skip_serializing_if = "Option::is_none")]
     pub transition: Option<Vec<Transition>>,
     #[serde(rename = "Filter", skip_serializing_if = "Option::is_none")]
@@ -323,8 +315,9 @@ pub struct LifecycleConfiguration {
 }
 
 #[cfg(test)]
-// https://help.aliyun.com/zh/oss/developer-reference/getbucketlifecycle?spm=a2c4g.11186623.0.0.738c1e73D0wqnM
 mod tests {
+    use crate::oss::entities::Status;
+
     use super::builder::*;
     use super::*;
 
@@ -419,7 +412,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("log")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_transition(
                         TransitionBuilder::new()
                             .with_days(30)
@@ -448,7 +441,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("log")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_expiration(ExpirationBuilder::new().with_days(90).build())
                     .build(),
             )
@@ -472,7 +465,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("log")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_transition(
                         TransitionBuilder::new()
                             .with_days(30)
@@ -506,7 +499,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_expiration(
                         ExpirationBuilder::new()
                             .with_expired_object_delete_marker(true)
@@ -534,7 +527,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("log")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_transition(
                         TransitionBuilder::new()
                             .with_days(30)
@@ -563,7 +556,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("/")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_abort_multipart_upload(30)
                     .build(),
             )
@@ -585,7 +578,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("rule")
                     .with_prefix("/")
-                    .with_status("Enabled")
+                    .with_status(Status::Enabled)
                     .with_abort_multipart_upload(30)
                     .build(),
             )
@@ -613,7 +606,7 @@ mod tests {
                 RuleBuilder::new()
                     .with_id("Rule2")
                     .with_prefix("dir1/dir2")
-                    .with_status("Status")
+                    .with_status(Status::Enabled)
                     .with_expiration(ExpirationBuilder::new().with_days(30).build())
                     .build(),
             )
@@ -621,7 +614,7 @@ mod tests {
         let json_str = serde_json::to_string_pretty(&config).unwrap();
         println!("{}", json_str);
 
-        let left = "<LifecycleConfiguration><Rule><ID>Rule1</ID><Prefix>dir1</Prefix><Status/><Expiration><Days>180</Days></Expiration></Rule><Rule><ID>Rule2</ID><Prefix>dir1/dir2</Prefix><Status>Status</Status><Expiration><Days>30</Days></Expiration></Rule></LifecycleConfiguration>";
+        let left = "<LifecycleConfiguration><Rule><ID>Rule1</ID><Prefix>dir1</Prefix><Status/><Expiration><Days>180</Days></Expiration></Rule><Rule><ID>Rule2</ID><Prefix>dir1/dir2</Prefix><Status>Enabled</Status><Expiration><Days>30</Days></Expiration></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
         assert_eq!(left, right);
     }

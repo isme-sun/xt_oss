@@ -99,9 +99,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 生命周期（Lifecycle）
 
-- [★ `PutBucketLifecycle`](https://www.example.com)
-- [★ `GetBucketLifecycle`](https://www.example.com)
-- [★ `DeleteBucketLifecycle`](https://www.example.com)
+- [★ `PutBucketLifecycle`](https://www.example.com) o
+- [★ `GetBucketLifecycle`](https://www.example.com) o
+- [★ `DeleteBucketLifecycle`](https://www.example.com) o
 
 ### Bucket 传输加速（TransferAcceleration）
 
