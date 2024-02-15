@@ -152,7 +152,7 @@ pub enum DataRedundancyType {
     ZRS,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum OssAcl {
     PublicReadWrite,
     #[default]

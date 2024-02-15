@@ -94,8 +94,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 权限控制（ACL）
 
-- [★ `PutBucketAcl`](https://www.example.com)
-- [★ `GetBucketAcl`](https://www.example.com)
+- [★ `PutBucketAcl`](https://www.example.com) o
+- [★ `GetBucketAcl`](https://www.example.com) o
 
 ### Bucket 生命周期（Lifecycle）
 
