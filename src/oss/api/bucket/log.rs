@@ -13,9 +13,10 @@ pub mod builders {
     };
 
     pub struct PutBucketLoggingBuilder<'a> {
-        pub client: &'a oss::Client<'a>,
-        pub enabled: Option<bool>,
-        pub target_prefix: Option<&'a str>,
+        client: &'a oss::Client<'a>,
+        enabled: Option<bool>,
+        bucket: Option<&'a str>,
+        target_prefix: Option<&'a str>,
     }
 
     impl<'a> PutBucketLoggingBuilder<'a> {
@@ -23,12 +24,18 @@ pub mod builders {
             Self {
                 client,
                 enabled: None,
+                bucket: None,
                 target_prefix: None,
             }
         }
 
         pub fn with_enabled(mut self, value: bool) -> Self {
             self.enabled = Some(value);
+            self
+        }
+
+        pub fn with_bucket(mut self, value: &'a str) -> Self {
+            self.bucket = Some(value);
             self
         }
 
@@ -39,12 +46,22 @@ pub mod builders {
 
         // todo 确认生成方式时候合理
         pub(crate) fn config(&self) -> String {
-            let config = BucketLoggingStatus {
-                logging_enabled: Some(LoggingEnabled {
-                    target_bucket: Some(self.client.options.bucket.to_string()),
-                    target_prefix: Some(self.target_prefix.unwrap().to_string()),
-                }),
+            let config = if self.enabled == Some(true) {
+                BucketLoggingStatus {
+                    logging_enabled: Some(LoggingEnabled {
+                        target_bucket: self
+                            .bucket
+                            .or(Some(self.client.bucket()))
+                            .map(|s| s.to_string()),
+                        target_prefix: self.target_prefix.map(|s| s.to_string()),
+                    }),
+                }
+            } else {
+                BucketLoggingStatus {
+                    logging_enabled: None
+                }
             };
+            dbg!(&config);
             quick_xml::se::to_string(&config).unwrap()
         }
 
@@ -78,8 +95,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<BucketLoggingStatus> {
-            let res = format!("{}/?{}", self.client.options.bucket, "logging");
-            let url = format!("{}/?{}", self.client.options.base_url(), "logging");
+            let res = format!("/{}/?{}", self.client.bucket(), "logging");
+            let url = format!("{}/?{}", self.client.base_url(), "logging");
 
             let resp = self
                 .client
@@ -103,8 +120,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("{}/?{}", self.client.options.bucket, "logging");
-            let url = format!("{}/?{}", self.client.options.base_url(), "logging");
+            let res = format!("/{}/?{}", self.client.bucket(), "logging");
+            let url = format!("{}/?{}", self.client.base_url(), "logging");
 
             let resp = self
                 .client
@@ -126,27 +143,27 @@ impl<'a> oss::Client<'a> {
     /// PutBucketLogging接口用于为存储空间（Bucket）开启日志转存功能，
     /// 可将OSS的访问日志按照固定命名规则，以小时为单位生成日志文件写入您
     /// 指定的Bucket。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketlogging)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_put.rs)
     pub fn PutBucketLogging(&self) -> PutBucketLoggingBuilder {
         PutBucketLoggingBuilder::new(self)
     }
 
     /// GetBucketLogging接口用于查看存储空间（Bucket）的访问日志配置。
     /// 只有Bucket的拥有者才能查看Bucket的访问日志配置。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlogging)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_get.rs)
     pub fn GetBucketLogging(&self) -> GetBucketLoggingBuilder {
         GetBucketLoggingBuilder::new(&self)
     }
 
     /// DeleteBucketLogging用于关闭存储空间（Bucket）的访问日志记录功能。
     /// 只有Bucket的拥有者才有权限关闭Bucket访问日志记录功能
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketlogging)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_del.rs)
     pub fn DeleteBucketLogging(&self) -> DeleteBucketLoggingBuilder {
         DeleteBucketLoggingBuilder::new(&self)
     }

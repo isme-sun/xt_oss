@@ -138,9 +138,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 日志管理（Logging）
 
-- [★ `PutBucketLogging`](https://www.example.com)
-- [★ `GetBucketLogging`](https://www.example.com)
-- [★ `DeleteBucketLogging`](https://www.example.com)
+- [★ `PutBucketLogging`](https://www.example.com) o
+- [★ `GetBucketLogging`](https://www.example.com) o
+- [★ `DeleteBucketLogging`](https://www.example.com) o
 
 ### Bucket 静态网站（Website）
 

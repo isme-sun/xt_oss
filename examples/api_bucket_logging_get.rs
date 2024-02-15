@@ -1,6 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{oss::{self, entities::encryption::SSEAlgorithm}, utils};
+use xt_oss::{oss, utils};
 
 #[tokio::main]
 async fn main() {
@@ -8,10 +8,7 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .PutBucketEncryption()
-        .with_algorithm(SSEAlgorithm::KMS)
-        // .with_data_encryption("SM4")
-        // .with_master_key_id("--your value --")
+        .GetBucketLogging()
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {
@@ -21,7 +18,10 @@ async fn main() {
 
     match result {
         Ok(oss_data) => {
-            println!("{:#?}", oss_data.headers())
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&oss_data.content()).unwrap()
+            );
         }
         Err(error_message) => {
             println!("{}", error_message.content())
