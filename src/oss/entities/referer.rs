@@ -1,35 +1,109 @@
 use serde::{Deserialize, Serialize};
 
-pub(crate) mod inner {
-    use serde::{Deserialize, Serialize};
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct RefererList {
-        #[serde(rename = "Referer")]
-        pub referer: Option<Vec<String>>,
+pub mod builder {
+    use super::{RefererBlacklist, RefererConfiguration, RefererList};
+
+    #[derive(Debug)]
+    pub struct RefererConfigurationBuilder<'a> {
+        allow_empty_referer: bool,
+        allow_truncate_query_string: bool,
+        truncate_path: bool,
+        referer_list: Vec<&'a str>,
+        referer_blacklist: Vec<&'a str>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct RefererBlacklist {
-        #[serde(rename = "Referer")]
-        pub referer: Option<Vec<String>>,
+    impl<'a> Default for RefererConfigurationBuilder<'a> {
+        fn default() -> Self {
+            Self {
+                allow_empty_referer: true,
+                allow_truncate_query_string: true,
+                truncate_path: true,
+                referer_list: Vec::new(),
+                referer_blacklist: Vec::new(),
+            }
+        }
     }
 
-    #[derive(Debug, Serialize, Deserialize, Default)]
-    pub struct RefererConfiguration {
-        #[serde(rename = "AllowEmptyReferer")]
-        pub allow_empty_referer: bool,
-        #[serde(rename = "AllowTruncateQueryString")]
-        pub allow_truncate_query_string: bool,
-        #[serde(rename = "TruncatePath")]
-        pub truncate_path: bool,
-        #[serde(rename = "RefererList")]
-        pub referer_list: Option<RefererList>,
-        #[serde(rename = "RefererBlacklist")]
-        pub referer_blacklist: Option<RefererBlacklist>,
+    impl<'a> RefererConfigurationBuilder<'a> {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_allow_empty_referer(mut self, value: bool) -> Self {
+            self.allow_empty_referer = value;
+            self
+        }
+
+        pub fn with_allow_truncate_query_string(mut self, value: bool) -> Self {
+            self.allow_truncate_query_string = value;
+            self
+        }
+
+        pub fn with_truncate_path(mut self, value: bool) -> Self {
+            self.truncate_path = value;
+            self
+        }
+
+        pub fn pust_referer(mut self, value: &'a str) -> Self {
+            self.referer_list.push(value);
+            self
+        }
+
+        pub fn with_referer_list(mut self, value: Vec<&'a str>) -> Self {
+            self.referer_list = value;
+            self
+        }
+
+        pub fn with_referer_blacklist(mut self, value: Vec<&'a str>) -> Self {
+            self.referer_blacklist = value;
+            self
+        }
+
+        pub fn build(&self) -> RefererConfiguration {
+            RefererConfiguration {
+                allow_empty_referer: self.allow_empty_referer,
+                allow_truncate_query_string: self.allow_truncate_query_string,
+                truncate_path: self.truncate_path,
+                referer_list: if self.referer_list.is_empty() {
+                    None
+                } else {
+                    Some(RefererList {
+                        referer: self
+                            .referer_list
+                            .iter()
+                            .map(|referer| referer.to_string())
+                            .collect(),
+                    })
+                },
+                referer_blacklist: if self.referer_blacklist.is_empty() {
+                    None
+                } else {
+                    Some(RefererBlacklist {
+                        referer: self
+                            .referer_blacklist
+                            .iter()
+                            .map(|referer| referer.to_string())
+                            .collect(),
+                    })
+                },
+            }
+        }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct RefererList {
+    #[serde(rename = "Referer")]
+    referer: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct RefererBlacklist {
+    #[serde(rename = "Referer")]
+    referer: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct RefererConfiguration {
     #[serde(rename = "AllowEmptyReferer")]
     pub allow_empty_referer: bool,
@@ -38,93 +112,9 @@ pub struct RefererConfiguration {
     #[serde(rename = "TruncatePath")]
     pub truncate_path: bool,
     #[serde(rename = "RefererList")]
-    pub referer_list: Vec<String>,
+    pub referer_list: Option<RefererList>,
     #[serde(rename = "RefererBlacklist")]
-    pub referer_blacklist: Vec<String>,
-}
-
-impl Default for RefererConfiguration {
-    fn default() -> Self {
-        Self {
-            allow_empty_referer: false,
-            allow_truncate_query_string: true,
-            truncate_path: true,
-            referer_list: Default::default(),
-            referer_blacklist: Default::default(),
-        }
-    }
-}
-
-#[allow(unused)]
-impl RefererConfiguration {
-    pub(crate) fn from_inner(config: inner::RefererConfiguration) -> Self {
-        let mut referer_list: Vec<String> = Vec::new();
-        let mut referer_blacklist: Vec<String> = Vec::new();
-
-        if let Some(inner_referer_list) = config.referer_list {
-            if let Some(referer) = inner_referer_list.referer {
-                for url in referer {
-                    referer_list.push(url);
-                }
-            }
-        }
-
-        if let Some(inner_referer_blacklist) = config.referer_blacklist {
-            if let Some(referer) = inner_referer_blacklist.referer {
-                for url in referer {
-                    referer_blacklist.push(url);
-                }
-            }
-        }
-
-        RefererConfiguration {
-            allow_empty_referer: config.allow_empty_referer,
-            allow_truncate_query_string: config.allow_truncate_query_string,
-            truncate_path: config.truncate_path,
-            referer_list,
-            referer_blacklist,
-        }
-    }
-
-    pub(crate) fn to_inner(&self) -> inner::RefererConfiguration {
-        let referer_list = {
-            if !self.referer_list.is_empty() {
-                Some(inner::RefererList {
-                    referer: Some({
-                        let mut referer: Vec<String> = Vec::new();
-                        for url in &self.referer_list {
-                            referer.push(url.to_string())
-                        }
-                        referer
-                    }),
-                })
-            } else {
-                None
-            }
-        };
-        let referer_blacklist = {
-            if !self.referer_blacklist.is_empty() {
-                Some(inner::RefererBlacklist {
-                    referer: Some({
-                        let mut referer: Vec<String> = Vec::new();
-                        for url in &self.referer_blacklist {
-                            referer.push(url.to_string())
-                        }
-                        referer
-                    }),
-                })
-            } else {
-                None
-            }
-        };
-        inner::RefererConfiguration {
-            allow_empty_referer: self.allow_empty_referer,
-            allow_truncate_query_string: self.allow_truncate_query_string,
-            truncate_path: self.truncate_path,
-            referer_list,
-            referer_blacklist,
-        }
-    }
+    pub referer_blacklist: Option<RefererBlacklist>,
 }
 
 #[cfg(test)]
@@ -151,7 +141,7 @@ pub mod tests {
   </RefererBlacklist>
 </RefererConfiguration>"#;
 
-        let object: inner::RefererConfiguration = quick_xml::de::from_str(content).unwrap();
+        let object: RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
         println!("{:#?}", object);
     }
 }

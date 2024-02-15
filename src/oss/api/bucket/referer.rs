@@ -13,7 +13,6 @@ pub mod builders {
     #[derive(Debug)]
     pub struct PutBucketRefererBuilder<'a> {
         client: &'a oss::Client<'a>,
-        // config: RefererConfiguration,
         config: RefererConfiguration,
     }
 
@@ -25,98 +24,13 @@ pub mod builders {
             }
         }
 
-        pub fn allow_empty_referer(mut self, value: bool) -> Self {
-            self.config.allow_empty_referer = value;
-            self
-        }
-
-        pub fn allow_truncate_query_string(mut self, value: bool) -> Self {
-            self.config.allow_truncate_query_string = value;
-            self
-        }
-
-        pub fn truncate_path(mut self, value: bool) -> Self {
-            self.config.truncate_path = value;
-            self
-        }
-
-        pub fn referer_list(mut self, value: Vec<String>) -> Self {
-            self.config.referer_list = value;
-            self
-        }
-
-        pub fn referer_blacklist(mut self, value: Vec<String>) -> Self {
-            self.config.referer_blacklist = value;
-            self
-        }
-
-        pub fn get_referer_list(self) -> Vec<String> {
-            self.config.referer_list
-        }
-
-        pub fn get_referer_blacklist(self) -> Vec<String> {
-            self.config.referer_blacklist
-        }
-
-        pub fn push_to_referer_list(mut self, value: &'a str) -> Self {
-            let mut index: Option<usize> = None;
-            for (i, item) in self.config.referer_list.iter().enumerate() {
-                if value == *item {
-                    index = Some(i);
-                    break;
-                }
-            }
-            if index.is_none() {
-                self.config.referer_list.push(value.to_string());
-            }
-            self
-        }
-
-        pub fn remove_from_referer_list(mut self, value: &'a str) -> Self {
-            let mut index: Option<usize> = None;
-            for (i, item) in self.config.referer_list.iter().enumerate() {
-                if value == *item {
-                    index = Some(i);
-                    break;
-                }
-            }
-            if let Some(index) = index {
-                self.config.referer_list.remove(index);
-            }
-            self
-        }
-
-        pub fn push_to_referer_blacklist(mut self, value: &'static str) -> Self {
-            let mut index: Option<usize> = None;
-            for (i, item) in self.config.referer_blacklist.iter().enumerate() {
-                if value == *item {
-                    index = Some(i);
-                    break;
-                }
-            }
-            if index.is_none() {
-                self.config.referer_blacklist.push(value.into());
-            }
-            self
-        }
-
-        pub fn remove_from_referer_backlist(mut self, value: String) -> Self {
-            let mut index: Option<usize> = None;
-            for (i, item) in self.config.referer_blacklist.iter().enumerate() {
-                if value == *item {
-                    index = Some(i);
-                    break;
-                }
-            }
-            if let Some(index) = index {
-                self.config.referer_blacklist.remove(index);
-            }
+        pub fn with_config(mut self, value: RefererConfiguration) -> Self {
+            self.config = value;
             self
         }
 
         fn config(&self) -> String {
-            let config = self.config.to_inner();
-            quick_xml::se::to_string(&config).unwrap()
+            quick_xml::se::to_string(&self.config).unwrap()
         }
 
         pub async fn execute(&self) -> api::ApiResult {
@@ -170,7 +84,7 @@ pub mod builders {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用PutBucketReferer接口设置存储空间（Bucket）级别的Referer访问白名单以及黑名单
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn PutBucketReferer(&self) -> PutBucketRefererBuilder {
@@ -178,7 +92,7 @@ impl<'a> oss::Client<'a> {
     }
 
     /// GetBucketReferer接口用于查看存储空间（Bucket）的防盗链（Referer）相关配置。
-    /// 
+    ///
     /// - [official docs]()
     /// - [xtoss example]()
     pub fn GetBucketReferer(&self) -> GetBucketRefererBuilder {
