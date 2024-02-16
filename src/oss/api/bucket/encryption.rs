@@ -73,7 +73,7 @@ pub mod builders {
                 .execute()
                 .await?;
 
-            Ok(ApiResponseFrom(resp).as_empty().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 
@@ -98,7 +98,7 @@ pub mod builders {
                 .execute()
                 .await?;
 
-            Ok(ApiResponseFrom(resp).as_type().await)
+            Ok(ApiResponseFrom(resp).to_type().await)
         }
     }
 
@@ -124,7 +124,7 @@ pub mod builders {
                 .execute()
                 .await?;
 
-            Ok(ApiResponseFrom(resp).as_empty().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 }

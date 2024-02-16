@@ -116,7 +116,7 @@ impl ApiResponseFrom {
         }
     }
 
-    pub(crate) async fn as_type<T>(self) -> ApiResponse<T>
+    pub(crate) async fn to_type<T>(self) -> ApiResponse<T>
     where
         T: for<'a> Deserialize<'a>,
     {
@@ -142,7 +142,7 @@ impl ApiResponseFrom {
         }
     }
 
-    pub(crate) async fn as_bytes(self) -> ApiResponse<Bytes> {
+    pub(crate) async fn to_bytes(self) -> ApiResponse<Bytes> {
         let resp = self.0;
         if resp.status().is_success() {
             let data = Self::bytes_data(resp).await;
@@ -153,7 +153,26 @@ impl ApiResponseFrom {
         }
     }
 
-    pub(crate) async fn as_empty(self) -> ApiResponse<()> {
+    pub(crate) async fn to_text(self) -> ApiResponse<String> {
+        let resp = self.0;
+        if resp.status().is_success() {
+            let url = resp.url().clone();
+            let status = resp.status().clone();
+            let headers = resp.headers().clone();
+            let content = resp.text().await.unwrap();
+            Ok(ApiData {
+                url,
+                status,
+                headers,
+                content,
+            })
+        } else {
+            let data_fail_message = Self::fail_message(resp).await;
+            Err(data_fail_message)
+        }
+    }
+
+    pub(crate) async fn to_empty(self) -> ApiResponse<()> {
         let resp = self.0;
         if resp.status().is_success() {
             Ok(ApiData {

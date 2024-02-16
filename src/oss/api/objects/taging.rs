@@ -84,7 +84,7 @@ pub mod builders {
                 .with_body(data)
                 .execute_timeout(self.client.timeout())
                 .await?;
-            Ok(ApiResponseFrom(resp).as_empty().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 
@@ -124,7 +124,7 @@ pub mod builders {
                 .with_resource(&res)
                 .execute_timeout(self.client.timeout())
                 .await?;
-            Ok(ApiResponseFrom(resp).as_type().await)
+            Ok(ApiResponseFrom(resp).to_type().await)
         }
     }
 
@@ -166,7 +166,7 @@ pub mod builders {
                 .execute_timeout(self.client.timeout())
                 .await?;
 
-            Ok(ApiResponseFrom(resp).as_empty().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 }
