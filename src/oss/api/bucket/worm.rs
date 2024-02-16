@@ -1,8 +1,8 @@
 use crate::oss;
 
 use self::builders::{
-    CompleteBucketWormBuilder, ExtendBucketWormBuilder, GetBucketWormBuilder,
-    InitiateBucketWormBuilder,
+    AbortBucketWormBuilder, CompleteBucketWormBuilder, ExtendBucketWormBuilder,
+    GetBucketWormBuilder, InitiateBucketWormBuilder,
 };
 
 pub mod builders {
@@ -37,46 +37,67 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}", self.client.options.bucket, "worm");
-            let url = format!("{}/?{}", self.client.options.base_url(), res);
+            let res = format!("/{}/?{}", self.client.bucket(), "worm");
+            let url = format!("{}/?{}", self.client.base_url(), "worm");
 
-            let config = self.config();
-
+            let data = oss::Bytes::from(self.config());
             let resp = self
                 .client
                 .request
                 .task()
                 .with_url(&url)
                 .with_method(http::Method::POST)
-                .with_body(oss::Bytes::from(config))
+                .with_resource(&res)
+                .with_body(data)
+                .execute()
+                .await?;
+
+            Ok(ApiResponseFrom(resp).as_empty().await)
+        }
+    }
+
+    pub struct AbortBucketWormBuilder<'a> {
+        client: &'a oss::Client<'a>,
+    }
+
+    impl<'a> AbortBucketWormBuilder<'a> {
+        pub fn new(client: &'a oss::Client) -> Self {
+            Self { client }
+        }
+        pub async fn execute(&self) -> api::ApiResult {
+            let res = format!("/{}/?{}", self.client.bucket(), "worm");
+            let url = format!("{}/?{}", self.client.base_url(), "worm");
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .with_url(&url)
+                .with_method(http::Method::DELETE)
                 .with_resource(&res)
                 .execute()
                 .await?;
+
             Ok(ApiResponseFrom(resp).as_empty().await)
         }
     }
 
     pub struct ExtendBucketWormBuilder<'a> {
         client: &'a oss::Client<'a>,
-        worm_id: Option<&'a str>,
-        days: i32,
+        worm_id: &'a str,
+        days: u32,
     }
 
     impl<'a> ExtendBucketWormBuilder<'a> {
-        pub fn new(client: &'a oss::Client) -> Self {
+        pub fn new(client: &'a oss::Client, worm_id: &'a str) -> Self {
             Self {
                 client,
                 days: 1,
-                worm_id: None,
+                worm_id,
             }
         }
 
-        pub fn with_worm_id(mut self, value: &'a str) -> Self {
-            self.worm_id = Some(value);
-            self
-        }
-
-        pub fn with_days(mut self, value: i32) -> Self {
+        pub fn with_days(mut self, value: u32) -> Self {
             self.days = value;
             self
         }
@@ -91,12 +112,18 @@ pub mod builders {
         pub async fn execute(&self) -> api::ApiResult {
             let res = format!(
                 "/{}/?{}&wormId={}",
-                self.client.options.bucket,
+                self.client.bucket(),
                 "wormExtend",
-                self.worm_id.unwrap_or_default()
+                self.worm_id
             );
-            let url = { format!("{}/?{}", self.client.options.base_url(), res) };
+            let url = format!(
+                "{}/?{}&wormId={}",
+                self.client.base_url(),
+                "wormExtend",
+                self.worm_id
+            );
             let config = self.config();
+            let data = oss::Bytes::from(config);
 
             let resp = self
                 .client
@@ -104,7 +131,7 @@ pub mod builders {
                 .task()
                 .with_url(&url)
                 .with_method(http::Method::POST)
-                .with_body(oss::Bytes::from(config))
+                .with_body(data)
                 .with_resource(&res)
                 .execute()
                 .await?;
@@ -124,12 +151,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?wormId={}", self.client.options.bucket, self.worm_id);
-            let url = format!(
-                "{}/?wormId={}",
-                self.client.options.base_url(),
-                self.worm_id
-            );
+            let res = format!("/{}/?wormId={}", self.client.bucket(), self.worm_id);
+            let url = format!("{}/?wormId={}", self.client.base_url(), self.worm_id);
 
             let resp = self
                 .client
@@ -146,28 +169,22 @@ pub mod builders {
 
     pub struct GetBucketWormBuilder<'a> {
         client: &'a oss::Client<'a>,
-        worm_id: &'a str,
     }
 
     impl<'a> GetBucketWormBuilder<'a> {
-        pub fn new(client: &'a oss::Client, worm_id: &'a str) -> Self {
-            Self { client, worm_id }
+        pub fn new(client: &'a oss::Client) -> Self {
+            Self { client }
         }
 
         pub async fn execute(&self) -> api::ApiResult<WormConfiguration> {
-            let res = format!("/{}/?wormId={}", self.client.options.bucket, self.worm_id);
-            let url = format!(
-                "{}/?wormId={}",
-                self.client.options.base_url(),
-                self.worm_id
-            );
+            let res = format!("/{}/?{}", self.client.bucket(), "worm");
+            let url = format!("{}/?{}", self.client.base_url(), "worm");
 
             let resp = self
                 .client
                 .request
                 .task()
                 .with_url(&url)
-                .with_method(http::Method::POST)
                 .with_resource(&res)
                 .execute()
                 .await?;
@@ -180,37 +197,46 @@ pub mod builders {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用InitiateBucketWorm接口新建一条合规保留策略。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/initiatebucketworm)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_init.rs)
     #[allow(non_snake_case)]
     pub fn InitiateBucketWorm(&self) -> InitiateBucketWormBuilder {
         InitiateBucketWormBuilder::new(self)
     }
 
+    /// 调用InitiateBucketWorm接口新建一条合规保留策略。
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/abortbucketworm)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_abort.rs)
+    #[allow(non_snake_case)]
+    pub fn AbortBucketWorm(&self) -> AbortBucketWormBuilder {
+        AbortBucketWormBuilder::new(self)
+    }
+
     /// AbortBucketWorm用于删除未锁定的合规保留策略。
     /// CompleteBucketWorm用于锁定合规保留策略。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completebucketworm)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_complete.rs)
     #[allow(non_snake_case)]
     pub fn CompleteBucketWorm(&self, worm_id: &'a str) -> CompleteBucketWormBuilder {
         CompleteBucketWormBuilder::new(self, worm_id)
     }
 
     /// ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
-    pub fn ExtendBucketWorm(&self) -> ExtendBucketWormBuilder {
-        ExtendBucketWormBuilder::new(self)
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/extendbucketworm)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_extend.rs)
+    pub fn ExtendBucketWorm(&self, worm_id: &'a str) -> ExtendBucketWormBuilder {
+        ExtendBucketWormBuilder::new(self, worm_id)
     }
 
     /// GetBucketWorm用于获取指定存储空间（Bucket）的合规保留策略信息。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
-    pub fn GetBucketWorm(&self, worm_id: &'a str) -> GetBucketWormBuilder {
-        GetBucketWormBuilder::new(self, worm_id)
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketworm)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_get.rs)
+    pub fn GetBucketWorm(&self) -> GetBucketWormBuilder {
+        GetBucketWormBuilder::new(self)
     }
 }

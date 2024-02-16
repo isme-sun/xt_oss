@@ -17,7 +17,7 @@ impl Default for InitiateWormConfiguration {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExtendWormConfiguration {
     #[serde(rename = "RetentionPeriodInDays")]
-    pub retention_period_in_days: i32,
+    pub retention_period_in_days: u32,
 }
 
 impl Default for ExtendWormConfiguration {

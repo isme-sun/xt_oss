@@ -86,11 +86,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### 合规保留策略（WORM）
 
-- [★ `InitiateBucketWorm`](https://www.example.com)
-- [★ `AbortBucketWorm`](https://www.example.com)
-- [★ `CompleteBucketWorm`](https://www.example.com)
-- [★ `ExtendBucketWorm`](https://www.example.com)
-- [★ `GetBucketWorm`](https://www.example.com)
+- [★ `InitiateBucketWorm`](https://www.example.com) o
+- [★ `AbortBucketWorm`](https://www.example.com) o
+- [★ `CompleteBucketWorm`](https://www.example.com) o
+- [★ `ExtendBucketWorm`](https://www.example.com) o
+- [★ `GetBucketWorm`](https://www.example.com) o
 
 ### Bucket 权限控制（ACL）
 
@@ -204,10 +204,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 图片样式（Style）
 
-- [★ `PutStyle`](https://www.example.com)
-- [★ `GetStyle`](https://www.example.com)
-- [★ `ListStyle`](https://www.example.com)
-- [★ `DeleteStyle`](https://www.example.com)
+- [★ `PutStyle`](https://www.example.com) o
+- [★ `GetStyle`](https://www.example.com) o
+- [★ `ListStyle`](https://www.example.com) o
+- [★ `DeleteStyle`](https://www.example.com) o
 
 <!-- ##### Bucket  安全传输层协议（TLS）
 
