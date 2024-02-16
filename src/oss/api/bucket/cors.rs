@@ -24,14 +24,14 @@ pub mod builders {
             }
         }
 
-        pub fn config(mut self, value: CORSConfiguration) -> Self {
+        pub fn with_config(mut self, value: CORSConfiguration) -> Self {
             self.config = value;
             self
         }
 
-        pub async fn execute(&self) -> api::ApiResult<()> {
-            let url = format!("{}/?{}", self.client.options.base_url(), "cors");
-            let res = format!("/{}/?{}", self.client.options.bucket, "cors");
+        pub async fn execute(&self) -> api::ApiResult {
+            let res = format!("/{}/?{}", self.client.bucket(), "cors");
+            let url = format!("{}/?{}", self.client.base_url(), "cors");
             let content = quick_xml::se::to_string(&self.config).unwrap();
             let data = oss::Bytes::from(content);
             let resp = self
@@ -45,7 +45,7 @@ pub mod builders {
                 .execute_timeout(self.client.options.timeout)
                 .await?;
 
-            Ok(ApiResponseFrom(resp).to_type().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 
@@ -59,8 +59,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<CORSConfiguration> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "cors");
-            let url = format!("{}/?{}", self.client.options.base_url(), "cors");
+            let res = format!("/{}/?{}", self.client.bucket(), "cors");
+            let url = format!("{}/?{}", self.client.base_url(), "cors");
 
             let resp = self
                 .client
@@ -84,9 +84,9 @@ pub mod builders {
             Self { client }
         }
 
-        pub async fn execute(&self) -> api::ApiResult<()> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "cors");
-            let url = format!("{}/?{}", self.client.options.base_url(), "cors");
+        pub async fn execute(&self) -> api::ApiResult {
+            let url = format!("{}/?{}", self.client.base_url(), "cors");
+            let res = format!("/{}/?{}", self.client.bucket(), "cors");
 
             let resp = self
                 .client
@@ -108,28 +108,28 @@ pub mod builders {
 impl<'a> oss::Client<'a> {
     /// 调用PutBucketCors接口为指定的存储空间（Bucket）设置跨域资源共享CORS
     ///（Cross-Origin Resource Sharing）规则
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketcors)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_put.rs)
     pub fn PutBucketCors(&self) -> PutBucketCorsBuilder {
         PutBucketCorsBuilder::new(&self)
     }
 
     /// GetBucketCors接口用于获取指定存储空间（Bucket）当前的跨域资源共享CORS
     /// （Cross-Origin Resource Sharing）规则。
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
-    pub async fn GetBucketCors(&self) -> GetBucketCorsBuilder {
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketcors)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_get.rs)
+    pub fn GetBucketCors(&self) -> GetBucketCorsBuilder {
         GetBucketCorsBuilder::new(&self)
     }
 
     /// DeleteBucketCors用于关闭指定存储空间（Bucket）对应的跨域资源共享CORS
     /// （Cross-Origin Resource Sharing）功能并清空所有规则
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
-    pub async fn DeleteBucketCors(&self) -> DeleteBucketCorsBuilder {
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketcors)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_del.rs)
+    pub fn DeleteBucketCors(&self) -> DeleteBucketCorsBuilder {
         DeleteBucketCorsBuilder::new(&self)
     }
 }

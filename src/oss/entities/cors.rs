@@ -1,33 +1,78 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct CORSRule {
-    #[serde(rename = "AllowedOrigin")]
-    pub allowed_origin: Vec<String>,
-    #[serde(rename = "AllowedMethod")]
-    pub allowed_method: Vec<String>,
-    #[serde(rename = "AllowedHeader")]
-    pub allowed_header: Option<Vec<String>>,
-    #[serde(rename = "ExposeHeader")]
-    pub expose_header: Option<Vec<String>>,
-    #[serde(rename = "MaxAgeSeconds")]
-    pub max_age_seconds: Option<i32>,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct CORSConfiguration {
-    #[serde(rename = "CORSRule")]
-    pub cors_rule: Vec<CORSRule>,
-    #[serde(rename = "ResponseVary", skip_serializing_if = "Option::is_none")]
-    pub response_vary: Option<bool>,
-}
-
 pub mod builder {
+    use std::fmt;
+
     use super::*;
     use crate::oss::http;
 
+    pub enum AllowedOriginItem<'a> {
+        Any,
+        Urls(Vec<&'a str>),
+    }
+
+    impl<'a> fmt::Display for AllowedOriginItem<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "{}",
+                match self {
+                    AllowedOriginItem::Any => "*".to_string(),
+                    AllowedOriginItem::Urls(urls) => urls.join(","),
+                }
+            )
+        }
+    }
+
+    pub enum AllowedMethodItem {
+        Any,
+        Methods(Vec<http::Method>),
+    }
+
+    impl fmt::Display for AllowedMethodItem {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "{}",
+                match self {
+                    AllowedMethodItem::Any => "*".to_string(),
+                    AllowedMethodItem::Methods(methods) => {
+                        methods
+                            .into_iter()
+                            .map(|entry| entry.to_string())
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    }
+                }
+            )
+        }
+    }
+
+    pub enum AllowedHeaderItem {
+        Any,
+        Headers(Vec<http::header::HeaderName>),
+    }
+
+    impl fmt::Display for AllowedHeaderItem {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "{}",
+                match self {
+                    AllowedHeaderItem::Any => "*".to_string(),
+                    AllowedHeaderItem::Headers(headers) => {
+                        headers
+                            .into_iter()
+                            .map(|entry| entry.to_string())
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    }
+                }
+            )
+        }
+    }
+
     #[derive(Default, Debug)]
-    #[allow(unused)]
     pub struct CORSRuleBuilder {
         pub rule: CORSRule,
     }
@@ -36,39 +81,60 @@ pub mod builder {
             Self::default()
         }
 
-        pub fn allowed_origin(mut self, value: &'a str) -> Self {
-            self.rule.allowed_origin.push(value.to_string());
-            self
-        }
-
-        pub fn allowed_method(mut self, value: http::Method) -> Self {
-            self.rule.allowed_method.push(value.to_string());
-            self
-        }
-
-        pub fn allowed_header(mut self, value: http::HeaderName) -> Self {
-            if let Some(mut header_list) = self.rule.allowed_header {
-                header_list.push(value.to_string());
-                self.rule.allowed_header = Some(header_list)
-            } else {
-                let header_list = vec![value.to_string()];
-                self.rule.allowed_header = Some(header_list);
+        pub fn with_allowed_origin(mut self, value: AllowedOriginItem) -> Self {
+            match value {
+                AllowedOriginItem::Any => self.rule.allowed_origin.push("*".to_string()),
+                AllowedOriginItem::Urls(urls) => urls
+                    .iter()
+                    .for_each(|entry| self.rule.allowed_origin.push(entry.to_string())),
             }
             self
         }
 
-        pub fn expose_header(mut self, value: &'a str) -> Self {
-            if let Some(mut expose_header_list) = self.rule.expose_header {
-                expose_header_list.push(value.to_string());
-                self.rule.expose_header = Some(expose_header_list)
-            } else {
-                let expose_header_list = vec![value.to_string()];
-                self.rule.expose_header = Some(expose_header_list);
+        pub fn with_allowed_method(mut self, value: AllowedMethodItem) -> Self {
+            match value {
+                AllowedMethodItem::Any => {
+                    [
+                        http::Method::GET,
+                        http::Method::PUT,
+                        http::Method::POST,
+                        http::Method::DELETE,
+                        http::Method::HEAD,
+                    ]
+                    .into_iter()
+                    .for_each(|entry| self.rule.allowed_method.push(entry.to_string()));
+                }
+                AllowedMethodItem::Methods(methods) => {
+                    methods
+                        .into_iter()
+                        .for_each(|entry| self.rule.allowed_method.push(entry.to_string()));
+                }
             }
             self
         }
 
-        pub fn max_age_seconds(mut self, value: i32) -> Self {
+        pub fn with_allowed_header(mut self, value: AllowedHeaderItem) -> Self {
+            match value {
+                AllowedHeaderItem::Any => {
+                    self.rule.allowed_header = Some(vec!["*".to_string()]);
+                }
+                AllowedHeaderItem::Headers(headers) => {
+                    let allowed_headers = headers
+                        .into_iter()
+                        .map(|entry| entry.to_string())
+                        .collect::<Vec<String>>();
+                    self.rule.allowed_header = Some(allowed_headers);
+                }
+            }
+            self
+        }
+
+        pub fn with_expose_header(mut self, value: Vec<&'a str>) -> Self {
+            self.rule.expose_header = Some(value.into_iter().map(|e| e.to_string()).collect());
+            self
+        }
+
+        pub fn with_max_age_seconds(mut self, value: u32) -> Self {
             self.rule.max_age_seconds = Some(value);
             self
         }
@@ -93,7 +159,7 @@ pub mod builder {
             self
         }
 
-        pub fn response_vary(mut self, value: bool) -> Self {
+        pub fn with_response_vary(mut self, value: bool) -> Self {
             self.cors_configuration.response_vary = Some(value);
             self
         }
@@ -104,11 +170,75 @@ pub mod builder {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct CORSRule {
+    #[serde(rename = "AllowedOrigin")]
+    pub allowed_origin: Vec<String>,
+    #[serde(rename = "AllowedMethod")]
+    pub allowed_method: Vec<String>,
+    #[serde(rename = "AllowedHeader")]
+    pub allowed_header: Option<Vec<String>>,
+    #[serde(rename = "ExposeHeader")]
+    pub expose_header: Option<Vec<String>>,
+    #[serde(rename = "MaxAgeSeconds")]
+    pub max_age_seconds: Option<u32>,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct CORSConfiguration {
+    #[serde(rename = "CORSRule")]
+    pub cors_rule: Vec<CORSRule>,
+    #[serde(rename = "ResponseVary", skip_serializing_if = "Option::is_none")]
+    pub response_vary: Option<bool>,
+}
 #[cfg(test)]
 pub mod tests {
     use super::builder::*;
     use super::*;
     use crate::oss::http;
+
+    #[test]
+    fn allowed_origin_item1() {
+        let value = AllowedMethodItem::Any;
+        assert_eq!("*", value.to_string())
+    }
+
+    #[test]
+    fn allowed_origin_item2() {
+        let value = AllowedOriginItem::Urls(vec!["http://localhost:3000", "http://localhost:3001"]);
+        assert_eq!(
+            "http://localhost:3000,http://localhost:3001",
+            value.to_string()
+        );
+    }
+
+    #[test]
+    fn allowed_method_item1() {
+        let value = AllowedMethodItem::Any;
+        assert_eq!("*", value.to_string())
+    }
+
+    #[test]
+    fn allowed_method_item2() {
+        let value = AllowedMethodItem::Methods(vec![http::Method::GET, http::Method::POST]);
+        assert_eq!("GET,POST", &value.to_string());
+    }
+
+    #[test]
+    fn allowed_header_item1() {
+        let value = AllowedHeaderItem::Any;
+        assert_eq!("*", value.to_string())
+    }
+
+    #[test]
+    fn allowed_header_item2() {
+        let value = AllowedHeaderItem::Headers(vec![
+            http::header::CONTENT_DISPOSITION,
+            http::header::CONTENT_LANGUAGE,
+        ]);
+        assert_eq!("content-disposition,content-language", &value.to_string());
+    }
+
     #[test]
     fn cors_configuration1() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -138,32 +268,37 @@ pub mod tests {
     #[test]
     fn cors_configuration2() {
         let rule1 = CORSRuleBuilder::new()
-            .allowed_origin("*")
-            .allowed_method(http::Method::PUT)
-            .allowed_method(http::Method::GET)
-            .allowed_header(http::header::AUTHORIZATION)
+            .with_allowed_origin(AllowedOriginItem::Any)
+            .with_allowed_method(AllowedMethodItem::Any)
+            .with_allowed_header(AllowedHeaderItem::Any)
             .builder();
 
         let rule2 = CORSRuleBuilder::new()
-            .allowed_origin("http://example.com")
-            .allowed_origin("http://example.net")
-            .allowed_method(http::Method::GET)
-            .allowed_header(http::header::AUTHORIZATION)
-            .expose_header("x-oss-test")
-            .expose_header("x-oss-test1")
+            .with_allowed_origin(AllowedOriginItem::Urls(vec![
+                "http://localhost:3000",
+                "http://localhost:3001",
+            ]))
+            .with_allowed_method(AllowedMethodItem::Methods(vec![
+                http::Method::GET,
+                http::Method::POST,
+            ]))
+            .with_allowed_header(AllowedHeaderItem::Headers(vec![
+                http::header::CACHE_CONTROL,
+                http::header::CONTENT_ENCODING,
+            ]))
+            .with_expose_header(vec!["x-oss-test", "x-oss-test1"])
             .builder();
 
         let config = CORSConfigurationBuilder::new()
             .add_rule(rule1)
             .add_rule(rule2)
-            .response_vary(false)
+            .with_response_vary(false)
             .builder();
 
         let left = quick_xml::se::to_string(&config).unwrap().to_string();
 
-        let right = r#"<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>PUT</AllowedMethod><AllowedMethod>GET</AllowedMethod><AllowedHeader>authorization</AllowedHeader><ExposeHeader/><MaxAgeSeconds/></CORSRule><CORSRule><AllowedOrigin>http://example.com</AllowedOrigin><AllowedOrigin>http://example.net</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedHeader>authorization</AllowedHeader><ExposeHeader>x-oss-test</ExposeHeader><ExposeHeader>x-oss-test1</ExposeHeader><MaxAgeSeconds/></CORSRule><ResponseVary>false</ResponseVary></CORSConfiguration>"#;
+        let right = r#"<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>*</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader/><MaxAgeSeconds/></CORSRule><CORSRule><AllowedOrigin>http://localhost:3000</AllowedOrigin><AllowedOrigin>http://localhost:3001</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>POST</AllowedMethod><AllowedHeader>cache-control</AllowedHeader><AllowedHeader>content-encoding</AllowedHeader><ExposeHeader>x-oss-test</ExposeHeader><ExposeHeader>x-oss-test1</ExposeHeader><MaxAgeSeconds/></CORSRule><ResponseVary>false</ResponseVary></CORSConfiguration>"#;
 
         assert_eq!(left, right)
-        // println!("{}", quick_xml::se::to_string(&config).unwrap())
     }
 }

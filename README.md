@@ -172,9 +172,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 跨域资源共享（CORS）
 
-- [★ `PutBucketCors`](https://www.example.com)
-- [★ `GetBucketCors`](https://www.example.com)
-- [★ `DeleteBucketCors`](https://www.example.com)
+- [★ `PutBucketCors`](https://www.example.com) o
+- [★ `GetBucketCors`](https://www.example.com) o
+- [★ `DeleteBucketCors`](https://www.example.com) o
 - [★ `Options`](https://www.example.com)
 
 <!-- ##### Bucket 访问跟踪（AccessMonitor）
