@@ -26,7 +26,7 @@ pub struct Style {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct StyleList {
     #[serde(rename = "Style")]
-    pub style: Vec<Style>,
+    pub style: Option<Vec<Style>>,
 }
 
 #[cfg(test)]
@@ -75,9 +75,8 @@ mod tests {
 
         let style_list: StyleList = quick_xml::de::from_str(&xml_content).unwrap();
         let left = "image/resize,p_50";
-        let right = &style_list.style[0].content;
+        let right = &style_list.style.unwrap()[0].content;
         assert_eq!(left, right);
-
     }
 
     #[test]
@@ -93,7 +92,5 @@ mod tests {
         let left = quick_xml::se::to_string(&style).unwrap();
         let right = r#"<Style><Name>imagestyle</Name><Content>image/resize,p_50</Content><Category>image</Category></Style>"#;
         assert_eq!(left, right);
-
     }
-
 }

@@ -23,31 +23,41 @@ pub mod builders {
             }
         }
 
-        pub fn name(mut self, value: &'a str) -> Self {
+        pub fn with_name(mut self, value: &'a str) -> Self {
             self.style.name = value.to_string();
             self
         }
 
-        pub fn content(mut self, value: &'a str) -> Self {
+        pub fn with_content(mut self, value: &'a str) -> Self {
             self.style.content = value.to_string();
             self
         }
 
-        pub fn category(mut self, value: &'a str) -> Self {
-            self.style.category = Some(value.to_string());
-            self
-        }
+        // pub fn with_category(mut self, value: &'a str) -> Self {
+        //     self.style.category = Some(value.to_string());
+        //     self
+        // }
 
-        pub fn style(&self) -> String {
+        fn style(&self) -> String {
             quick_xml::se::to_string(&self.style).unwrap()
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}", self.client.options.bucket, "style");
-            let query = format!("style&styleName={}", self.style.name);
-            let url = { format!("{}?{}", self.client.options.base_url(), query) };
+            let res = format!(
+                "/{}/?{}&styleName={}",
+                self.client.bucket(),
+                "style",
+                self.style.name
+            );
+            let url = format!(
+                "{}?{}&styleName={}",
+                self.client.base_url(),
+                "style",
+                self.style.name
+            );
 
             let data = oss::Bytes::from(self.style());
+            dbg!(&data);
 
             let resp = self
                 .client
@@ -74,8 +84,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<StyleList> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "style");
-            let url = format!("{}/?{}", self.client.options.base_url(), "style");
+            let res = format!("/{}/?{}", self.client.bucket(), "style");
+            let url = format!("{}/?{}", self.client.base_url(), "style");
             let resp = self
                 .client
                 .request
@@ -99,7 +109,12 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<Style> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "style");
+            let res = format!(
+                "/{}/?{}&styleName={}",
+                self.client.bucket(),
+                "style",
+                self.name
+            );
             let url = format!(
                 "{}/?{}&styleName={}",
                 self.client.options.base_url(),
@@ -131,10 +146,15 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}", self.client.options.bucket, "style");
+            let res = format!(
+                "/{}/?{}&styleName={}",
+                self.client.bucket(),
+                "style",
+                self.name
+            );
             let url = format!(
                 "{}/?{}&styleName={}",
-                self.client.options.base_url(),
+                self.client.base_url(),
                 "style",
                 self.name
             );
@@ -159,7 +179,7 @@ impl<'a> oss::Client<'a> {
     /// 调用PutStyle接口新增图片样式。一个图片样式中可以包含单个或多个图片处理参数
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putstyle)
-    /// - [xtoss example]()
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_put.rs)
     pub fn PutStyle(&self) -> PutStyleBuilder {
         PutStyleBuilder::new(self)
     }
@@ -167,7 +187,7 @@ impl<'a> oss::Client<'a> {
     /// 调用ListStyle接口查询某个Bucket下已创建的所有样式
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletestyle)
-    /// - [xtoss example](https://help.aliyun.com/zh/oss/developer-reference/getstyle)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_get.rs)
     pub fn GetStyle(&self, name: &'a str) -> GetStyleBuilder {
         GetStyleBuilder::new(self, name)
     }
@@ -175,16 +195,15 @@ impl<'a> oss::Client<'a> {
     /// 调用GetStyle接口查询某个Bucket下指定的样式信息
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getstyle)
-    /// - [xtoss example](https://help.aliyun.com/zh/oss/developer-reference/liststyle)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_list.rs)
     pub fn ListStyle(&self) -> ListStyleBuilder {
         ListStyleBuilder::new(self)
     }
 
-
     /// 调用DeleteStyle删除某个Bucket下指定的图片样式
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletestyle)
-    /// - [xtoss example]()
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_del.rs)
     pub fn DeleteStyle(&self, name: &'a str) -> DeleteStyleBuilder {
         DeleteStyleBuilder::new(self, name)
     }
