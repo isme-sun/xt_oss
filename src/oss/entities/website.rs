@@ -294,23 +294,9 @@ pub struct IndexDocument {
     pub suffix: String,
     #[serde(rename = "SupportSubDir", skip_serializing_if = "Option::is_none")]
     /// 访问子目录时，是否支持跳转到子目录下的默认主页。取值范围如下：
-    ///
-    /// - true：转到子目录下的默认主页。
-    /// - false（默认）：不转到子目录下的默认主页，而是转到根目录下的默认主页。
-    ///
-    /// 假设默认主页为index.html，
-    /// 要访问bucket.oss-cn-hangzhou.aliyuncs.com/subdir/，如果设置SupportSubDir为false，则转
-    /// 到bucket.oss-cn-hangzhou.aliyuncs.com/index.html；如果设置SupportSubDir为true，
-    /// 则转到bucket.oss-cn-hangzhou.aliyuncs.com/subdir/index.html。
     pub support_sub_dir: Option<bool>,
     #[serde(rename = "Type", skip_serializing_if = "Option::is_none")]
     /// 设置默认主页后，访问以非正斜线（/）结尾的Object，且该Object不存在时的行为。
-    /// 只有设置SupportSubDir为true时才生效，且生效的顺序在RoutingRule之后、ErrorFile之前。
-    /// 假设默认主页为index.html，要访问的文件路径为bucket.oss-cn-hangzhou.aliyuncs.com/abc，
-    /// 且abc这个Object不存在，此时Type的不同取值对应的行为如下：
-    /// - `0`（默认）：检查abc/index.html是否存在（即Object + 正斜线（/）+ 主页的形式），如果存在则返回302，Location头为/abc/的URL编码（即正斜线（/） + Object + 正斜线（/）的形式），如果不存在则返回404，继续检查ErrorFile。
-    /// - `1`：直接返回404，报错NoSuchKey，继续检查ErrorFile。
-    /// - `2`：检查abc/index.html是否存在，如果存在则返回该Object的内容；如果不存在则返回404，继续检查ErrorFile。
     pub r#type: Option<u16>,
 }
 

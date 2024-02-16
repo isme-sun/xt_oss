@@ -2,11 +2,11 @@
 
 > 参考官方其他SDK实现的阿里云OSS SDK
 
-## 一、简介
+## 简介
 
 内容
 
-## 二、应用示例
+## 应用示例
 
  ```rust
 use std::process;
@@ -45,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
  ```
 
-## 三、配置说明
+## 配置说明
 
  概要说明 ...
 
@@ -55,17 +55,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
  }
  ```
 
-## 四、参数与返回数据
+## 参数构建
 
-内容
 
- ```rust
- fn main() {
-     println!("示例说明")
- }
- ```
+## 错误处理
 
-## 四、实现的API
+
+## 其他
+
+## 实现的Api
 
 简介
 
@@ -467,19 +465,4 @@ async fn main() {
     }
 }
 
-
-```
-
-## 五、其他
-
-```rust
-# use std::error::Error;
-#
-# fn main() -> Result<(), Box<dyn Error>> {
-your;
-example?;
-code;
-#
-# Ok(())
-# }
-```
+## oss request
