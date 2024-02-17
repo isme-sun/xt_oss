@@ -7,15 +7,13 @@ pub mod builder {
     use super::*;
 
     #[derive(Debug, Default)]
-    #[allow(unused)]
-    struct MirrorHeadersBuilder<'a> {
+    pub struct MirrorHeadersBuilder<'a> {
         pass_all: bool,
         pass: Vec<&'a str>,
         remove: Vec<&'a str>,
         set: Vec<(&'a str, &'a str)>,
     }
 
-    #[allow(unused)]
     impl<'a> MirrorHeadersBuilder<'a> {
         pub fn new() -> Self {
             Self::default()
@@ -71,32 +69,175 @@ pub mod builder {
         }
     }
 
-    #[test]
-    fn test_mirror_headers_builder() {
-        let obj = MirrorHeadersBuilder::new()
-            .with_pass(["abcd", "edf"].to_vec())
-            .with_remove(["addf", "asd"].to_vec())
-            .with_pass_all(true)
-            .with_set([("name", "sjy"), ("age", "18")].to_vec())
-            .build();
-        println!("{:#?}", obj);
+    #[derive(Debug, Default)]
+    pub struct RedirectBuilder<'a> {
+        redirect_type: RedirectType,
+        protocol: Option<&'a str>,
+        pass_query_string: Option<&'a str>,
+        replace_key_with: Option<&'a str>,
+        mirror_url: Option<&'a str>,
+        mirror_pass_query_string: Option<bool>,
+        mirror_follow_redirect: Option<bool>,
+        mirror_check_md5: Option<bool>,
+        mirror_headers: Option<MirrorHeaders>,
+        enable_replace_prefix: Option<bool>,
+        mirror_replace_prefix: Option<bool>,
+        http_replace_code: Option<u16>,
+        replace_key_prefix_with: Option<&'a str>,
+        host_name: Option<&'a str>,
     }
 
-    #[allow(unused)]
-    struct RedirectBuilder {}
+    impl<'a> RedirectBuilder<'a> {
+        pub fn new() -> Self {
+            Self::default()
+        }
 
-    #[allow(unused)]
-    struct ConditionBuilder {}
+        pub fn with_redirect_type(mut self, value: RedirectType) -> Self {
+            self.redirect_type = value;
+            self
+        }
 
-    #[allow(unused)]
+        pub fn with_protocol(mut self, value: &'a str) -> Self {
+            self.protocol = Some(value);
+            self
+        }
+
+        pub fn pass_query_string(mut self, value: &'a str) -> Self {
+            self.pass_query_string = Some(value);
+            self
+        }
+
+        pub fn with_replace_key_with(mut self, value: &'a str) -> Self {
+            self.replace_key_prefix_with = Some(value);
+            self
+        }
+
+        pub fn with_mirror_url(mut self, value: &'a str) -> Self {
+            self.mirror_url = Some(value);
+            self
+        }
+
+        pub fn with_mirror_pass_query_string(mut self, value: bool) -> Self {
+            self.mirror_pass_query_string = Some(value);
+            self
+        }
+
+        pub fn with_mirror_follow_redirect(mut self, value: bool) -> Self {
+            self.mirror_follow_redirect = Some(value);
+            self
+        }
+        pub fn with_mirror_check_md5(mut self, value: bool) -> Self {
+            self.mirror_check_md5 = Some(value);
+            self
+        }
+
+        pub fn with_mirror_headers(mut self, value: MirrorHeaders) -> Self {
+            self.mirror_headers = Some(value);
+            self
+        }
+
+        pub fn with_mirror_replace_prefix(mut self, value: bool) -> Self {
+            self.mirror_replace_prefix = Some(value);
+            self
+        }
+
+        pub fn with_http_replace_code(mut self, value: u16) -> Self {
+            self.http_replace_code = Some(value);
+            self
+        }
+
+        pub fn with_replace_key_prefix_with(mut self, value: &'a str) -> Self {
+            self.replace_key_prefix_with = Some(value);
+            self
+        }
+
+        pub fn with_host_name(mut self, value: &'a str) -> Self {
+            self.host_name = Some(value);
+            self
+        }
+
+        pub fn build(&self) -> Redirect {
+            Redirect {
+                redirect_type: self.redirect_type.clone(),
+                protocol: self.protocol.map(|e| e.to_string()),
+                pass_query_string: self.pass_query_string.map(|e| e.to_string()),
+                replace_key_with: self.replace_key_with.map(|e| e.to_string()),
+                mirror_url: self.mirror_url.map(|e| e.to_string()),
+                mirror_pass_query_string: self.mirror_pass_query_string,
+                mirror_follow_redirect: self.mirror_follow_redirect,
+                mirror_check_md5: self.mirror_check_md5,
+                mirror_headers: self.mirror_headers.clone(),
+                enable_replace_prefix: self.enable_replace_prefix,
+                http_redirect_code: self.http_replace_code,
+                replace_key_prefix_with: self.replace_key_prefix_with.map(|e| e.to_string()),
+                host_name: self.host_name.map(|e| e.to_string()),
+            }
+        }
+    }
+
     #[derive(Debug, Default)]
-    struct IndexDocumentBuilder<'a> {
+    pub struct ConditionBuilder<'a> {
+        pub key_prefix_equals: Option<&'a str>,
+        pub http_error_code_returned_equals: Option<u16>,
+        pub key_suffix_equals: Option<&'a str>,
+        pub include_header_key: Option<&'a str>,
+        pub include_header_equals: Option<&'a str>,
+    }
+
+    impl<'a> ConditionBuilder<'a> {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_key_prefix_equals(mut self, value: &'a str) -> Self {
+            self.key_prefix_equals = Some(value);
+            self
+        }
+
+        pub fn with_http_error_code_returned_equals(mut self, value: u16) -> Self {
+            self.http_error_code_returned_equals = Some(value);
+            self
+        }
+
+        pub fn with_key_suffix_equals(mut self, value: &'a str) -> Self {
+            self.key_suffix_equals = Some(value);
+            self
+        }
+
+        pub fn with_include_header_key(mut self, value: &'a str) -> Self {
+            self.include_header_key = Some(value);
+            self
+        }
+
+        pub fn with_include_header_equals(mut self, value: &'a str) -> Self {
+            self.include_header_equals = Some(value);
+            self
+        }
+
+        pub fn build(&self) -> Condition {
+            Condition {
+                include_header: if let Some(include_header_key) = self.include_header_key {
+                    Some(IncludeHeader {
+                        key: include_header_key.to_string(),
+                        equals: self.include_header_equals.map(|e| e.to_string()),
+                    })
+                } else {
+                    None
+                },
+                key_prefix_equals: self.key_prefix_equals.map(|e| e.to_string()),
+                http_error_code_returned_equals: self.http_error_code_returned_equals,
+                key_suffix_equals: self.key_suffix_equals.map(|e| e.to_string()),
+            }
+        }
+    }
+
+    #[derive(Debug, Default)]
+    pub struct IndexDocumentBuilder<'a> {
         suffix: &'a str,
         support_sub_dir: bool,
         r#type: u16,
     }
 
-    #[allow(unused)]
     impl<'a> IndexDocumentBuilder<'a> {
         pub fn new() -> Self {
             Self::default()
@@ -126,14 +267,12 @@ pub mod builder {
         }
     }
 
-    #[allow(unused)]
     #[derive(Debug, Default)]
-    struct ErrorDocumentBuilder<'a> {
+    pub struct ErrorDocumentBuilder<'a> {
         key: &'a str,
         http_status: StatusCode,
     }
 
-    #[allow(unused)]
     impl<'a> ErrorDocumentBuilder<'a> {
         pub fn new() -> Self {
             Self::default()
@@ -153,6 +292,67 @@ pub mod builder {
             ErrorDocument {
                 key: self.key.to_string(),
                 http_status: Some(self.http_status.as_u16()),
+            }
+        }
+    }
+
+    #[derive(Debug, Default)]
+    pub struct RoutingRulesBuilder {
+        rules: Vec<RoutingRule>,
+    }
+
+    impl RoutingRulesBuilder {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_rule(mut self, value: RoutingRule) -> Self {
+            self.rules.push(value);
+            self
+        }
+
+        pub fn build(&self) -> RoutingRules {
+            RoutingRules {
+                routing_rule: if self.rules.is_empty() {
+                    None
+                } else {
+                    Some(self.rules.clone())
+                },
+            }
+        }
+    }
+
+    #[derive(Debug, Default)]
+    pub struct WebsiteConfigurationBuilder {
+        pub index_document: Option<IndexDocument>,
+        pub error_document: Option<ErrorDocument>,
+        pub routing_rules: Option<RoutingRules>,
+    }
+
+    impl WebsiteConfigurationBuilder {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_index_document(mut self, value: IndexDocument) -> Self {
+            self.index_document = Some(value);
+            self
+        }
+        pub fn with_error_document(mut self, value: ErrorDocument) -> Self {
+            self.error_document = Some(value);
+            self
+        }
+
+        pub fn with_routing_rules(mut self, value: RoutingRules) -> Self {
+            self.routing_rules = Some(value);
+            self
+        }
+
+        pub fn build(&self) -> WebsiteConfiguration {
+            WebsiteConfiguration {
+                index_document: self.index_document.clone(),
+                error_document: self.error_document.clone(),
+                routing_rules: self.routing_rules.clone(),
             }
         }
     }
@@ -340,7 +540,16 @@ pub struct WebsiteConfiguration {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::oss::entities::website::WebsiteConfiguration;
+    use reqwest::StatusCode;
+
+    use super::{
+        builder::{
+            ConditionBuilder, ErrorDocumentBuilder, IndexDocumentBuilder, MirrorHeadersBuilder,
+            RedirectBuilder, RoutingRulesBuilder, WebsiteConfigurationBuilder,
+        },
+        RedirectType,
+    };
+    use crate::oss::entities::website::{RoutingRule, Set, WebsiteConfiguration};
 
     #[test]
     fn website_configuration_parse_1() {
@@ -420,9 +629,6 @@ pub mod tests {
 "#;
 
         let object: WebsiteConfiguration = quick_xml::de::from_str(xml_content).unwrap();
-
-        // let json_str = serde_json::to_string_pretty(&object).unwrap();
-        // println!("{}", json_str);
         let left = "index.html";
         let right = object.index_document.unwrap().suffix;
         assert_eq!(left, right)
@@ -489,11 +695,96 @@ pub mod tests {
 </WebsiteConfiguration>"#;
 
         let object: WebsiteConfiguration = quick_xml::de::from_str(xml_content).unwrap();
+        let left = "index.html";
+        let right = object.index_document.unwrap().suffix;
+        assert_eq!(left, right)
+    }
 
-        let json_str = serde_json::to_string_pretty(&object).unwrap();
-        println!("{}", json_str);
-        // let left = "index.html";
-        // let right = object.index_document.unwrap().suffix;
-        // assert_eq!(left, right)
+    #[test]
+    fn mirror_headers_builder() {
+        let obj = MirrorHeadersBuilder::new()
+            .with_pass(["pass1", "pass2"].to_vec())
+            .with_remove(["remove1", "remove2"].to_vec())
+            .with_pass_all(true)
+            .with_set([("lable", "value"), ("label1", "value1")].to_vec())
+            .build();
+        let left = Set {
+            key: "label1".to_string(),
+            value: "value1".to_string(),
+        };
+        let right = &obj.set.unwrap()[1];
+        assert_eq!(left.key, right.key);
+    }
+
+    #[test]
+    fn redirect_builder() {
+        let redirect = RedirectBuilder::new()
+            .with_host_name("xuetube.com")
+            .with_http_replace_code(302)
+            .with_mirror_check_md5(true)
+            .with_mirror_follow_redirect(false)
+            .with_mirror_headers(
+                MirrorHeadersBuilder::new()
+                    .with_pass(["pass1", "pass2"].to_vec())
+                    .with_remove(["remove1", "remove2"].to_vec())
+                    .with_pass_all(true)
+                    .with_set([("name", "sjy"), ("age", "18")].to_vec())
+                    .build(),
+            )
+            .with_mirror_pass_query_string(false)
+            .with_mirror_replace_prefix(false)
+            .with_mirror_url("http://example.com")
+            .with_protocol("https")
+            .with_redirect_type(RedirectType::AliCDN)
+            .with_replace_key_with("test")
+            .build();
+        let left = "pass1";
+        let right = &redirect.mirror_headers.unwrap().pass.unwrap()[0];
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn condition_builder() {
+        let condition = ConditionBuilder::new()
+            .with_include_header_key("key")
+            .with_include_header_equals("test")
+            .with_http_error_code_returned_equals(203)
+            .with_key_prefix_equals("prefix")
+            .with_key_suffix_equals("suffix")
+            .build();
+        let left = "key";
+        let right = condition.include_header.unwrap().key;
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn web_config_builder() {
+        let config = WebsiteConfigurationBuilder::new()
+            .with_index_document(
+                IndexDocumentBuilder::new()
+                    .with_suffix("test")
+                    .with_support_sub_dir(true)
+                    .with_type(200)
+                    .build(),
+            )
+            .with_error_document(
+                ErrorDocumentBuilder::new()
+                    .with_http_status(StatusCode::NOT_FOUND)
+                    .with_key("abcd")
+                    .build(),
+            )
+            .with_routing_rules(
+                RoutingRulesBuilder::new()
+                    .with_rule(RoutingRule {
+                        rule_number: 100,
+                        condition: ConditionBuilder::new().build(),
+                        redirect: RedirectBuilder::new().build(),
+                    })
+                    .build(),
+            )
+            .build();
+        let left = r#"<WebsiteConfiguration><IndexDocument><Suffix>test</Suffix><SupportSubDir>true</SupportSubDir><Type>200</Type></IndexDocument><ErrorDocument><Key>abcd</Key><HttpStatus>404</HttpStatus></ErrorDocument><RoutingRules><RoutingRule><RuleNumber>100</RuleNumber><Condition/><Redirect><RedirectType>Mirror</RedirectType></Redirect></RoutingRule></RoutingRules></WebsiteConfiguration>"#;
+        let right = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(left, right);
     }
 }

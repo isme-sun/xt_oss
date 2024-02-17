@@ -142,9 +142,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 静态网站（Website）
 
-- [★ `PutBucketWebsite`](https://www.example.com)
-- [★ `GetBucketWebsite`](https://www.example.com)
-- [★ `DeleteBucketWebsite`](https://www.example.com)
+- [★ `PutBucketWebsite`](https://www.example.com) o?
+- [★ `GetBucketWebsite`](https://www.example.com) o
+- [★ `DeleteBucketWebsite`](https://www.example.com) o
 
 ### Bucket 防盗链（Referer）
 

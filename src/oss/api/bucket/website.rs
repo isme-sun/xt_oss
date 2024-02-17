@@ -8,70 +8,35 @@ pub mod builders {
     use crate::oss::{
         self,
         api::{self, ApiResponseFrom},
-        entities::website::{
-            ErrorDocument, IndexDocument, RoutingRule, RoutingRules, WebsiteConfiguration,
-        },
+        entities::website::WebsiteConfiguration,
         http,
     };
 
     pub struct PutBucketWebsiteBuilder<'a> {
         client: &'a oss::Client<'a>,
-        index_document: Option<IndexDocument>,
-        error_documnet: Option<ErrorDocument>,
-        routing_rules: Option<Vec<RoutingRule>>,
+        config: WebsiteConfiguration
     }
 
     impl<'a> PutBucketWebsiteBuilder<'a> {
         pub(crate) fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
-                index_document: None,
-                error_documnet: None,
-                routing_rules: None,
+                config: WebsiteConfiguration::default()
             }
         }
 
-        pub fn with_default(mut self) -> Self {
-            self.index_document = Some(IndexDocument::default());
-            self.error_documnet = Some(ErrorDocument::default());
-            self.routing_rules = None;
-            self
-        }
-
-        pub fn with_index_document(mut self, value: IndexDocument) -> Self {
-            self.index_document = Some(value);
-            self
-        }
-
-        pub fn with_error_document(mut self, value: ErrorDocument) -> Self {
-            self.error_documnet = Some(value);
-            self
-        }
-
-        #[allow(unused)]
-        pub fn add_routing_rule(mut self, value: RoutingRule) -> Self {
+        pub fn with_config(mut self, config: WebsiteConfiguration) -> Self {
+            self.config = config;
             self
         }
 
         pub fn config(&self) -> String {
-            let config = WebsiteConfiguration {
-                index_document: self.index_document.clone(),
-                error_document: self.error_documnet.clone(),
-                routing_rules: if self.routing_rules.is_none() {
-                    None
-                } else {
-                    let rules = RoutingRules {
-                        routing_rule: self.routing_rules.clone(),
-                    };
-                    Some(rules)
-                },
-            };
-            quick_xml::se::to_string(&config).unwrap()
+            quick_xml::se::to_string(&self.config).unwrap()
         }
 
         pub async fn execute(&self) -> api::ApiResult<()> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "website");
-            let url = format!("{}/?{}", self.client.options.base_url(), "website");
+            let res = format!("/{}/?{}", self.client.bucket(), "website");
+            let url = format!("{}/?{}", self.client.base_url(), "website");
 
             let config = self.config();
             let data = oss::Bytes::from(config);
@@ -101,8 +66,8 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<WebsiteConfiguration> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "website");
-            let url = format!("{}/?{}", self.client.options.base_url(), "website");
+            let res = format!("/{}/?{}", self.client.bucket(), "website");
+            let url = format!("{}/?{}", self.client.base_url(), "website");
             let resp = self
                 .client
                 .request
@@ -124,9 +89,9 @@ pub mod builders {
             Self { client }
         }
 
-        pub async fn execute(&self) -> api::ApiResult<WebsiteConfiguration> {
-            let res = format!("/{}/?{}", self.client.options.bucket, "website");
-            let url = format!("{}/?{}", self.client.options.base_url(), "website");
+        pub async fn execute(&self) -> api::ApiResult {
+            let res = format!("/{}/?{}", self.client.bucket(), "website");
+            let url = format!("{}/?{}", self.client.base_url(), "website");
             let resp = self
                 .client
                 .request
@@ -136,7 +101,7 @@ pub mod builders {
                 .with_resource(&res)
                 .execute()
                 .await?;
-            Ok(ApiResponseFrom(resp).to_type().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 }
@@ -144,19 +109,19 @@ pub mod builders {
 /// # 静态网站（Website）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutBucketWebsite接口将存储空间（Bucket）设置为静态网站托管模式并设置跳转
-    /// 规则（RoutingRule
+    /// 调用PutBucketWebsite接口将存储空间（Bucket）设置为静态网站托管模式并设置跳
+    /// 转规则（RoutingRule）。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketwebsite)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_put.rs)
     pub fn PutBucketWebsite(&self) -> PutBucketWebsiteBuilder {
         PutBucketWebsiteBuilder::new(self)
     }
 
     /// 调用GetBucketWebsite接口查看存储空间（Bucket）的静态网站托管状态以及跳转规则
     /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketwebsite)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_get.rs)
     pub fn GetBucketWebsite(&self) -> GetBucketWebsiteBuilder {
         GetBucketWebsiteBuilder::new(self)
     }
@@ -164,25 +129,9 @@ impl<'a> oss::Client<'a> {
     /// DeleteBucketWebsite接口用于关闭存储空间（Bucket）的静态网站托管模式以及
     /// 跳转规则。只有Bucket的拥有者才能关闭Bucket的静态网站托管模式。
     /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketwebsite)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_del.rs)
     pub fn DeleteBucketWebsite(&self) -> DeleteBucketWebsiteBuilder {
         DeleteBucketWebsiteBuilder::new(self)
-    }
-}
-
-#[cfg(test)]
-pub mod tests {
-    use crate::oss;
-
-    use super::builders::PutBucketWebsiteBuilder;
-
-    #[test]
-    fn test_put_bucket_website_builder() {
-        let client = oss::Client::new(oss::Options::default());
-        let builder = PutBucketWebsiteBuilder::new(&client).with_default();
-        let left = r#"<WebsiteConfiguration><IndexDocument><Suffix>index.html</Suffix><SupportSubDir>true</SupportSubDir><Type>0</Type></IndexDocument><ErrorDocument><Key>error.html</Key><HttpStatus>404</HttpStatus></ErrorDocument></WebsiteConfiguration>"#;
-        let right = builder.config();
-        assert_eq!(left, right);
     }
 }
