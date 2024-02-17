@@ -69,47 +69,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### 关于Service/Region
 
-- [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets) o
-- [★ `DescribeRegions`](https://www.example.com) o
+- [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets)
+- [★ `DescribeRegions`](https://www.example.com) 
 
 ### Bucket - 基础操作
 
-- [★ `PutBucket`](https://www.example.com) o
-- [★ `DeleteBucket`](https://www.example.com) o
-- [★ `ListObjects`](https://www.example.com)
-- [★ `ListObjectsV2`](https://www.example.com)
-- [★ `GetBucketInfo`](https://www.example.com) o
-- [★ `GetBucketLocation`](https://www.example.com) o
-- [★ `GetBucketStat`](https://www.example.com) o
+- [★ `PutBucket`](https://www.example.com)
+- [★ `DeleteBucket`](https://www.example.com)
+- [☆ `ListObjects`](https://www.example.com)
+- [☆ `ListObjectsV2`](https://www.example.com)
+- [★ `GetBucketInfo`](https://www.example.com) 
+- [★ `GetBucketLocation`](https://www.example.com) 
+- [★ `GetBucketStat`](https://www.example.com) 
 
 ### 合规保留策略（WORM）
 
-- [★ `InitiateBucketWorm`](https://www.example.com) o
-- [★ `AbortBucketWorm`](https://www.example.com) o
-- [★ `CompleteBucketWorm`](https://www.example.com) o
-- [★ `ExtendBucketWorm`](https://www.example.com) o
-- [★ `GetBucketWorm`](https://www.example.com) o
+- [★ `InitiateBucketWorm`](https://www.example.com)
+- [★ `AbortBucketWorm`](https://www.example.com)
+- [★ `CompleteBucketWorm`](https://www.example.com)
+- [★ `ExtendBucketWorm`](https://www.example.com)
+- [★ `GetBucketWorm`](https://www.example.com)
 
 ### Bucket 权限控制（ACL）
 
-- [★ `PutBucketAcl`](https://www.example.com) o
-- [★ `GetBucketAcl`](https://www.example.com) o
+- [★ `PutBucketAcl`](https://www.example.com)
+- [★ `GetBucketAcl`](https://www.example.com)
 
 ### Bucket 生命周期（Lifecycle）
 
-- [★ `PutBucketLifecycle`](https://www.example.com) o
-- [★ `GetBucketLifecycle`](https://www.example.com) o
-- [★ `DeleteBucketLifecycle`](https://www.example.com) o
+- [★ `PutBucketLifecycle`](https://www.example.com)
+- [★ `GetBucketLifecycle`](https://www.example.com)
+- [★ `DeleteBucketLifecycle`](https://www.example.com)
 
 ### Bucket 传输加速（TransferAcceleration）
 
-- [★ `PutBucketTransferAcceleration`](https://www.example.com) o
-- [★ `GetBucketTransferAcceleration`](https://www.example.com) o
+- [★ `PutBucketTransferAcceleration`](https://www.example.com)
+- [★ `GetBucketTransferAcceleration`](https://www.example.com)
 
 ### Bucket 版本控制（Versioning）
 
-- [★ `PutBucketVersioning`](https://www.example.com) o
-- [★ `GetBucketVersioning`](https://www.example.com) o
+- [★ `PutBucketVersioning`](https://www.example.com)
+- [★ `GetBucketVersioning`](https://www.example.com)
 - [☆ `ListObjectVersions（GetBucketVersions ）x`](https://www.example.com)
 
 <!-- **Bucket 数据复制（Replication）**
@@ -123,9 +123,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 授权策略（Policy）
 
-- [★ `PutBucketPolicy`](https://www.example.com) o
-- [★ `GetBucketPolicy`](https://www.example.com) o
-- [★ `DeleteBucketPolicy`](https://www.example.com) o
+- [★ `PutBucketPolicy`](https://www.example.com)
+- [★ `GetBucketPolicy`](https://www.example.com)
+- [★ `DeleteBucketPolicy`](https://www.example.com)
 
 <!-- ###### Bucket 清单（Inventory）
 
@@ -136,32 +136,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 日志管理（Logging）
 
-- [★ `PutBucketLogging`](https://www.example.com) o
-- [★ `GetBucketLogging`](https://www.example.com) o
-- [★ `DeleteBucketLogging`](https://www.example.com) o
+- [★ `PutBucketLogging`](https://www.example.com)
+- [★ `GetBucketLogging`](https://www.example.com)
+- [★ `DeleteBucketLogging`](https://www.example.com)
 
 ### Bucket 静态网站（Website）
 
-- [★ `PutBucketWebsite`](https://www.example.com) o?
-- [★ `GetBucketWebsite`](https://www.example.com) o
-- [★ `DeleteBucketWebsite`](https://www.example.com) o
+- [★ `PutBucketWebsite`](https://www.example.com)?
+- [★ `GetBucketWebsite`](https://www.example.com)
+- [★ `DeleteBucketWebsite`](https://www.example.com)
 
 ### Bucket 防盗链（Referer）
 
-- [★ `PutBucketReferer`](https://www.example.com) o
-- [★ `GetBucketReferer`](https://www.example.com) o
+- [★ `PutBucketReferer`](https://www.example.com)
+- [★ `GetBucketReferer`](https://www.example.com)
 
 ### Bucket 标签（Tags）
 
-- [★ `PutBucketTags`](https://www.example.com) o
-- [★ `GetBucketTags`](https://www.example.com) o
-- [★ `DeleteBucketTags`](https://www.example.com) o
+- [★ `PutBucketTags`](https://www.example.com)
+- [★ `GetBucketTags`](https://www.example.com)
+- [★ `DeleteBucketTags`](https://www.example.com)
 
 ### Bucket 加密（Encryption）
 
-- [★ `PutBucketEncryption`](https://www.example.com) o
-- [★ `GetBucketEncryption`](https://www.example.com) o
-- [★ `DeleteBucketEncryption`](https://www.example.com) o
+- [★ `PutBucketEncryption`](https://www.example.com)
+- [★ `GetBucketEncryption`](https://www.example.com)
+- [★ `DeleteBucketEncryption`](https://www.example.com)
 
 ### Bucket 请求者付费（RequestPayment）
 
@@ -170,10 +170,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 跨域资源共享（CORS）
 
-- [★ `PutBucketCors`](https://www.example.com) o
-- [★ `GetBucketCors`](https://www.example.com) o
-- [★ `DeleteBucketCors`](https://www.example.com) o
-- [★ `Options`](https://www.example.com)
+- [★ `PutBucketCors`](https://www.example.com)
+- [★ `GetBucketCors`](https://www.example.com)
+- [★ `DeleteBucketCors`](https://www.example.com)
+- [☆ `Options`](https://www.example.com)
 
 <!-- ##### Bucket 访问跟踪（AccessMonitor）
 
@@ -194,18 +194,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 自定义域名（CNAME）
 
-- [★ `CreateCnameToken`](https://www.example.com) o
-- [★ `GetCnameToken`](https://www.example.com) o
-- [★ `PutCname`](https://www.example.com)
-- [★ `ListCname`](`xt_oss::oss::Client.ListCname`) o
-- [★ `DeleteCname`](https://www.example.com) o
+- [★ `CreateCnameToken`](https://www.example.com)
+- [★ `GetCnameToken`](https://www.example.com)
+- [★ `PutCname`](https://www.example.com)?
+- [★ `ListCname`](https://www.example.com)
+- [★ `DeleteCname`](https://www.example.com)
 
 ### Bucket 图片样式（Style）
 
-- [★ `PutStyle`](https://www.example.com) o
-- [★ `GetStyle`](https://www.example.com) o
-- [★ `ListStyle`](https://www.example.com) o
-- [★ `DeleteStyle`](https://www.example.com) o
+- [★ `PutStyle`](https://www.example.com)
+- [★ `GetStyle`](https://www.example.com)
+- [★ `ListStyle`](https://www.example.com)
+- [★ `DeleteStyle`](https://www.example.com)
 
 <!-- ##### Bucket  安全传输层协议（TLS）
 
@@ -270,19 +270,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Object 权限控制（ACL)
 
-- [★ `PutObjectACL`](https://www.example.com) o
-- [★ `GetObjectACL`](https://www.example.com) o
+- [★ `PutObjectACL`](https://www.example.com)
+- [★ `GetObjectACL`](https://www.example.com)
 
 ### Object 软链接（Symlink）
 
-- [★ `PutSymlink`](https://www.example.com) o
-- [★ `GetSymlink`](https://www.example.com) o
+- [★ `PutSymlink`](https://www.example.com)
+- [★ `GetSymlink`](https://www.example.com)
 
 ### Object 标签（Tagging）
 
-- [★ `PutObjectTagging`](https://www.example.com) o
-- [★ `GetObjectTagging`](https://www.example.com) o
-- [★ `DeleteObjectTagging`](https://www.example.com) o
+- [★ `PutObjectTagging`](https://www.example.com)
+- [★ `GetObjectTagging`](https://www.example.com)
+- [★ `DeleteObjectTagging`](https://www.example.com)
 
 ### 关于LiveChannel的操作
 
