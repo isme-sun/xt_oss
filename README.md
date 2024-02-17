@@ -123,9 +123,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 授权策略（Policy）
 
-- [☆ `PutBucketPolicy`](https://www.example.com) o
-- [☆ `GetBucketPolicy`](https://www.example.com) o
-- [☆ `DeleteBucketPolicy`](https://www.example.com) o
+- [★ `PutBucketPolicy`](https://www.example.com) o
+- [★ `GetBucketPolicy`](https://www.example.com) o
+- [★ `DeleteBucketPolicy`](https://www.example.com) o
 
 <!-- ###### Bucket 清单（Inventory）
 
