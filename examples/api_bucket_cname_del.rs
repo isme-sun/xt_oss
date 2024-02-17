@@ -1,5 +1,7 @@
 use dotenv;
+#[allow(unused)]
 use std::process;
+#[allow(unused)]
 use xt_oss::{oss, utils};
 
 #[tokio::main]
@@ -8,7 +10,7 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-      .CreateCnameToken("xtoss-ex3.xuetube.com")
+      .DeleteCname("xtoss-ex2.xuetube.com")
       .execute()
       .await
       .unwrap_or_else(|reqwest_error| {
@@ -18,7 +20,7 @@ async fn main() {
 
     match result {
       Ok(oss_data) => {
-        println!("{:#?}", oss_data.content())
+        println!("{:#?}", oss_data.headers())
       }
       Err(error_message) => {
         println!("{}", error_message.content())

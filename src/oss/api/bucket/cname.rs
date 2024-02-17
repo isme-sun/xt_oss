@@ -7,7 +7,9 @@ pub mod builders {
     use crate::oss::{
         self,
         api::{self, ApiResponseFrom},
-        entities::cname::{BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken},
+        entities::cname::{
+            BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken, ListCnameResult,
+        },
         http,
     };
 
@@ -22,8 +24,12 @@ pub mod builders {
         }
 
         fn config(&self) -> String {
-            let mut config = BucketCnameConfiguration::default();
-            config.cname.domain = self.cname.to_string();
+            let config = BucketCnameConfiguration {
+                cname: Cname {
+                    domain: self.cname.to_string(),
+                    ..Cname::default()
+                },
+            };
             quick_xml::se::to_string(&config).unwrap()
         }
 
@@ -61,7 +67,7 @@ pub mod builders {
         pub async fn execute(&self) -> api::ApiResult<CnameToken> {
             let res = format!("/{}/?cname={}&comp=token", self.client.bucket(), self.cname);
             let url = format!(
-                "{}/?cname={}&comp==token",
+                "{}/?cname={}&comp=token",
                 self.client.base_url(),
                 self.cname
             );
@@ -131,9 +137,9 @@ pub mod builders {
             Self { client }
         }
 
-        pub async fn execute(&self) -> api::ApiResult<BucketCnameConfiguration> {
-            let res = format!("/{}/?cname&comp=add", self.client.bucket());
-            let url = format!("{}/?cname&comp=add", self.client.base_url());
+        pub async fn execute(&self) -> api::ApiResult<ListCnameResult> {
+            let res = format!("/{}/?{}", self.client.bucket(), "cname");
+            let url = format!("{}/?{}", self.client.base_url(), "cname");
 
             let resp = self
                 .client
@@ -159,12 +165,16 @@ pub mod builders {
         }
 
         fn config(&self) -> String {
-            let mut config = BucketCnameConfiguration::default();
-            config.cname.domain = self.cname.to_string();
+            let config = BucketCnameConfiguration {
+                cname: Cname {
+                    domain: self.cname.to_string(),
+                    ..Cname::default()
+                },
+            };
             quick_xml::se::to_string(&config).unwrap()
         }
 
-        pub async fn execute(&self) -> api::ApiResult<BucketCnameConfiguration> {
+        pub async fn execute(&self) -> api::ApiResult {
             let res = format!("/{}/?cname&comp=delete", self.client.bucket());
             let url = format!("{}/?cname&comp=delete", self.client.base_url());
 
@@ -176,11 +186,12 @@ pub mod builders {
                 .task()
                 .with_url(&url)
                 .with_resource(&res)
+                .with_method(http::Method::POST)
                 .with_body(data)
                 .execute_timeout(self.client.timeout())
                 .await?;
 
-            Ok(ApiResponseFrom(resp).to_type().await)
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 }
@@ -189,42 +200,42 @@ pub mod builders {
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用CreateCnameToken接口创建域名所有权验证所需的CnameToken
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/createcnametoken)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_create_token.rs)
     pub fn CreateCnameToken(&self, cname: &'a str) -> CreateCnameTokenBuilder<'_> {
         CreateCnameTokenBuilder::new(self, cname)
     }
 
     /// 调用GetCnameToken接口获取已创建的CnameToken
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getcnametoken)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_get_token.rs)
     pub fn GetCnameToken(&self, cname: &'a str) -> GetCnameTokenBuilder<'_> {
         GetCnameTokenBuilder::new(self, cname)
     }
 
     /// 调用PutCname接口为某个存储空间（Bucket）绑定自定义域名
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putcname)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_put.rs)
     pub fn PutCname(&self) -> PutCnameBuilder<'_> {
         PutCnameBuilder::new(self)
     }
 
     /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
     ///
-    /// 
-    /// - [official docs]()
-    /// - [xtoss example]()
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listcname)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_list.rs)
     pub fn ListCname(&self) -> ListCnameBuilder<'_> {
         ListCnameBuilder::new(self)
     }
 
     /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletecname)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_del.rs)
     pub fn DeleteCname(&self, cname: &'a str) -> DeleteCnameBuilder<'_> {
         DeleteCnameBuilder::new(self, cname)
     }

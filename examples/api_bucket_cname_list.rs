@@ -8,7 +8,7 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-      .CreateCnameToken("xtoss-ex3.xuetube.com")
+      .ListCname()
       .execute()
       .await
       .unwrap_or_else(|reqwest_error| {
@@ -21,7 +21,7 @@ async fn main() {
         println!("{:#?}", oss_data.content())
       }
       Err(error_message) => {
-        println!("{}", error_message.content())
+        println!("oss error: {}", error_message.content())
       }
     }
 }

@@ -48,7 +48,7 @@ pub struct ListCnameResult {
     pub bucket: String,
     #[serde(rename = "Owner")]
     pub owner: String,
-    #[serde(rename = "Cname")]
+    #[serde(rename = "Cname", skip_serializing_if = "Option::is_none")]
     pub cname: Option<Vec<Cname>>,
 }
 

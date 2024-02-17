@@ -194,11 +194,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Bucket 自定义域名（CNAME）
 
-- [★ `CreateCnameToken`](https://www.example.com)
-- [★ `GetCnameToken`](https://www.example.com)
+- [★ `CreateCnameToken`](https://www.example.com) o
+- [★ `GetCnameToken`](https://www.example.com) o
 - [★ `PutCname`](https://www.example.com)
-- [★ `ListCname`](`xt_oss::oss::Client.ListCname`)
-- [★ `DeleteCname`](https://www.example.com)
+- [★ `ListCname`](`xt_oss::oss::Client.ListCname`) o
+- [★ `DeleteCname`](https://www.example.com) o
 
 ### Bucket 图片样式（Style）
 
