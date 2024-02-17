@@ -74,10 +74,16 @@ impl<'a> Authorization<'a> {
             Some(content_type) => content_type.to_str().unwrap(),
             None => oss::DEFAULT_CONTENT_TYPE,
         };
-        // dbg!(self.headers);
+
+        let content_md5 = match self.headers.get("content-md5") {
+            Some(content_type) => content_type.to_str().unwrap().to_string(),
+            None => "".to_string()
+        };
+        // dbg!(&self.headers);
         let value = format!(
-            "{VERB}\n\n{ContentType}\n{Date}\n{Header}{Resource}",
+            "{VERB}\n{ContentMD5}\n{ContentType}\n{Date}\n{Header}{Resource}",
             VERB = self.method,
+            ContentMD5 = content_md5,
             ContentType = content_type,
             Date = self.date,
             Header = header_str,

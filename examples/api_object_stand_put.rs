@@ -1,49 +1,83 @@
-use std::{env, fs, io::Read, path::PathBuf, process};
+use std::{
+    env,
+    fs::File,
+    io::{self, Read},
+    process,
+};
 
+use base64::{engine::general_purpose, Engine as _};
+use crypto::{digest::Digest, md5::Md5};
 use xt_oss::{
     oss::{
         self,
         entities::{ObjectACL, StorageClass},
-        Bytes,
     },
     utils,
 };
 
+fn base64_encode(content: &str) -> String {
+    let bytes = hex::decode(&content).unwrap();
+    let encoded = general_purpose::STANDARD.encode(&bytes);
+    encoded
+}
+
+fn file_md5(file: &str) -> Result<String, io::Error> {
+    let mut file = File::open(file)?;
+    let mut hasher = Md5::new();
+    let mut buffer = [0; 1024];
+    loop {
+        let bytes_read = file.read(&mut buffer)?;
+        if bytes_read == 0 {
+            break;
+        }
+        hasher.input(&buffer[..bytes_read]);
+    }
+    Ok(hasher.result_str())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-
     // 获取配置选项和 OSS 客户端
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
 
-    // 设置本地文件路径
-    let basedir = env::current_dir()?;
-    let mut sampledir = basedir.clone();
-    sampledir.push("examples");
-    sampledir.push("samples");
-
-    // 检查示例文件夹是否存在
-    if !sampledir.is_dir() {
-        panic!("Sample directory does not exist");
-    }
-
-    // 设置本地文件路径和文件名
-    let mut local_file_path = PathBuf::from(&sampledir);
-    local_file_path.push("index.html");
-
-    // 读取本地文件内容
-    let mut content = Vec::new();
-    let mut file = fs::File::open(&local_file_path)?;
-    file.read_to_end(&mut content)?;
-    let content = Bytes::from(content);
+    // 目标文件
+    let target_file = {
+        let mut target_file = env::current_dir()?;
+        ["examples", "samples", "zip", "ZIPFile_10mbmb.zip"]
+            .iter()
+            .for_each(|e| {
+                target_file.push(e);
+            });
+        target_file.display().to_string()
+    };
+    dbg!(&target_file);
+    // md5值
+    let content_md5 = &base64_encode(&file_md5(&target_file)?[..]);
+    dbg!(&content_md5);
+    // 获得mime
+    let content_type = {
+        let mime = mime_guess::from_path(&target_file).first().unwrap();
+        &mime.to_string()[..]
+    };
+    dbg!(&content_type);
+    // 获取内容
+    let content = {
+        let mut current_file = File::open(&target_file)?;
+        let mut content = vec![];
+        current_file.read_to_end(&mut content)?;
+        oss::Bytes::from(content)
+    };
 
     // 上传文件到 OSS
     let resp = client
-        .PutObject("index.html")
+        .PutObject("tmp/test.zip")
         .with_object_acl(ObjectACL::PublicRead)
+        .with_content_type(content_type)
         .with_storage_class(StorageClass::Standard)
         .with_content(content)
+        .with_content_md5(&content_md5)
         .execute()
         .await
         .unwrap_or_else(|error| {
