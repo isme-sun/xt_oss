@@ -15,6 +15,7 @@ use xt_oss::{
     utils,
 };
 
+// [doc](https://help.aliyun.com/zh/oss/developer-reference/include-signatures-in-the-authorization-header#section-i74-k35-5w4)
 fn base64_encode(content: &str) -> String {
     let bytes = hex::decode(&content).unwrap();
     let encoded = general_purpose::STANDARD.encode(&bytes);
