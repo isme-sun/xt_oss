@@ -47,7 +47,7 @@ pub mod builders {
             let url = format!("{}?{}&styleName={}", self.client.base_url(), "style", self.style.name);
 
             let data = oss::Bytes::from(self.style());
-            dbg!(&data);
+            // dbg!(&data);
 
             let resp = self
                 .client

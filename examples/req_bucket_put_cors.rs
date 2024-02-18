@@ -1,11 +1,11 @@
 use std::{env, process};
 use xt_oss::oss;
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
-    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
-    let url = "https://xtoss-t1.oss-cn-shanghai.aliyuncs.com/?cors";
+    let access_key_id = env::var("OSS_ACCESS_KEY_ID")?;
+    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET")?;
+    let url = "https://xtoss-ex5.oss-cn-shanghai.aliyuncs.com/?cors";
 
     let cors_config = r#"<?xml version="1.0" encoding="UTF-8"?>
 <CORSConfiguration>
@@ -35,7 +35,7 @@ async fn main() {
         .with_access_key_secret(&access_key_secret)
         .task()
         .with_url(&url)
-        .with_resource("/xtoss-t1/?cors")
+        .with_resource("/xtoss-ex5/?cors")
         .with_method(oss::http::Method::PUT)
         .with_body(data)
         .execute_timeout(30)
@@ -54,4 +54,5 @@ async fn main() {
     println!("headers: {:#?}", resp.headers());
     let data = resp.text().await.unwrap();
     println!("data: {}", data);
+    Ok(())
 }

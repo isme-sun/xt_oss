@@ -1,8 +1,8 @@
-use std::{env, process};
+pub(crate) use std::{env, process};
 
 use xt_oss::oss;
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
     let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
@@ -34,4 +34,5 @@ async fn main() {
     println!("headers: {:#?}", resp.headers());
     let data = resp.text().await.unwrap();
     println!("data: {}", data);
+    Ok(())
 }

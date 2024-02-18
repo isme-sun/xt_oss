@@ -74,12 +74,16 @@ impl<'a> Authorization<'a> {
             Some(content_type) => content_type.to_str().unwrap(),
             None => oss::DEFAULT_CONTENT_TYPE,
         };
-
         let content_md5 = match self.headers.get("content-md5") {
             Some(content_type) => content_type.to_str().unwrap().to_string(),
             None => "".to_string(),
         };
-        // dbg!(&self.headers);
+
+        // !! ? :(
+        let resource = urlencoding::decode(self.resourse.unwrap_or("/"))
+            .unwrap()
+            .replace("+", " ");
+
         let value = format!(
             "{VERB}\n{ContentMD5}\n{ContentType}\n{Date}\n{Header}{Resource}",
             VERB = self.method,
@@ -87,9 +91,9 @@ impl<'a> Authorization<'a> {
             ContentType = content_type,
             Date = self.date,
             Header = header_str,
-            Resource = self.resourse.unwrap_or("/")
+            Resource = resource
         );
-        // dbg!(println!("{}", value));
+        // dbg!(&value);
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();
         let value = hmac_sha1::hmac_sha1(key, message);
@@ -482,5 +486,15 @@ pub mod tests {
         assert_eq!(options.host(), host);
         assert_eq!(options.root_url(), root_url);
         assert_eq!(options.base_url(), base_url);
+    }
+
+    #[test]
+    fn sign() {
+        let v1 = r#"response-content-disposition=attachment%3Bfilename%3D%22%E6%96%87%E4%BB%B6.ppt%22&response-expires=Mon%2C+19+Feb+2024+02%3A52%3A41+GMT"#;
+        // let v2 = r#"GET\n\napplication/octet-stream\nSun, 18 Feb 2024 02:18:10 GMT\n/xtoss-ex1/ppt/File-1000kb.ppt?response-content-disposition=attachment%3Bfilename%3D%22%E6%96%87%E4%BB%B6.ppt%22"#;
+
+        let v3 = r#"/xtoss-ex1/ppt/File-1000kb.ppt?response-content-disposition=attachment;filename=\"文件.ppt\"&response-expires=Mon, 19 Feb 2024 02:52:41 GMT"#;
+        let v4 = urlencoding::encode(v3);
+        println!("{}", v4);
     }
 }

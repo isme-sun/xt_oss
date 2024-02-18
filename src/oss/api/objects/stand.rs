@@ -18,7 +18,7 @@ pub mod builders {
 
     use crate::oss::{
         self,
-        api::{self, insert_custom_header, insert_header, ApiResponseFrom, ByteRange},
+        api::{self, insert_custom_header, insert_header, ApiResponseFrom},
         entities::{
             object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
             tag::{Tag, TagSet, Tagging},
@@ -26,6 +26,7 @@ pub mod builders {
         },
         http, Bytes,
     };
+    use crate::utils::ByteRange;
 
     #[derive(Debug, Default)]
     struct PutObjectBuilderHeaders {
@@ -53,6 +54,7 @@ pub mod builders {
         object: &'a str,
         content: oss::Bytes,
         headers: PutObjectBuilderHeaders,
+        timeout: Option<u64>,
     }
 
     impl<'a> PutObjectBuilder<'a> {
@@ -62,6 +64,7 @@ pub mod builders {
                 object,
                 content: oss::Bytes::new(),
                 headers: PutObjectBuilderHeaders::default(),
+                timeout: None,
             }
         }
 
@@ -155,6 +158,11 @@ pub mod builders {
             self
         }
 
+        pub fn with_timeout(mut self, value: u64) -> Self {
+            self.timeout = Some(value);
+            self
+        }
+
         fn headers(&self) -> http::HeaderMap {
             let mut headers = http::HeaderMap::new();
 
@@ -231,7 +239,6 @@ pub mod builders {
                     insert_custom_header(&mut headers, &format!("x-oss-meta-{}", key), value);
                 }
             }
-
             headers
         }
 
@@ -248,7 +255,7 @@ pub mod builders {
                 .with_headers(self.headers())
                 .with_body(self.content.to_owned())
                 .with_resource(&res)
-                .execute_timeout(self.client.timeout())
+                .execute_timeout(self.timeout.unwrap_or(self.client.timeout()))
                 .await?;
             Ok(ApiResponseFrom(resp).to_empty().await)
         }
@@ -591,6 +598,7 @@ pub mod builders {
         none_match: Option<&'a str>,
         accept_encoding: Option<&'a str>,
         query: GetObjectBuilderQuery<'a>,
+        timeout: Option<u64>,
     }
 
     impl<'a> GetObjectBuilder<'a> {
@@ -605,6 +613,7 @@ pub mod builders {
                 none_match: None,
                 accept_encoding: None,
                 query: GetObjectBuilderQuery::default(),
+                timeout: None,
             }
         }
 
@@ -673,8 +682,12 @@ pub mod builders {
             self
         }
 
+        pub fn with_timeout(mut self, value: u64) -> Self {
+            self.timeout = Some(value);
+            self
+        }
+
         pub(crate) fn query(&self) -> String {
-            // dbg!(println!("{:#?}", &self.query));
             serde_qs::to_string(&self.query).unwrap()
         }
 
@@ -719,7 +732,7 @@ pub mod builders {
                 .with_url(&url)
                 .with_headers(headers)
                 .with_resource(&res)
-                .execute()
+                .execute_timeout(self.timeout.unwrap_or(self.client.timeout()))
                 .await?;
 
             Ok(ApiResponseFrom(resp).to_bytes().await)
@@ -1043,19 +1056,23 @@ impl<'a> oss::Client<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::oss::{self, api::ByteRange};
+    use crate::oss::{self, entities::ContentDisposition};
+    use crate::utils::ByteRange;
     use chrono::Utc;
     #[test]
     fn get_object_builder_arugments() {
         let option = oss::Options::default();
         let client = oss::Client::new(option);
+        let filename = Some("测试.txt".to_string());
+        let content_disposition = ContentDisposition::ATTACHMENT(filename).to_string();
+
         let builder = GetObjectBuilder::new(&client, "example/ex1.txt")
             .with_version_id("version123")
             .with_content_type("text/plain")
-            .with_content_language("zh")
+            .with_content_language("zh-CN")
             .with_expires("expires")
             .with_cache_control("cache")
-            .with_content_disposition("dis")
+            .with_content_disposition(content_disposition.as_str())
             .with_content_encoding("GZIP")
             .with_range(ByteRange(Some(500), Some(1000)))
             .with_modified_since(Utc::now())

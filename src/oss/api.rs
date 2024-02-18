@@ -182,6 +182,8 @@ impl ApiResponseFrom {
     }
 }
 
+
+
 fn insert_header<T: ToString + std::fmt::Display>(
     headers: &mut http::HeaderMap,
     key: http::header::HeaderName,
@@ -198,53 +200,8 @@ fn insert_custom_header<T: ToString + std::fmt::Display>(headers: &mut http::Hea
     );
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct ByteRange(pub Option<usize>, pub Option<isize>);
-
-impl fmt::Display for ByteRange {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match (self.0, self.1) {
-            (None, None) => write!(f, "bytes=0-"),
-            (None, Some(amount)) => {
-                if amount >= 0 {
-                    write!(f, "bytes=0-{}", amount - 1)
-                } else {
-                    write!(f, "bytes=-{}", amount.abs())
-                }
-            }
-            (Some(start), None) => write!(f, "bytes={}-", start),
-            (Some(start), Some(amount)) if amount > 0 => {
-                write!(f, "bytes={}-{}", start, start + amount as usize - 1)
-            }
-            (Some(start), Some(amount)) => {
-                let start_pos = if start as isize + amount > 0 {
-                    start as isize + amount
-                } else {
-                    0
-                };
-                write!(f, "bytes={}-{}", start_pos.max(0), start - 1)
-            }
-        }
-    }
-}
 
 pub(crate) mod bucket;
 pub(crate) mod objects;
 pub(crate) mod region;
 pub(crate) mod service;
-
-#[cfg(test)]
-pub mod tests {
-    use crate::oss::api::ByteRange;
-
-    #[test]
-    fn range() {
-        assert_eq!(ByteRange(None, None).to_string(), "bytes=0-");
-        assert_eq!(ByteRange(None, Some(500)).to_string(), "bytes=0-499");
-        assert_eq!(ByteRange(None, Some(-500)).to_string(), "bytes=-500");
-        assert_eq!(ByteRange(Some(100), None).to_string(), "bytes=100-");
-        assert_eq!(ByteRange(Some(100), Some(500)).to_string(), "bytes=100-599");
-        assert_eq!(ByteRange(Some(100), Some(-500)).to_string(), "bytes=0-99");
-        assert_eq!(ByteRange(Some(100), Some(-50)).to_string(), "bytes=50-99");
-    }
-}

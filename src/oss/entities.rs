@@ -69,7 +69,7 @@ impl fmt::Display for ContentEncoding {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub enum ContentDisposition {
     #[default]
     INLINE,
@@ -83,7 +83,8 @@ impl fmt::Display for ContentDisposition {
             "{}",
             match self {
                 Self::INLINE => "inline".to_owned(),
-                Self::ATTACHMENT(Some(filename)) => format!("attachment;filename={}", filename),
+                Self::ATTACHMENT(Some(filename)) => 
+                    format!("attachment;filename=\"{}\"", filename),
                 Self::ATTACHMENT(None) => "attachment".to_owned(),
             }
         )
@@ -245,4 +246,15 @@ impl fmt::Display for ServerSideEncryption {
             }
         )
     }
+}
+mod tests {
+
+    #[test]
+    fn content_disposition_1() {
+        let filename:Option<String> = Some("测试.txt".to_string());
+        let value = crate::oss::entities::ContentDisposition::ATTACHMENT(filename);
+        println!("{}", value);
+    }
+
+
 }

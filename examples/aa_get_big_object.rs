@@ -8,8 +8,8 @@ use std::{
     process,
 };
 use xt_oss::{
-    oss::{self, api::ByteRange},
-    utils,
+    oss,
+    utils::{self, ByteRange},
 };
 
 fn byte_range_chunk(total: usize, chunk_size: usize) -> Vec<ByteRange> {
