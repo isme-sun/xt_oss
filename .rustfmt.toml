@@ -1,4 +1,4 @@
-max_width = 100
+max_width = 120
 hard_tabs = false
 newline_style = "Unix"
 use_small_heuristics = "Default"
@@ -10,4 +10,4 @@ merge_derives = true
 use_try_shorthand = false
 use_field_init_shorthand = false
 force_explicit_abi = true
-tab_spaces = 4
+tab_spaces = 2
