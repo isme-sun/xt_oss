@@ -7,13 +7,10 @@ async fn main() {
     dotenv::dotenv().ok();
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
+
     let resp = client
-        .HeadObject("tmp/database_book.pdf")
-        // .with_version_id(version_id)
-        // .with_match(value)
-        // .with_modified_since(value)
-        // .with_none_match(value)
-        // .with_unmodified_since(value)
+        .HeadObject("mp3/Audio_0.4mb.mp3")
+        // .with_version_id("version_id")
         .execute()
         .await
         .unwrap_or_else(|error| {

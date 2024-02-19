@@ -88,7 +88,11 @@ impl ApiResponseFrom {
             false => resp.bytes().await.unwrap().to_vec(),
         };
         let content = String::from_utf8_lossy(&info);
-        let content: ErrorMessage = quick_xml::de::from_str(&content).unwrap();
+        let content = if content.is_empty() {
+            ErrorMessage::default()
+        } else {
+            quick_xml::de::from_str(&content).unwrap()
+        };
         ApiData {
             url,
             status,
@@ -182,8 +186,6 @@ impl ApiResponseFrom {
     }
 }
 
-
-
 fn insert_header<T: ToString + std::fmt::Display>(
     headers: &mut http::HeaderMap,
     key: http::header::HeaderName,
@@ -199,7 +201,6 @@ fn insert_custom_header<T: ToString + std::fmt::Display>(headers: &mut http::Hea
         value.to_string().parse().expect("Failed to parse header value"),
     );
 }
-
 
 pub(crate) mod bucket;
 pub(crate) mod objects;

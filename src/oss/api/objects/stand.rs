@@ -2,7 +2,9 @@ use builders::{DeleteObjectBuilder, GetObjectBuilder, PutObjectBuilder};
 
 use crate::oss::{self, api::objects::stand::builders::GetObjectMetaBuilder};
 
-use self::builders::{AppendObjectBuilder, CopyObjectBuilder, HeadObjectBuilder, RestoreObjectBuilder};
+use self::builders::{
+    AppendObjectBuilder, CopyObjectBuilder, DeleteMultipleObjectsBuilder, HeadObjectBuilder, RestoreObjectBuilder,
+};
 
 pub mod builders {
 
@@ -719,6 +721,7 @@ pub mod builders {
             let mut res = format!("/{}/{}", self.client.bucket(), self.object);
             let mut url = self.client.object_url(self.object);
             let query = self.query();
+            // dbg!(&query);
             if !query.is_empty() {
                 res = format!("{}?{}", res, query);
                 url = format!("{}?{}", url, query)
@@ -761,9 +764,10 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<()> {
-            let res = format!("/{}/{}", self.client.bucket(), self.object);
+            let mut res = format!("/{}/{}", self.client.bucket(), self.object);
             let mut url = self.client.object_url(self.object);
             if let Some(version_id) = self.version_id {
+                res = format!("{}?versionId={}", res, version_id);
                 url = format!("{}?versionId={}", url, version_id);
             }
 
@@ -777,6 +781,52 @@ pub mod builders {
                 .execute()
                 .await?;
 
+            Ok(ApiResponseFrom(resp).to_empty().await)
+        }
+    }
+
+    #[allow(unused)]
+    pub struct DeleteMultipleObjectsBuilder<'a> {
+        client: &'a oss::Client<'a>,
+        quiet: Option<bool>,
+        encoding_type: Option<&'a str>,
+        content_length: Option<u64>,
+        content_md5: Option<&'a str>,
+    }
+
+    impl<'a> DeleteMultipleObjectsBuilder<'a> {
+        pub fn new(client: &'a oss::Client) -> Self {
+            Self {
+                client,
+                quiet: None,
+                encoding_type: None,
+                content_length: None,
+                content_md5: None,
+            }
+        }
+
+        pub fn with_quiet(mut self, value: bool) -> Self {
+            self.quiet = Some(value);
+            self
+        }
+
+        pub fn with_encoding_type(mut self, value: &'a str) -> Self {
+            self.encoding_type = Some(value);
+            self
+        }
+
+        pub async fn execute(&self) -> api::ApiResult {
+            let res = format!("/{}/?{}", self.client.bucket(), "delete");
+            let url = format!("{}/?{}", self.client.base_url(), "delete");
+            let resp = self
+                .client
+                .request
+                .task()
+                .with_url(&url)
+                .with_method(http::Method::POST)
+                .with_resource(&res)
+                .execute_timeout(self.client.timeout())
+                .await?;
             Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
@@ -832,11 +882,19 @@ pub mod builders {
         fn headers(&self) -> http::HeaderMap {
             let mut headers = http::HeaderMap::new();
             if let Some(modified_since) = self.modified_since {
-                insert_header(&mut headers, IF_MODIFIED_SINCE, modified_since);
+                insert_header(
+                    &mut headers,
+                    IF_MODIFIED_SINCE,
+                    modified_since.format(oss::GMT_DATE_FMT).to_string(),
+                );
             }
 
             if let Some(unmodified_since) = self.unmodified_since {
-                insert_header(&mut headers, IF_UNMODIFIED_SINCE, unmodified_since);
+                insert_header(
+                    &mut headers,
+                    IF_UNMODIFIED_SINCE,
+                    unmodified_since.format(oss::GMT_DATE_FMT).to_string(),
+                );
             }
             if let Some(r#match) = self.r#match {
                 insert_header(&mut headers, IF_MATCH, r#match);
@@ -847,7 +905,7 @@ pub mod builders {
             headers
         }
 
-        pub async fn execute(&self) -> api::ApiResult<()> {
+        pub async fn execute(&self) -> api::ApiResult {
             let mut res = format!("/{}/{}", self.client.bucket(), self.object);
             let mut url = self.client.object_url(self.object);
             if let Some(version_id) = self.version_id {
@@ -1023,8 +1081,8 @@ impl<'a> oss::Client<'a> {
     /// DeleteMultipleObjects接口用于删除同一个存储空间（Bucket）中的多个文件（Object）
     /// - [official docs]()
     /// - [xtoss example]()
-    pub fn DeleteMultipleObjects() {
-        todo!()
+    pub fn DeleteMultipleObjects(&self) -> DeleteMultipleObjectsBuilder {
+        DeleteMultipleObjectsBuilder::new(self)
     }
 
     /// HeadObject接口用于获取某个文件（Object）的元信息

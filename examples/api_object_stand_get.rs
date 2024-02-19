@@ -2,7 +2,10 @@ use std::process;
 
 use chrono::{Days, Utc};
 use xt_oss::{
-    oss::{self, entities::ContentDisposition},
+    oss::{
+        self,
+        entities::{CacheControl, ContentDisposition},
+    },
     utils::{self, ByteRange},
 };
 
@@ -20,24 +23,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format(oss::GMT_DATE_FMT)
         .to_string();
 
-    let resp = client
+    let cache_control = CacheControl::NoCache.to_string();
+
+    match client
         .GetObject("ppt/File-1000kb.ppt")
         .with_content_disposition(&content_disposition)
         .with_expires(&expire)
+        .with_cache_control(&cache_control)
         .with_range(ByteRange(Some(100), Some(500)))
+        .with_content_encoding("gzip")
+        .with_accept_encoding("zh-CN")
+        .with_timeout(120)
         .execute()
         .await
         .unwrap_or_else(|error| {
             println!("reqwest error: {}", error);
             process::exit(-1);
-        });
-    match resp {
-        Ok(data) => {
-            println!("{:#?}", data.headers());
-            println!("content len: {}", data.content().len())
+        }) {
+        Ok(oss_data) => {
+            println!("{:#?}", oss_data.headers());
+            println!("content len: {}", oss_data.content().len())
         }
-        Err(message) => {
-            println!("{:#?}", message.content())
+        Err(error_message) => {
+            println!("{:#?}", error_message.content())
         }
     }
     Ok(())

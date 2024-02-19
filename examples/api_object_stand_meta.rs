@@ -8,7 +8,12 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
     let resp = client
-        .GetObjectMeta("tmp/database_book.pdf")
+        .GetObjectMeta("mp3/Audio_0.4mb.mp3")
+        // .with_version_id(version_id)
+        // .with_match(value)
+        // .with_modified_since(value)
+        // .with_none_match(value)
+        // .with_unmodified_since(value)
         .execute()
         .await
         .unwrap_or_else(|error| {
