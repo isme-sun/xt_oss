@@ -77,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `PutBucket`](https://www.example.com)
 - [★ `DeleteBucket`](https://www.example.com)
 - [★ `ListObjects`](https://www.example.com)
-- [☆ `ListObjectsV2`](https://www.example.com)
+- [★ `ListObjectsV2`](https://www.example.com)
 - [★ `GetBucketInfo`](https://www.example.com) 
 - [★ `GetBucketLocation`](https://www.example.com) 
 - [★ `GetBucketStat`](https://www.example.com) 

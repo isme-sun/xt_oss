@@ -577,8 +577,8 @@ impl<'a> oss::Client<'a> {
     /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件
     ///（Object）的信息。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjectsv2)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_list_object_v2.rs)
     pub fn ListObjectsV2(&self) -> ListObjectsV2Builder<'_> {
         ListObjectsV2Builder::new(self)
     }

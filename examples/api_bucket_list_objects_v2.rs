@@ -9,8 +9,8 @@ async fn main() {
     let client = oss::Client::new(options);
     let result = client
         .ListObjectsV2()
-        .with_max_keys(2)
-        .with_prefix("course/video")
+        .with_max_keys(10)
+        // .with_prefix("course/video")
         .execute()
         .await
         .unwrap_or_else(|error| {
@@ -20,7 +20,7 @@ async fn main() {
 
     match result {
         Ok(data) => {
-            println!("{:#?}", data.content())
+            println!("{}", serde_json::to_string_pretty(&data.content()).unwrap())
         }
         Err(error) => {
             println!("{:#?}", error.content())
