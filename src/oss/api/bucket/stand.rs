@@ -568,8 +568,8 @@ impl<'a> oss::Client<'a> {
     /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件
     /// （Object）的信息。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjects)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_list_object.rs)
     pub fn ListObjects(&self) -> ListObjectBuilder<'_> {
         ListObjectBuilder::new(self)
     }

@@ -8,7 +8,7 @@
 
 ## 应用示例
 
- ```rust
+ ```no_run
 use std::process;
 use xt_oss::oss;
 
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
  概要说明 ...
 
- ```rust
+ ```no_run
  fn main() {
      println!("示例说明")
  }
@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 - [★ `PutBucket`](https://www.example.com)
 - [★ `DeleteBucket`](https://www.example.com)
-- [☆ `ListObjects`](https://www.example.com)
+- [★ `ListObjects`](https://www.example.com)
 - [☆ `ListObjectsV2`](https://www.example.com)
 - [★ `GetBucketInfo`](https://www.example.com) 
 - [★ `GetBucketLocation`](https://www.example.com) 
