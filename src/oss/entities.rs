@@ -83,8 +83,7 @@ impl fmt::Display for ContentDisposition {
             "{}",
             match self {
                 Self::INLINE => "inline".to_owned(),
-                Self::ATTACHMENT(Some(filename)) => 
-                    format!("attachment;filename=\"{}\"", filename),
+                Self::ATTACHMENT(Some(filename)) => format!("attachment;filename=\"{}\"", filename),
                 Self::ATTACHMENT(None) => "attachment".to_owned(),
             }
         )
@@ -251,10 +250,8 @@ mod tests {
 
     #[test]
     fn content_disposition_1() {
-        let filename:Option<String> = Some("测试.txt".to_string());
+        let filename: Option<String> = Some("测试.txt".to_string());
         let value = crate::oss::entities::ContentDisposition::ATTACHMENT(filename);
         println!("{}", value);
     }
-
-
 }

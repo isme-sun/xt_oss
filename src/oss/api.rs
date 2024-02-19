@@ -182,8 +182,6 @@ impl ApiResponseFrom {
     }
 }
 
-
-
 fn insert_header<T: ToString + std::fmt::Display>(
     headers: &mut http::HeaderMap,
     key: http::header::HeaderName,
@@ -199,7 +197,6 @@ fn insert_custom_header<T: ToString + std::fmt::Display>(headers: &mut http::Hea
         value.to_string().parse().expect("Failed to parse header value"),
     );
 }
-
 
 pub(crate) mod bucket;
 pub(crate) mod objects;
