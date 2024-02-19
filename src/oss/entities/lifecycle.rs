@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     /// 返回内容解析测试
-    fn lifecycle_configuration_return_parse1() {
+    fn lifecycle_configuration_return_parse_1() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
 <LifecycleConfiguration>
   <Rule>
@@ -347,7 +347,7 @@ mod tests {
 
     #[test]
     // 返回结果分析测试
-    fn lifecycle_configuration_return_parse2() {
+    fn lifecycle_configuration_return_parse_2() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
 <LifecycleConfiguration>
   <Rule>
@@ -377,9 +377,6 @@ mod tests {
 </LifecycleConfiguration>"#;
         let object: LifecycleConfiguration = quick_xml::de::from_str(xml_content).unwrap();
 
-        let json_str = serde_json::to_string_pretty(&object).unwrap();
-        println!("{}", json_str);
-
         let left = "atime transition2";
         let right = &object.rule[1].id;
         assert_eq!(left, right);
@@ -405,9 +402,6 @@ mod tests {
             )
             .build();
 
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
-
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
 
@@ -428,9 +422,6 @@ mod tests {
                     .build(),
             )
             .build();
-
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
 
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Expiration><Days>90</Days></Expiration></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
@@ -464,9 +455,6 @@ mod tests {
                     .build(),
             )
             .build();
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
-
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass></Transition><Transition><Days>60</Days><StorageClass>Archive</StorageClass></Transition><Expiration><Days>60</Days></Expiration></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
 
@@ -487,9 +475,6 @@ mod tests {
                     .build(),
             )
             .build();
-
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
 
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix/><Status>Enabled</Status><Expiration><ExpiredObjectDeleteMarker>true</ExpiredObjectDeleteMarker></Expiration><NoncurrentVersionExpiration><NoncurrentDays>5</NoncurrentDays></NoncurrentVersionExpiration></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
@@ -518,9 +503,6 @@ mod tests {
             )
             .build();
 
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
-
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>log</Prefix><Status>Enabled</Status><Transition><Days>30</Days><StorageClass>IA</StorageClass><IsAccessTime>true</IsAccessTime><ReturnToStdWhenVisit>true</ReturnToStdWhenVisit></Transition></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
 
@@ -539,8 +521,6 @@ mod tests {
                     .build(),
             )
             .build();
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
 
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>/</Prefix><Status>Enabled</Status><AbortMultipartUpload><Days>30</Days></AbortMultipartUpload></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
@@ -561,9 +541,6 @@ mod tests {
                     .build(),
             )
             .build();
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
-
         let left = "<LifecycleConfiguration><Rule><ID>rule</ID><Prefix>/</Prefix><Status>Enabled</Status><AbortMultipartUpload><Days>30</Days></AbortMultipartUpload></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
         assert_eq!(left, right);
@@ -589,11 +566,10 @@ mod tests {
                     .build(),
             )
             .build();
-        let json_str = serde_json::to_string_pretty(&config).unwrap();
-        println!("{}", json_str);
 
-        let left = "<LifecycleConfiguration><Rule><ID>Rule1</ID><Prefix>dir1</Prefix><Status/><Expiration><Days>180</Days></Expiration></Rule><Rule><ID>Rule2</ID><Prefix>dir1/dir2</Prefix><Status>Enabled</Status><Expiration><Days>30</Days></Expiration></Rule></LifecycleConfiguration>";
         let right = quick_xml::se::to_string(&config).unwrap();
+        let left = r#"<LifecycleConfiguration><Rule><ID>Rule1</ID><Prefix>dir1</Prefix><Status>Disabled</Status><Expiration><Days>180</Days></Expiration></Rule><Rule><ID>Rule2</ID><Prefix>dir1/dir2</Prefix><Status>Enabled</Status><Expiration><Days>30</Days></Expiration></Rule></LifecycleConfiguration>"#;
+
         assert_eq!(left, right);
     }
 }

@@ -207,7 +207,10 @@ pub mod tests {
   </Deleted>
 </DeleteResult>"#;
         let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", obj);
+        let left = "multipart.data";
+        let right = &obj.deleted[0].key;
+        assert_eq!(left, right);
+
     }
 
     #[test]
@@ -220,7 +223,7 @@ pub mod tests {
   </Deleted>
 </DeleteResult>"#;
         let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", obj);
+        assert_eq!("multipart.data", obj.deleted[0].key);
 
     }
 
@@ -237,7 +240,7 @@ pub mod tests {
 </DeleteResult>"#;
 
         let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", obj);
+        assert_eq!("demo.jpg", obj.deleted[0].key);
 
     }
     
@@ -258,7 +261,7 @@ pub mod tests {
 </DeleteResult>"#;
 
         let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", obj);
+        assert_eq!("multipart.data", obj.deleted[0].key);
 
     }
 }

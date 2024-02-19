@@ -142,6 +142,8 @@ pub mod tests {
 </RefererConfiguration>"#;
 
         let object: RefererConfiguration = quick_xml::de::from_str(&content).unwrap();
-        println!("{:#?}", object);
+        let left = "http://www.aliyun.com";
+        let right = &object.referer_list.unwrap().referer.unwrap()[0];
+        assert_eq!(left, right);
     }
 }

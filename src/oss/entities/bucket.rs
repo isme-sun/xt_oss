@@ -232,7 +232,9 @@ pub mod test {
 </ListAllMyBucketsResult>
 "#;
         let obj: ListAllMyBucketsResult = quick_xml::de::from_str(xml).unwrap();
-        println!("{:#?}", &obj);
+        let left = "2014-02-17 18:12:43 UTC";
+        let right = obj.buckets.bucket.unwrap()[0].creation_date.to_string();
+        assert_eq!(left, right);
     }
 
     #[test]
@@ -289,6 +291,8 @@ pub mod test {
     </ListBucketResult>"#;
 
         let entity: ListBucketResult2 = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", entity);
+        let left = "excel/Spreadsheet-1000-rows.xls";
+        let right = &entity.contents.unwrap()[0].key;
+        assert_eq!(&left, &right);
     }
 }

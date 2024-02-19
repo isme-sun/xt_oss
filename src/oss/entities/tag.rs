@@ -56,31 +56,13 @@ mod tests {
         let tag_set = TagSet {
             tag: Some(vec![tag, tag1]),
         };
-
         let tagging = Tagging { tag_set };
-
-        println!("{}", &tagging.to_query());
+        let query = tagging.to_query();
+        assert!(query.contains("xtoss"));
     }
 
     #[test]
     fn tagging() {
-        let tag = Tag {
-            key: "key1".to_string(),
-            value: "value1".to_string(),
-        };
-        let tag1 = Tag {
-            key: "key1".to_string(),
-            value: "value1".to_string(),
-        };
-
-        let tag_set = TagSet {
-            tag: Some(vec![tag, tag1]),
-        };
-
-        let tagging = Tagging { tag_set };
-        let content = serde_qs::to_string(&tagging).unwrap();
-        println!("{}", content);
-
         let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
 <Tagging>
 	<TagSet>
@@ -95,7 +77,8 @@ mod tests {
 	</TagSet>
 </Tagging>"#;
 
-        let c: Tagging = quick_xml::de::from_str(xml).unwrap();
-        println!("{}", &c.to_query());
+        let content: Tagging = quick_xml::de::from_str(xml).unwrap();
+        assert_eq!("key1", content.tag_set.tag.unwrap()[0].key);
+
     }
 }

@@ -1139,7 +1139,8 @@ mod tests {
             .with_none_match("etag")
             .with_accept_encoding("text/plain");
 
-        println!("  query: {}", builder.query());
-        println!("headers: {:#?}", builder.headers());
+        let left = r#"response-cache-control=cache&response-content-disposition=attachment%3Bfilename%3D%22%E6%B5%8B%E8%AF%95.txt%22&response-content-encoding=GZIP&response-content-language=zh-CN&response-content-type=text%2Fplain&response-expires=expires&versionId=version123"#;
+
+        assert_eq!(left, builder.query());
     }
 }

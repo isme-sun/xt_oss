@@ -177,8 +177,6 @@ mod tests {
 </ListCnameResult>"#;
         let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
 
-        println!("{:#?}", obj);
-
         let cname = obj.cname.unwrap()[0].clone();
         let cert = cname.certificate.unwrap();
         assert_eq!("CAS", cert.r#type);
@@ -208,13 +206,17 @@ mod tests {
 		</ListCnameResult>"#;
         let obj: ListCnameResult = quick_xml::de::from_str(xml).unwrap();
 
-        println!("{:#?}", obj);
+        let left = "dev-cdn.xuetube.com";
+        let right = &obj.cname.unwrap()[0].domain;
+        assert_eq!(&left, &right);
     }
 
     #[test]
     fn bucket_cname_configuration_builder() {
         let builder = BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
+        let left = r#"<BucketCnameConfiguration><Cname><Domain>https://dev.xuetube.com</Domain></Cname></BucketCnameConfiguration>"#;
+        let right = builder.config();
+        assert_eq!(left, right);
 
-        print!("{}", builder.config());
     }
 }

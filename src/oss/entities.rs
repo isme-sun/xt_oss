@@ -252,6 +252,6 @@ mod tests {
     fn content_disposition_1() {
         let filename: Option<String> = Some("测试.txt".to_string());
         let value = crate::oss::entities::ContentDisposition::ATTACHMENT(filename);
-        println!("{}", value);
+        assert!(value.to_string().contains("测试"))
     }
 }

@@ -179,7 +179,7 @@ mod tests {
 </ListVersionsResult>"#;
 
         let object = quick_xml::de::from_str::<ListVersionsResult>(xml_content).unwrap();
-        println!("{:#?}", object);
+        assert_eq!(1000, object.max_keys);
     }
 
     #[test]
@@ -234,8 +234,9 @@ mod tests {
 </ListVersionsResult>"#;
 
         let object: ListVersionsResult = quick_xml::de::from_str(xml_content).unwrap();
-
-        println!("{:#?}", object);
+        let left = "CAEQMxiBgICbof2D0BYiIGRhZjgwMzJiMjA3MjQ0ODE5MWYxZDYwMzJlZjU1****";
+        let right = object.version_id_marker.unwrap();
+        assert_eq!(left, right);
     }
 
     #[test]
@@ -292,7 +293,7 @@ mod tests {
 
         let object: ListVersionsResult = quick_xml::de::from_str(xml_content).unwrap();
 
-        println!("{:#?}", object);
+        assert_eq!("oss-example", object.name);
     }
 
     #[test]
@@ -312,7 +313,7 @@ mod tests {
 </ListVersionsResult>"#;
 
         let obj: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", obj);
+        assert_eq!("xuetube-dev", obj.name);
     }
 
     #[test]
@@ -446,6 +447,6 @@ mod tests {
       </Version>
     </ListVersionsResult>"#;
         let obj: ListVersionsResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", obj);
+        assert_eq!("xtoss-ex1", obj.name);
     }
 }

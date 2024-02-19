@@ -298,7 +298,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## 关于oss::Request
 
-```rust
+```no_run
 use std::env;
 
 use xt_oss::oss::Request;
@@ -335,7 +335,7 @@ async fn main() {
 }
 ```
 
-```rust
+```no_run
 use std::env;
 use xt_oss::oss::Request;
 
@@ -370,7 +370,7 @@ async fn main() {
 
 ```
 
-```rust
+```no_run
 use std::env;
 use xt_oss::oss::{self, http, Request};
 #[tokio::main]
@@ -431,7 +431,7 @@ async fn main() {
 
 ```
 
-```rust
+```no_run
 use std::env;
 use xt_oss::oss::Request;
 
@@ -464,5 +464,6 @@ async fn main() {
         }
     }
 }
+```
 
 ## oss request

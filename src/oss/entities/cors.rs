@@ -198,43 +198,43 @@ pub mod tests {
     use crate::oss::http;
 
     #[test]
-    fn allowed_origin_item1() {
+    fn allowed_origin_item_1() {
         let value = AllowedMethodItem::Any;
         assert_eq!("*", value.to_string())
     }
 
     #[test]
-    fn allowed_origin_item2() {
+    fn allowed_origin_item_2() {
         let value = AllowedOriginItem::Urls(vec!["http://localhost:3000", "http://localhost:3001"]);
         assert_eq!("http://localhost:3000,http://localhost:3001", value.to_string());
     }
 
     #[test]
-    fn allowed_method_item1() {
+    fn allowed_method_item_1() {
         let value = AllowedMethodItem::Any;
         assert_eq!("*", value.to_string())
     }
 
     #[test]
-    fn allowed_method_item2() {
+    fn allowed_method_item_2() {
         let value = AllowedMethodItem::Methods(vec![http::Method::GET, http::Method::POST]);
         assert_eq!("GET,POST", &value.to_string());
     }
 
     #[test]
-    fn allowed_header_item1() {
+    fn allowed_header_item_1() {
         let value = AllowedHeaderItem::Any;
         assert_eq!("*", value.to_string())
     }
 
     #[test]
-    fn allowed_header_item2() {
+    fn allowed_header_item_2() {
         let value = AllowedHeaderItem::Headers(vec![http::header::CONTENT_DISPOSITION, http::header::CONTENT_LANGUAGE]);
         assert_eq!("content-disposition,content-language", &value.to_string());
     }
 
     #[test]
-    fn cors_configuration1() {
+    fn cors_configuration_1() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
 <CORSConfiguration>
   <CORSRule>
@@ -260,7 +260,7 @@ pub mod tests {
     }
 
     #[test]
-    fn cors_configuration2() {
+    fn cors_configuration_2() {
         let rule1 = CORSRuleBuilder::new()
             .with_allowed_origin(AllowedOriginItem::Any)
             .with_allowed_method(AllowedMethodItem::Any)
@@ -288,7 +288,7 @@ pub mod tests {
 
         let left = quick_xml::se::to_string(&config).unwrap().to_string();
 
-        let right = r#"<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>*</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader/><MaxAgeSeconds/></CORSRule><CORSRule><AllowedOrigin>http://localhost:3000</AllowedOrigin><AllowedOrigin>http://localhost:3001</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>POST</AllowedMethod><AllowedHeader>cache-control</AllowedHeader><AllowedHeader>content-encoding</AllowedHeader><ExposeHeader>x-oss-test</ExposeHeader><ExposeHeader>x-oss-test1</ExposeHeader><MaxAgeSeconds/></CORSRule><ResponseVary>false</ResponseVary></CORSConfiguration>"#;
+        let right = r#"<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>PUT</AllowedMethod><AllowedMethod>POST</AllowedMethod><AllowedMethod>DELETE</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader/><MaxAgeSeconds/></CORSRule><CORSRule><AllowedOrigin>http://localhost:3000</AllowedOrigin><AllowedOrigin>http://localhost:3001</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>POST</AllowedMethod><AllowedHeader>cache-control</AllowedHeader><AllowedHeader>content-encoding</AllowedHeader><ExposeHeader>x-oss-test</ExposeHeader><ExposeHeader>x-oss-test1</ExposeHeader><MaxAgeSeconds/></CORSRule><ResponseVary>false</ResponseVary></CORSConfiguration>"#;
 
         assert_eq!(left, right)
     }
