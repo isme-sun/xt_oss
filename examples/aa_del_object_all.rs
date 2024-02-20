@@ -3,11 +3,11 @@ use std::{process, sync::Arc};
 use dotenv;
 use futures::future::join_all;
 use std::io::{self, Write};
-use xt_oss::{oss, utils};
+use xt_oss::{oss, util};
 
 async fn del_all() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = Arc::new(oss::Client::new(options));
     loop {
         match client

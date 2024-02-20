@@ -5,14 +5,14 @@ use xt_oss::{
         self,
         entities::{ObjectACL, StorageClass},
     },
-    utils::{self, oss_file_md5},
+    util::{self, oss_file_md5},
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     // 获取配置选项和 OSS 客户端
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
     // 目标文件
     let target_file = {

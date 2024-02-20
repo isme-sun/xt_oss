@@ -1,11 +1,11 @@
 use std::process;
 
 use dotenv;
-use xt_oss::{oss::entities::version::VersioningStatus, utils};
+use xt_oss::{oss::entities::version::VersioningStatus, util};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    match utils::options_from_env()
+    match util::options_from_env()
         .client()
         .PutBucketVersioning(VersioningStatus::Enabled)
         // .PutBucketVersioning(VersioningStatus::Suspended)

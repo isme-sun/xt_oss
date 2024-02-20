@@ -1,6 +1,18 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+pub struct InitiateMultipartUploadResult {
+    #[serde(rename = "Bucket")]
+    pub bucket: String,
+    #[serde(rename = "Key")]
+    pub key: String,
+    #[serde(rename = "UploadId")]
+    pub upload_id: String,
+    #[serde(rename = "EncodingType", skip_serializing_if = "Option::is_none")]
+    pub encoding_type: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Part {
     #[serde(rename = "PartNumber")]
     pub part_number: u64,
@@ -8,7 +20,7 @@ pub struct Part {
     pub last_modified: Option<String>,
     #[serde(rename = "ETag")]
     pub etag: String,
-    #[serde(rename = "Size",skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "Size", skip_serializing_if = "Option::is_none")]
     pub size: Option<u64>,
 }
 
@@ -102,9 +114,10 @@ mod tests {
   <LastModified>2019-04-09T07:01:56.000Z</LastModified>
   <ETag>"25A9F4ABFCC05743DF6E2C886C56****"</ETag>
 </CopyPartResult>"#;
-
         let obj: CopyPartResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", &obj);
+        let left = "2019-04-09T07:01:56.000Z";
+        let right = obj.last_modified;
+        assert_eq!(left, right);
     }
 
     #[test]
@@ -124,23 +137,26 @@ mod tests {
 </Part> 
 </CompleteMultipartUpload>
 "#;
-
         let obj: CompleteMultipartUpload = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", &obj);
+        let left = 1u64;
+        let right = obj.parts[0].part_number;
+        assert_eq!(left, right);
     }
 
     #[test]
     fn multipart_3() {
         let xml_content = r#"<CompleteMultipartUploadResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
-	<EncodingType>url</EncodingType>
-	<Location>http://oss-example.oss-cn-hangzhou.aliyuncs.com /multipart.data</Location>
-	<Bucket>oss-example</Bucket>
-	<Key>multipart.data</Key>
-	<ETag>"B864DB6A936D376F9F8D3ED3BBE540****"</ETag>
+<EncodingType>url</EncodingType>
+  <Location>http://oss-example.oss-cn-hangzhou.aliyuncs.com /multipart.data</Location>
+  <Bucket>oss-example</Bucket>
+  <Key>multipart.data</Key>
+  <ETag>"B864DB6A936D376F9F8D3ED3BBE540****"</ETag>
 </CompleteMultipartUploadResult>"#;
 
         let obj: CompleteMultipartUploadResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", &obj);
+        let left = "multipart.data";
+        let right = &obj.key;
+        assert_eq!(left, right);
     }
 
     #[test]
@@ -155,7 +171,9 @@ mod tests {
 "#;
 
         let obj: CompleteMultipartUploadResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", &obj);
+        let left = "multipart.data";
+        let right = &obj.key;
+        assert_eq!(left, right);
     }
 
     #[test]
@@ -189,7 +207,9 @@ mod tests {
 "#;
 
         let obj: ListMultipartUploadsResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", &obj);
+        let left = "multipart.data";
+        let right = &obj.uploads[0].key;
+        assert_eq!(left, right);
     }
 
     #[test]
@@ -223,6 +243,22 @@ mod tests {
 </ListPartsResult>
 "#;
         let obj: ListPartsResult = quick_xml::de::from_str(&xml_content).unwrap();
-        println!("{:#?}", &obj);
+        let left = r#""3349DC700140D7F86A0784842780****""#;
+        let right = &obj.parts[0].etag;
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn multipart_7() {
+        let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+<InitiateMultipartUploadResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+  <Bucket>oss-example</Bucket>
+  <Key>multipart.data</Key>
+  <UploadId>0004B9894A22E5B1888A1E29F823****</UploadId>
+</InitiateMultipartUploadResult>"#;
+        let obj: InitiateMultipartUploadResult = quick_xml::de::from_str(&xml_content).unwrap();
+        let left = "oss-example";
+        let right = obj.bucket;
+        assert_eq!(left, right);
     }
 }

@@ -6,13 +6,13 @@ use xt_oss::{
         self,
         http,
     },
-    utils::{self, ByteRange},
+    util::{self, ByteRange},
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
 
     let content_disposition = http::ContentDisposition::ATTACHMENT(Some("文件.ppt".to_string())).to_string();

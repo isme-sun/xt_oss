@@ -64,7 +64,7 @@ pub fn oss_file_md5<'a>(file: &'a str) -> Result<String, io::Error> {
 /// # example
 ///
 /// ```
-/// use xt_oss::utils::ByteRange;
+/// use xt_oss::util::ByteRange;
 /// assert_eq!(ByteRange::new().to_string(), "bytes=0-");
 /// assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");
 /// assert_eq!(ByteRange::new().with_amount(-500).to_string(), "bytes=-500");

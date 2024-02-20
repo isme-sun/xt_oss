@@ -8,13 +8,13 @@ use xt_oss::{
             Status,
         },
     },
-    utils,
+    util,
 };
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
 
     let expire_180_day = ExpirationBuilder::new().with_days(180).build();

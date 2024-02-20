@@ -11,14 +11,14 @@ use std::{
 };
 use xt_oss::{
     oss,
-    utils::{self, ByteRange},
+    util::{self, ByteRange},
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     println!("\n# 下载大文件 example\n");
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
     // 下载目标文件
     let object = "images/JPGImage_30mbmb.jpg";

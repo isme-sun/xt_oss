@@ -5,13 +5,13 @@ use xt_oss::{
         self,
         entities::{DataRedundancyType, OssAcl, StorageClass},
     },
-    utils,
+    util,
 };
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
     match client
         .PutBucket()

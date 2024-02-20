@@ -1,11 +1,11 @@
 use std::process;
 
 use dotenv;
-use xt_oss::{oss, utils};
+use xt_oss::{oss, util};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
     match client.AbortBucketWorm().execute().await.unwrap_or_else(|error| {
         println!("reqwest error {}", error);

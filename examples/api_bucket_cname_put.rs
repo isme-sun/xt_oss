@@ -2,7 +2,7 @@ use dotenv;
 #[allow(unused)]
 use std::process;
 #[allow(unused)]
-use xt_oss::{oss, utils};
+use xt_oss::{oss, util};
 
 #[tokio::main]
 async fn main() {

@@ -1,6 +1,6 @@
 use std::{env, fs::File, io::Read};
 use walkdir::{DirEntry, WalkDir};
-use xt_oss::{oss, utils};
+use xt_oss::{oss, util};
 
 fn only_file(entry: &DirEntry) -> bool {
     entry
@@ -12,7 +12,7 @@ fn only_file(entry: &DirEntry) -> bool {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let option = utils::options_from_env();
+    let option = util::options_from_env();
     let client = oss::Client::new(option);
 
     let basedir = env::current_dir()?;

@@ -1,11 +1,11 @@
 use dotenv;
 use std::process;
-use xt_oss::{oss, utils};
+use xt_oss::{oss, util};
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
     let result = client.ListCname().execute().await.unwrap_or_else(|reqwest_error| {
         println!("reqwest error: {}", reqwest_error);

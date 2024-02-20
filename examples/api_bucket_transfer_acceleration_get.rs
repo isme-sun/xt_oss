@@ -1,11 +1,11 @@
 use std::process;
 
 use dotenv;
-use xt_oss::{oss::entities::acceleration::TransferAccelerationConfiguration, utils};
+use xt_oss::{oss::entities::acceleration::TransferAccelerationConfiguration, util};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    match utils::options_from_env()
+    match util::options_from_env()
         .client()
         .GetBucketTransferAcceleration()
         // .PutBucketVersioning(VersioningStatus::Suspended)

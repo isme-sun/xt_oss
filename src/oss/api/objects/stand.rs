@@ -28,7 +28,7 @@ pub mod builders {
         },
         http, Bytes,
     };
-    use crate::utils::ByteRange;
+    use crate::util::ByteRange;
 
     #[derive(Debug, Default)]
     struct PutObjectBuilderHeaders {
@@ -1115,7 +1115,7 @@ impl<'a> oss::Client<'a> {
 mod tests {
     use super::*;
     use crate::oss::{self, http::ContentDisposition};
-    use crate::utils::ByteRange;
+    use crate::util::ByteRange;
     use chrono::Utc;
     #[test]
     fn get_object_builder_arugments() {

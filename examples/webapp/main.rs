@@ -2,7 +2,7 @@ use std::{env, sync::Arc};
 
 use axum::{routing::get, Router};
 use tera::Tera;
-use xt_oss::{oss, utils};
+use xt_oss::{oss, util};
 
 mod pages {
     use super::AppState;
@@ -60,7 +60,7 @@ impl<'a> AppState<'a> {
             root_dir.display().to_string()
         };
 
-        let options = utils::options_from_env();
+        let options = util::options_from_env();
         let client = oss::Client::new(options);
         let tera = Tera::new(&template_dir).unwrap();
         Self {

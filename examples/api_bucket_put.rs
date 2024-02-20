@@ -8,13 +8,13 @@ use xt_oss::{
         entities::{DataRedundancyType, OssAcl, StorageClass},
         Options,
     },
-    utils,
+    util,
 };
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let options: Options = utils::options_from_env();
+    let options: Options = util::options_from_env();
     let client = oss::Client::new(options);
     let result = client
         .PutBucket()

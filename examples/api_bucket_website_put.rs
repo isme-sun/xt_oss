@@ -6,13 +6,13 @@ use xt_oss::{
         self,
         entities::website::builder::{ErrorDocumentBuilder, IndexDocumentBuilder, WebsiteConfigurationBuilder},
     },
-    utils,
+    util,
 };
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let options = utils::options_from_env();
+    let options = util::options_from_env();
     let client = oss::Client::new(options);
 
     let index_document = IndexDocumentBuilder::new()

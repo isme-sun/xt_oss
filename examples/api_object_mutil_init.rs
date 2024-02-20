@@ -1,27 +1,28 @@
-use dotenv;
 use std::process;
-use xt_oss::{oss, util};
+use xt_oss::{
+    oss,
+    util,
+};
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
-    let result = client
-        .DeleteBucketCors()
+    match client
+        .InitiateMultipartUpload("tmp/test1.png")
+        .with_content_type("image/png")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {
-            println!("reqwest error: {}", reqwest_error);
+            eprintln!("{}", reqwest_error);
             process::exit(-1);
-        });
-
-    match result {
+        }) {
         Ok(oss_data) => {
-            println!("{:#?}", oss_data.headers())
+            println!("{:#?}", oss_data.content())
         }
         Err(error_message) => {
-            println!("{}", error_message.content())
+            println!("{:#?}", error_message.content())
         }
     }
 }
