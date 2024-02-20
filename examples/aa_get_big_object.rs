@@ -1,6 +1,5 @@
 use bytes::BytesMut;
 use dotenv;
-use reqwest::header::CONTENT_LENGTH;
 use std::{
     fs,
     io::{self, Write},
@@ -12,28 +11,15 @@ use xt_oss::{
     utils::{self, ByteRange},
 };
 
-fn byte_range_chunk(total: usize, chunk_size: usize) -> Vec<ByteRange> {
-    let mut reuslt: Vec<ByteRange> = vec![];
-    let mut max_count = 0;
-    for i in 0..total / chunk_size as usize {
-        reuslt.push((i * chunk_size, chunk_size as isize).into());
-        max_count = i;
-    }
-
-    let rest = total - ((max_count + 1) * chunk_size as usize);
-    if rest != 0 {
-        let start = total - rest;
-        reuslt.push((start, rest as isize).into());
-    }
-    reuslt
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
+    println!("\n# 下载大文件 example\n");
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
+    // 下载目标文件
     let object = "images/JPGImage_30mbmb.jpg";
+    // 下载后本地存储位置
     let down_dir = {
         let base_dir = match dirs::home_dir() {
             Some(path) => path,
@@ -45,21 +31,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         down_dir
     };
     let save_path = down_dir.clone().join(object);
-    println!("{}", save_path.display());
+    println!(" - save location: {}", save_path.display());
 
-    let size = if let Ok(data) = client.GetObjectMeta(object).execute().await.unwrap_or_else(|error| {
-        println!("reqwest error {}", error);
-        process::exit(-1);
-    }) {
-        data.headers()
-            .get(CONTENT_LENGTH)
-            .map(|value| value.to_str().unwrap())
-            .map(|value| value.parse::<usize>().unwrap())
+    // 分段size
+    let chunk_size = 1024 * 1024;
+    let size = if let Ok(data) = client.GetObjectMeta(object).execute().await? {
+        // 从header获取目标文件的size
+        data.content_length()
     } else {
         None
     };
-    println!("file total size: {:.2} MB", size.unwrap() as f64 / (1024 * 1024) as f64);
-    let byte_range_list = byte_range_chunk(size.unwrap(), 1024 * 1024 * 2);
+    assert!(size.is_some());
+    println!(" - total file size: {:.2} MB", size.unwrap() as f64 / chunk_size as f64);
+    let byte_range_list = ByteRange::chunk(size.unwrap(), chunk_size);
+    let byte_range_len = byte_range_list.len();
 
     let mut bytes = BytesMut::new();
 
@@ -75,8 +60,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }) {
             Ok(data) => {
                 let rate = format!(
-                    "complete {:5.2}%",
-                    ((index + 1) as f64 / byte_range_list.len() as f64) * 100f64
+                    " - complete {:5.2}%",
+                    ((index + 1) as f64 / byte_range_len as f64) * 100f64
                 );
                 if index == 0 {
                     print!("{rate}");
@@ -98,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         let mut file = fs::File::create(save_path)?;
         file.write_all(&bytes)?;
-        println!("save sucecess");
+        println!(" - save sucecess!");
     }
 
     Ok(())

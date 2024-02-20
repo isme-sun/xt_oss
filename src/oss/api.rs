@@ -65,6 +65,13 @@ impl<T> ApiData<T> {
     pub fn request_id(&self) -> String {
         self.headers.get("x-oss-request-id").unwrap().to_str().unwrap().into()
     }
+
+    pub fn content_length(&self) -> Option<usize> {
+        self.headers()
+            .get(http::header::CONTENT_LENGTH)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.parse().ok())
+    }
 }
 
 pub type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;

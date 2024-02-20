@@ -63,6 +63,15 @@ pub fn oss_file_md5<'a>(file: &'a str) -> Result<String, io::Error> {
 ///
 /// # example
 ///
+/// ```no_run
+/// assert_eq!(ByteRange::new().to_string(), "bytes=0-");
+/// assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");
+/// assert_eq!(ByteRange::new().with_amount(-500).to_string(), "bytes=-500");
+/// assert_eq!(ByteRange::new().with_start(100).to_string(), "bytes=100-");
+/// assert_eq!(ByteRange::from((100, 500)).to_string(), "bytes=100-599");
+/// assert_eq!(ByteRange::from((100, -500)).to_string(), "bytes=0-99");
+/// assert_eq!(ByteRange::from((100, -50)).to_string(), "bytes=50-99");
+/// ```
 ///
 #[derive(Debug, Default, Clone)]
 pub struct ByteRange {
@@ -73,6 +82,22 @@ pub struct ByteRange {
 impl ByteRange {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn chunk(total: usize, chunk_size: usize) -> Vec<Self> {
+        let mut reuslt: Vec<ByteRange> = vec![];
+        let mut max_count = 0;
+        for i in 0..total / chunk_size as usize {
+            reuslt.push((i * chunk_size, chunk_size as isize).into());
+            max_count = i;
+        }
+
+        let rest = total - ((max_count + 1) * chunk_size as usize);
+        if rest != 0 {
+            let start = total - rest;
+            reuslt.push((start, rest as isize).into());
+        }
+        reuslt
     }
 
     pub fn with_start(mut self, value: usize) -> Self {
@@ -97,26 +122,27 @@ impl From<(usize, isize)> for ByteRange {
 
 impl fmt::Display for ByteRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let (Some(start), Some(amount)) = (self.start, self.amount) {
-            let end = if amount >= 0 {
-                start + amount as usize - 1
-            } else {
-                match amount.abs() as usize > start {
-                    true => 0,
-                    false => start.saturating_sub(amount.abs() as usize),
+        match (self.start, self.amount) {
+            (None, None) => write!(f, "bytes=0-"),
+            (None, Some(amount)) => {
+                if amount >= 0 {
+                    write!(f, "bytes=0-{}", amount - 1)
+                } else {
+                    write!(f, "bytes=-{}", amount.abs())
                 }
-            };
-            write!(f, "bytes={}-{}", start, end)
-        } else if let Some(start) = self.start {
-            write!(f, "bytes={}-", start)
-        } else if let Some(amount) = self.amount {
-            if amount >= 0 {
-                write!(f, "bytes=0-{}", amount - 1)
-            } else {
-                write!(f, "bytes=-{}", amount.abs())
             }
-        } else {
-            write!(f, "bytes=0-")
+            (Some(start), None) => write!(f, "bytes={}-", start),
+            (Some(start), Some(amount)) if amount > 0 => {
+                write!(f, "bytes={}-{}", start, start + amount as usize - 1)
+            }
+            (Some(start), Some(amount)) => {
+                let start_pos = if start as isize + amount > 0 {
+                    start as isize + amount
+                } else {
+                    0
+                };
+                write!(f, "bytes={}-{}", start_pos.max(0), start - 1)
+            }
         }
     }
 }
@@ -126,22 +152,19 @@ pub mod tests {
     use super::ByteRange;
 
     #[test]
-    fn range() {
+    fn range_1() {
         assert_eq!(ByteRange::new().to_string(), "bytes=0-");
         assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");
         assert_eq!(ByteRange::new().with_amount(-500).to_string(), "bytes=-500");
         assert_eq!(ByteRange::new().with_start(100).to_string(), "bytes=100-");
-        assert_eq!(
-            ByteRange::new().with_start(100).with_amount(500).to_string(),
-            "bytes=100-599"
-        );
-        assert_eq!(
-            ByteRange::new().with_start(100).with_amount(-500).to_string(),
-            "bytes=0-99"
-        );
-        assert_eq!(
-            ByteRange::new().with_start(100).with_amount(-50).to_string(),
-            "bytes=50-99"
-        );
+        assert_eq!(ByteRange::from((100, 500)).to_string(), "bytes=100-599");
+        assert_eq!(ByteRange::from((100, -500)).to_string(), "bytes=0-99");
+        assert_eq!(ByteRange::from((100, -50)).to_string(), "bytes=50-99");
+    }
+
+    #[test]
+    fn range_2() {
+        let range_list = ByteRange::chunk(87475, 1024);
+        assert_eq!("bytes=87040-87474", range_list.last().unwrap().to_string())
     }
 }
