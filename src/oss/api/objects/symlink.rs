@@ -14,16 +14,16 @@ pub mod builders {
     use crate::oss::{
         self,
         api::{self, insert_custom_header, insert_header, ApiResponseFrom},
-        entities::{CacheControl, ContentDisposition, ContentEncoding, ObjectACL, StorageClass},
+        entities::{ObjectACL, StorageClass},
         http,
     };
 
     #[derive(Debug, Default, Clone)]
     struct PutSymlinkBuilderHeaders {
-        cache_control: Option<CacheControl>,
-        content_disposition: Option<ContentDisposition>,
+        cache_control: Option<http::CacheControl>,
+        content_disposition: Option<http::ContentDisposition>,
         content_language: Option<String>,
-        content_encoding: Option<ContentEncoding>,
+        content_encoding: Option<http::ContentEncoding>,
         content_type: Option<String>,
         expires: Option<DateTime<Utc>>,
     }
@@ -90,17 +90,17 @@ pub mod builders {
             self
         }
 
-        pub fn with_cache_control(mut self, value: CacheControl) -> Self {
+        pub fn with_cache_control(mut self, value: http::CacheControl) -> Self {
             self.headers.cache_control = Some(value);
             self
         }
 
-        pub fn with_content_disposition(mut self, value: ContentDisposition) -> Self {
+        pub fn with_content_disposition(mut self, value: http::ContentDisposition) -> Self {
             self.headers.content_disposition = Some(value);
             self
         }
 
-        pub fn with_content_encoding(mut self, value: ContentEncoding) -> Self {
+        pub fn with_content_encoding(mut self, value: http::ContentEncoding) -> Self {
             self.headers.content_encoding = Some(value);
             self
         }

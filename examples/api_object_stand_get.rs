@@ -4,7 +4,7 @@ use chrono::{Days, Utc};
 use xt_oss::{
     oss::{
         self,
-        entities::{CacheControl, ContentDisposition},
+        http,
     },
     utils::{self, ByteRange},
 };
@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
 
-    let content_disposition = ContentDisposition::ATTACHMENT(Some("文件.ppt".to_string())).to_string();
+    let content_disposition = http::ContentDisposition::ATTACHMENT(Some("文件.ppt".to_string())).to_string();
 
     let expire = Utc::now()
         .checked_add_days(Days::new(1))
@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format(oss::GMT_DATE_FMT)
         .to_string();
 
-    let cache_control = CacheControl::NoCache.to_string();
+    let cache_control = http::CacheControl::NoCache.to_string();
 
     match client
         .GetObject("ppt/File-1000kb.ppt")

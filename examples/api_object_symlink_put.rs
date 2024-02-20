@@ -3,7 +3,8 @@ use std::process;
 use xt_oss::{
     oss::{
         self,
-        entities::{ContentDisposition, ObjectACL, StorageClass},
+        entities::{ObjectACL, StorageClass},
+        http,
     },
     utils,
 };
@@ -14,7 +15,7 @@ async fn main() {
     let options = utils::options_from_env();
     let client = oss::Client::new(options);
 
-    let content_disposition = ContentDisposition::ATTACHMENT(Some("测试.xml".to_string()));
+    let content_disposition = http::ContentDisposition::ATTACHMENT(Some("测试.xml".to_string()));
     match client
         .PutSymlink("tmp/test.xls")
         .with_symlink_target("excel/Spreadsheet-1000-rows.xls")

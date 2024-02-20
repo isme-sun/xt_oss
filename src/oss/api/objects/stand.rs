@@ -24,7 +24,7 @@ pub mod builders {
         entities::{
             object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
             tag::{Tag, TagSet, Tagging},
-            CacheControl, ContentDisposition, ContentEncoding, ObjectACL, ServerSideEncryption, StorageClass,
+            ObjectACL, ServerSideEncryption, StorageClass,
         },
         http, Bytes,
     };
@@ -33,10 +33,10 @@ pub mod builders {
     #[derive(Debug, Default)]
     struct PutObjectBuilderHeaders {
         content_type: Option<String>,
-        content_encoding: Option<ContentEncoding>,
+        content_encoding: Option<http::ContentEncoding>,
         content_language: Option<String>,
-        content_disposition: Option<ContentDisposition>,
-        cache_control: Option<CacheControl>,
+        content_disposition: Option<http::ContentDisposition>,
+        cache_control: Option<http::CacheControl>,
         expires: Option<DateTime<Utc>>,
         content_length: Option<u64>,
         content_md5: Option<String>,
@@ -80,17 +80,17 @@ pub mod builders {
             self
         }
 
-        pub fn with_cache_control(mut self, value: CacheControl) -> Self {
+        pub fn with_cache_control(mut self, value: http::CacheControl) -> Self {
             self.headers.cache_control = Some(value);
             self
         }
 
-        pub fn with_content_disposition(mut self, value: ContentDisposition) -> Self {
+        pub fn with_content_disposition(mut self, value: http::ContentDisposition) -> Self {
             self.headers.content_disposition = Some(value);
             self
         }
 
-        pub fn with_content_encoding(mut self, value: ContentEncoding) -> Self {
+        pub fn with_content_encoding(mut self, value: http::ContentEncoding) -> Self {
             self.headers.content_encoding = Some(value);
             self
         }
@@ -1114,7 +1114,7 @@ impl<'a> oss::Client<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::oss::{self, entities::ContentDisposition};
+    use crate::oss::{self, http::ContentDisposition};
     use crate::utils::ByteRange;
     use chrono::Utc;
     #[test]

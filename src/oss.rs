@@ -10,12 +10,7 @@ pub const XML_CONTENT: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 use std::time::Duration;
 // re-export
 pub use bytes::Bytes;
-pub mod http {
-    pub use reqwest::{
-        header::{self, HeaderMap, HeaderName, HeaderValue},
-        IntoUrl, Method, StatusCode, Url,
-    };
-}
+pub mod http;
 
 // entity defined
 pub mod entities;
@@ -487,5 +482,4 @@ pub mod tests {
         assert_eq!(options.root_url(), root_url);
         assert_eq!(options.base_url(), base_url);
     }
-
 }

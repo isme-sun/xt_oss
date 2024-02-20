@@ -1,15 +1,6 @@
-#[allow(unused)]
-use chrono::Utc;
 use std::{env, fs::File, io::Read};
 use walkdir::{DirEntry, WalkDir};
-#[allow(unused)]
-use xt_oss::{
-    oss::{
-        self,
-        entities::{CacheControl, ContentDisposition, ContentEncoding, ServerSideEncryption},
-    },
-    utils,
-};
+use xt_oss::{oss, utils};
 
 fn only_file(entry: &DirEntry) -> bool {
     entry
