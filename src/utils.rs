@@ -56,32 +56,67 @@ pub fn oss_file_md5<'a>(file: &'a str) -> Result<String, io::Error> {
     Ok(general_purpose::STANDARD.encode(&bytes))
 }
 
+/// 获取字节范围描述
+///
+/// - `start`  开始位置
+/// - `amount` 获取字节数量，支持负数
+///
+/// # example
+///
+///
 #[derive(Debug, Default, Clone)]
-pub struct ByteRange(pub Option<usize>, pub Option<isize>);
+pub struct ByteRange {
+    start: Option<usize>,
+    amount: Option<isize>,
+}
+
+impl ByteRange {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_start(mut self, value: usize) -> Self {
+        self.start = Some(value);
+        self
+    }
+
+    pub fn with_amount(mut self, value: isize) -> Self {
+        self.amount = Some(value);
+        self
+    }
+}
+
+impl From<(usize, isize)> for ByteRange {
+    fn from(item: (usize, isize)) -> Self {
+        Self {
+            start: Some(item.0),
+            amount: Some(item.1),
+        }
+    }
+}
 
 impl fmt::Display for ByteRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match (self.0, self.1) {
-            (None, None) => write!(f, "bytes=0-"),
-            (None, Some(amount)) => {
-                if amount >= 0 {
-                    write!(f, "bytes=0-{}", amount - 1)
-                } else {
-                    write!(f, "bytes=-{}", amount.abs())
+        if let (Some(start), Some(amount)) = (self.start, self.amount) {
+            let end = if amount >= 0 {
+                start + amount as usize - 1
+            } else {
+                match amount.abs() as usize > start {
+                    true => 0,
+                    false => start.saturating_sub(amount.abs() as usize),
                 }
+            };
+            write!(f, "bytes={}-{}", start, end)
+        } else if let Some(start) = self.start {
+            write!(f, "bytes={}-", start)
+        } else if let Some(amount) = self.amount {
+            if amount >= 0 {
+                write!(f, "bytes=0-{}", amount - 1)
+            } else {
+                write!(f, "bytes=-{}", amount.abs())
             }
-            (Some(start), None) => write!(f, "bytes={}-", start),
-            (Some(start), Some(amount)) if amount > 0 => {
-                write!(f, "bytes={}-{}", start, start + amount as usize - 1)
-            }
-            (Some(start), Some(amount)) => {
-                let start_pos = if start as isize + amount > 0 {
-                    start as isize + amount
-                } else {
-                    0
-                };
-                write!(f, "bytes={}-{}", start_pos.max(0), start - 1)
-            }
+        } else {
+            write!(f, "bytes=0-")
         }
     }
 }
@@ -92,12 +127,21 @@ pub mod tests {
 
     #[test]
     fn range() {
-        assert_eq!(ByteRange(None, None).to_string(), "bytes=0-");
-        assert_eq!(ByteRange(None, Some(500)).to_string(), "bytes=0-499");
-        assert_eq!(ByteRange(None, Some(-500)).to_string(), "bytes=-500");
-        assert_eq!(ByteRange(Some(100), None).to_string(), "bytes=100-");
-        assert_eq!(ByteRange(Some(100), Some(500)).to_string(), "bytes=100-599");
-        assert_eq!(ByteRange(Some(100), Some(-500)).to_string(), "bytes=0-99");
-        assert_eq!(ByteRange(Some(100), Some(-50)).to_string(), "bytes=50-99");
+        assert_eq!(ByteRange::new().to_string(), "bytes=0-");
+        assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");
+        assert_eq!(ByteRange::new().with_amount(-500).to_string(), "bytes=-500");
+        assert_eq!(ByteRange::new().with_start(100).to_string(), "bytes=100-");
+        assert_eq!(
+            ByteRange::new().with_start(100).with_amount(500).to_string(),
+            "bytes=100-599"
+        );
+        assert_eq!(
+            ByteRange::new().with_start(100).with_amount(-500).to_string(),
+            "bytes=0-99"
+        );
+        assert_eq!(
+            ByteRange::new().with_start(100).with_amount(-50).to_string(),
+            "bytes=50-99"
+        );
     }
 }

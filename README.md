@@ -8,7 +8,7 @@
 
 ## 应用示例
 
- ```no_run
+ ```rust no_run
 use std::process;
 use xt_oss::oss;
 
@@ -49,9 +49,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
  概要说明 ...
 
- ```no_run
+ ```rust no_run
  fn main() {
-     println!("示例说明")
+     println!("示例说明");
  }
  ```
 
@@ -370,7 +370,7 @@ async fn main() {
 
 ```
 
-```no_run
+```rust no_run
 use std::env;
 use xt_oss::oss::{self, http, Request};
 #[tokio::main]
@@ -431,7 +431,7 @@ async fn main() {
 
 ```
 
-```no_run
+```rust no_run
 use std::env;
 use xt_oss::oss::Request;
 

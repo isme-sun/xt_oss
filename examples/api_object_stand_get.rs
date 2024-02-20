@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_content_disposition(&content_disposition)
         .with_expires(&expire)
         .with_cache_control(&cache_control)
-        .with_range(ByteRange(Some(100), Some(500)))
+        .with_range(ByteRange::from((100, 500)))
         .with_content_encoding("gzip")
         .with_accept_encoding("zh-CN")
         .with_timeout(120)

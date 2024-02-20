@@ -16,15 +16,14 @@ fn byte_range_chunk(total: usize, chunk_size: usize) -> Vec<ByteRange> {
     let mut reuslt: Vec<ByteRange> = vec![];
     let mut max_count = 0;
     for i in 0..total / chunk_size as usize {
-        let t = (i * chunk_size, chunk_size);
-        reuslt.push(ByteRange(Some(t.0), Some(t.1 as isize)));
+        reuslt.push((i * chunk_size, chunk_size as isize).into());
         max_count = i;
     }
 
     let rest = total - ((max_count + 1) * chunk_size as usize);
     if rest != 0 {
         let start = total - rest;
-        reuslt.push(ByteRange(Some(start), Some(rest as isize)));
+        reuslt.push((start, rest as isize).into());
     }
     reuslt
 }

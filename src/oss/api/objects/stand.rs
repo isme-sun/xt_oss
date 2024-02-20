@@ -1132,7 +1132,7 @@ mod tests {
             .with_cache_control("cache")
             .with_content_disposition(content_disposition.as_str())
             .with_content_encoding("GZIP")
-            .with_range(ByteRange(Some(500), Some(1000)))
+            .with_range(ByteRange::new().with_start(500).with_amount(1000))
             .with_modified_since(Utc::now())
             .with_unmodified_since(Utc::now())
             .with_match("etag")
