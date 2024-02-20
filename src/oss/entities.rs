@@ -10,7 +10,7 @@ pub mod cors;
 pub mod encryption;
 pub mod lifecycle;
 pub mod log;
-pub mod multipart;
+pub mod mult_upload;
 pub mod object;
 pub mod private;
 pub mod referer;

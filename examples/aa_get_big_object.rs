@@ -1,3 +1,6 @@
+//! `cargo run --example aa_get_big_object -q`
+#![deny(warnings)]
+
 use bytes::BytesMut;
 use dotenv;
 use std::{

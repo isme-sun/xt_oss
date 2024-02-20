@@ -1,3 +1,7 @@
+//! `cargo run --example aa_list_object_v2_all -q`
+
+#![deny(warnings)]
+
 use std::process;
 
 use dotenv;
