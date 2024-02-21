@@ -88,7 +88,7 @@ impl<'a> Authorization<'a> {
             Header = header_str,
             Resource = resource
         );
-        dbg!(&value);
+        // dbg!(&value);
         let key = self.access_key_secret.as_bytes();
         let message = value.as_bytes();
         let value = hmac_sha1::hmac_sha1(key, message);

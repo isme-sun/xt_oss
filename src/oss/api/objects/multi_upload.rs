@@ -12,11 +12,15 @@ pub mod builders {
     use std::collections::HashMap;
 
     use chrono::{DateTime, Utc};
+    use serde::{Deserialize, Serialize};
 
     use crate::oss::{
         self,
         api::{self, insert_custom_header, insert_header, ApiResponseFrom},
-        entities::{multi_upload::InitiateMultipartUploadResult, ServerSideEncryption, StorageClass},
+        entities::{
+            multi_upload::{InitiateMultipartUploadResult, ListMultipartUploadsResult},
+            object, ServerSideEncryption, StorageClass,
+        },
         http::{
             self,
             header::{CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_TYPE, EXPECT},
@@ -204,15 +208,65 @@ pub mod builders {
 
     pub struct UploadPartCopyBuilder<'a> {
         client: &'a oss::Client<'a>,
+        object: &'a str,
+        part_number: u32,
+        upload_id: &'a str,
+        content: oss::Bytes,
     }
 
     impl<'a> UploadPartCopyBuilder<'a> {
-        pub(crate) fn new(client: &'a oss::Client) -> Self {
-            Self { client }
+        pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+            Self {
+                client,
+                object,
+                part_number: Default::default(),
+                upload_id: Default::default(),
+                content: oss::Bytes::new(),
+            }
+        }
+
+        pub fn with_part_number(mut self, value: u32) -> Self {
+            self.part_number = value;
+            self
+        }
+
+        pub fn with_upload_id(mut self, value: &'a str) -> Self {
+            self.upload_id = value;
+            self
+        }
+
+        pub fn with_content(mut self, value: oss::Bytes) -> Self {
+            self.content = value;
+            self
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            todo!()
+            let res = format!(
+                "/{}/{}?partNumber={}&uploadId={}",
+                self.client.bucket(),
+                self.object,
+                self.part_number,
+                self.upload_id
+            );
+            let url = format!(
+                "{}?partNumber={}&uploadId={}",
+                self.client.object_url(self.object),
+                self.part_number,
+                self.upload_id
+            );
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .with_url(&url)
+                .with_method(http::Method::PUT)
+                .with_resource(&res)
+                .with_body(self.content.to_owned())
+                .execute_timeout(self.client.timeout())
+                .await?;
+
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 
@@ -232,29 +286,121 @@ pub mod builders {
 
     pub struct AbortMultipartUploadBuilder<'a> {
         client: &'a oss::Client<'a>,
+        object: &'a str,
+        upload_id: &'a str,
     }
 
     impl<'a> AbortMultipartUploadBuilder<'a> {
-        pub(crate) fn new(client: &'a oss::Client) -> Self {
-            Self { client }
+        pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
+            Self {
+                client,
+                object,
+                upload_id: Default::default(),
+            }
+        }
+
+        pub fn with_upload_id(mut self, upload_id: &'a str) -> Self {
+            self.upload_id = upload_id;
+            self
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            todo!()
+            let res = format!("/{}/{}?uploadId={}", self.client.bucket(), self.object, self.upload_id);
+            let url = format!("{}?uploadId={}", self.client.object_url(self.object), self.upload_id);
+            let resp = self
+                .client
+                .request
+                .task()
+                .with_url(&url)
+                .with_method(http::Method::DELETE)
+                .with_resource(&res)
+                .execute()
+                .await?;
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
+    }
+
+    #[derive(Debug, Default, Serialize, Deserialize)]
+    pub(crate) struct ListMultipartUploadsBuilderQuery<'a> {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub(crate) delimiter: Option<&'a str>,
+        #[serde(rename = "encoding-type", skip_serializing_if = "Option::is_none")]
+        pub(crate) encoding_type: Option<&'a str>,
+        #[serde(rename = "key-marker", skip_serializing_if = "Option::is_none")]
+        pub(crate) key_marker: Option<&'a str>,
+        #[serde(rename = "max-uploads", skip_serializing_if = "Option::is_none")]
+        pub(crate) max_uploads: Option<u32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub(crate) prefix: Option<&'a str>,
+        #[serde(rename = "upload-id-marker", skip_serializing_if = "Option::is_none")]
+        pub(crate) upload_id_marker: Option<&'a str>,
     }
 
     pub struct ListMultipartUploadsBuilder<'a> {
         client: &'a oss::Client<'a>,
+        query: ListMultipartUploadsBuilderQuery<'a>,
     }
 
     impl<'a> ListMultipartUploadsBuilder<'a> {
         pub(crate) fn new(client: &'a oss::Client) -> Self {
-            Self { client }
+            Self {
+                client,
+                query: ListMultipartUploadsBuilderQuery::default(),
+            }
         }
 
-        pub async fn execute(&self) -> api::ApiResult {
-            todo!()
+        pub fn with_delimiter(mut self, value: &'a str) -> Self {
+            self.query.delimiter = Some(value);
+            self
+        }
+
+        pub fn max_uploads(mut self, value: u32) -> Self {
+            self.query.max_uploads = Some(value);
+            self
+        }
+
+        pub fn with_key_marker(mut self, value: &'a str) -> Self {
+            self.query.key_marker = Some(value);
+            self
+        }
+
+        pub fn with_prefix(mut self, value: &'a str) -> Self {
+            self.query.prefix = Some(value);
+            self
+        }
+
+        pub fn with_upload_id_marker(mut self, value: &'a str) -> Self {
+            self.query.upload_id_marker = Some(value);
+            self
+        }
+
+        pub fn with_encoding_type(mut self, value: &'a str) -> Self {
+            self.query.encoding_type = Some(value);
+            self
+        }
+
+        fn query(&self) -> String {
+            serde_qs::to_string(&self.query).unwrap()
+        }
+
+        pub async fn execute(&self) -> api::ApiResult<ListMultipartUploadsResult> {
+            let mut res = format!("/{}/?{}", self.client.bucket(), "uploads");
+            let mut url = format!("{}?{}", self.client.base_url(), "uploads");
+            let query = self.query();
+            if !query.is_empty() {
+                res = format!("{}&{}", &res, &query);
+                url = format!("{}&{}", &url, &query);
+            }
+            let resp = self
+                .client
+                .request
+                .task()
+                .with_url(&url)
+                .with_method(http::Method::GET)
+                .with_resource(&res)
+                .execute_timeout(self.client.timeout())
+                .await?;
+            Ok(ApiResponseFrom(resp).to_type().await)
         }
     }
 
@@ -298,8 +444,8 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs]()
     /// - [xtoss example]()
-    pub fn UploadPartCopy(&self) -> UploadPartCopyBuilder {
-        UploadPartCopyBuilder::new(self)
+    pub fn UploadPartCopy(&self, object: &'a str) -> UploadPartCopyBuilder {
+        UploadPartCopyBuilder::new(self, object)
     }
 
     /// 在将所有数据Part都上传完成后，您必须调用CompleteMultipartUpload接口来完成整个文件的分片上传。
@@ -314,8 +460,8 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs]()
     /// - [xtoss example]()
-    pub fn AbortMultipartUpload(&self) -> AbortMultipartUploadBuilder {
-        AbortMultipartUploadBuilder::new(self)
+    pub fn AbortMultipartUpload(&self, object: &'a str) -> AbortMultipartUploadBuilder {
+        AbortMultipartUploadBuilder::new(self, object)
     }
 
     /// 调用ListMultipartUploads接口列举所有执行中的Multipart Upload事件，即已经初始化但还未完成
@@ -333,5 +479,24 @@ impl<'a> Client<'a> {
     /// - [xtoss example]()
     pub fn ListParts(&self) -> ListPartsBuilder {
         ListPartsBuilder::new(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::builders::ListMultipartUploadsBuilderQuery;
+
+    #[test]
+    fn list_multipart_uploads_builder_query() {
+        let query = ListMultipartUploadsBuilderQuery {
+            delimiter: Some("/"),
+            max_uploads: Some(32),
+            key_marker: Some("abc123"),
+            prefix: Some("abc123"),
+            upload_id_marker: Some("abc123"),
+            encoding_type: Some("url"),
+        };
+        let q = serde_qs::to_string(&query).unwrap();
+        println!("{}", q);
     }
 }

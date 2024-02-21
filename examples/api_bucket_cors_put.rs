@@ -45,6 +45,8 @@ async fn main() {
         .with_response_vary(false)
         .builder();
 
+    println!("{}", serde_json::to_string_pretty(&cors_config).unwrap());
+
     let result = client
         .PutBucketCors()
         .with_config(cors_config)

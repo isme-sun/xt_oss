@@ -63,7 +63,7 @@ pub struct ListMultipartUploadsResult {
     #[serde(rename = "IsTruncated")]
     pub is_truncated: String,
     #[serde(rename = "Upload")]
-    pub uploads: Vec<Upload>,
+    pub uploads: Option<Vec<Upload>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -208,7 +208,7 @@ mod tests {
 
         let obj: ListMultipartUploadsResult = quick_xml::de::from_str(&xml_content).unwrap();
         let left = "multipart.data";
-        let right = &obj.uploads[0].key;
+        let right = &obj.uploads.unwrap()[0].key;
         assert_eq!(left, right);
     }
 
