@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .execute()
             .await
         {
-            Ok(Ok(_)) => println!("ok!"),
+            Ok(Ok(_)) => (),
             Ok(Err(message)) => println!("oss error: {}", message.content()),
             Err(error) => println!("reqwest error: {}", error),
         }

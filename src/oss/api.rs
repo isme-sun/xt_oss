@@ -66,7 +66,7 @@ impl<T> ApiData<T> {
         self.headers.get("x-oss-request-id").unwrap().to_str().unwrap().into()
     }
 
-    pub fn content_length(&self) -> Option<usize> {
+    pub fn content_length(&self) -> Option<u64> {
         self.headers()
             .get(http::header::CONTENT_LENGTH)
             .and_then(|value| value.to_str().ok())
@@ -133,6 +133,7 @@ impl ApiResponseFrom {
             let headers = resp.headers().clone();
             let content = resp.bytes().await.unwrap();
             let content = String::from_utf8_lossy(&content);
+            // println!("{}", &content);
             let content: T = quick_xml::de::from_str(&content).unwrap();
 
             Ok(ApiData {

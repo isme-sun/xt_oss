@@ -10,16 +10,16 @@ async fn main() {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
     match client
-        .AbortMultipartUpload("tmp/temp.jpg")
-        .with_upload_id("EC83F9BA90DB4636BB26ECEAE205D6A8")
+        .ListParts("tmp/temp.jpg")
+        .with_upload_id("E71E2C09F952430F93700A3167F74685")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {
-            eprintln!("{}", reqwest_error);
+            eprintln!("reqwest error: {}", reqwest_error);
             process::exit(-1);
         }) {
         Ok(oss_data) => {
-            println!("{:#?}", oss_data.headers())
+            println!("{:#?}", oss_data.content())
         }
         Err(error_message) => {
             println!("{:#?}", error_message.content())

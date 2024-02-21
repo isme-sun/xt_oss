@@ -1,12 +1,6 @@
+use std::io::{Seek, SeekFrom};
 #[allow(unused)]
 use std::{env, fs, io::Read, os::unix::fs::MetadataExt, process};
-use std::{
-    fs::OpenOptions,
-    io::{Seek, SeekFrom, Write},
-    thread::sleep,
-    time::Duration,
-};
-use xt_oss::oss::http;
 #[allow(unused)]
 use xt_oss::{
     oss,
@@ -17,9 +11,9 @@ use xt_oss::{
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    let _options = util::options_from_env();
-    let _client = oss::Client::new(_options);
-    
+    let options = util::options_from_env();
+    let client = oss::Client::new(options);
+
     let target_file = {
         let mut current_dir = env::current_dir()?;
         "examples/samples/images/JPGImage_30mbmb.jpg"
@@ -29,42 +23,60 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let mut file = fs::File::open(&target_file)?;
-    let file_size = file.metadata()?.size() as usize;
-    let chunk_size = 1024 * 1024usize;
+    let file_size = file.metadata()?.size();
+    let chunk_size = 1024 * 1024;
+    let object = "tmp/temp.jpg";
 
-    let mut file1 = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .create(true)
-        .open("example.jpg")?;
+    let upload_id = client
+        .InitiateMultipartUpload(object)
+        .execute()
+        .await
+        .unwrap_or_else(|error| {
+            eprintln!("reqwest error: {}", error);
+            process::exit(-1);
+        })
+        .unwrap_or_else(|message| {
+            eprintln!("oss error: {}", message.content());
+            process::exit(-1);
+        })
+        .content()
+        .upload_id;
 
-    for byte_range in ByteRange::chunk(file_size, chunk_size) {
-        let seek = byte_range.start();
-        let length = byte_range.amount() as u64;
-        let mut buffer = vec![0; length.try_into()?];
-        sleep(Duration::from_millis(100));
-        println!("{}", &seek);
-        file.seek(SeekFrom::Start(seek as u64));
+    let chunks = ByteRange::chunk(file_size, chunk_size);
+    let file_chunks = chunks.iter().map(|range| {
+        let (seek, length) = (range.start(), range.amount() as u64);
+        let mut buffer = vec![0; length.try_into().unwrap()];
+        file.seek(SeekFrom::Start(seek));
         file.read_exact(&mut buffer);
-        file1.write_all(&buffer);
-    }
-    println!("{}", file_size);
+        oss::Bytes::from(buffer)
+    });
 
-    // match client
-    //     .InitiateMultipartUpload("tmp/test1.png")
-    //     .with_content_type("image/png")
-    //     .execute()
-    //     .await
-    //     .unwrap_or_else(|reqwest_error| {
-    //         eprintln!("{}", reqwest_error);
-    //         process::exit(-1);
-    //     }) {
-    //     Ok(oss_data) => {
-    //         println!("{:#?}", oss_data.content())
-    //     }
-    //     Err(error_message) => {
-    //         println!("{:#?}", error_message.content())
-    //     }
-    // }
+    for (i, content) in file_chunks.enumerate() {
+        let part_number = i + 1;
+        let result = client
+            .UploadPart(object)
+            .with_part_number(part_number as u32)
+            .with_upload_id(&upload_id)
+            .with_content(content)
+            .execute()
+            .await
+            .unwrap()
+            .unwrap();
+        println!("part {:#?}", result.headers())
+    }
+
+    match client
+        .CompleteMultipartUpload(object)
+        .with_upload_id(&upload_id)
+        .with_encoding_type("url")
+        .with_forbid_overwrite(false)
+        .execute()
+        .await
+    {
+        Ok(Ok(data)) => println!("{:#?}", data.content()),
+        Ok(Err(message)) => println!("{:#?}", message.content()),
+        Err(error) => println!("{}", error)
+    }
+
     Ok(())
 }

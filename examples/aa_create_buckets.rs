@@ -8,7 +8,7 @@ async fn main() {
     let options = util::options_from_env();
     let client = Arc::new(oss::Client::new(options));
     let region = "oss-cn-shanghai".to_string();
-    let buckets = (1..10).map(|i| format!("xtoss-ex{}", i)).collect::<Vec<String>>();
+    let buckets = (10..20).map(|i| format!("xtoss-ex{}", i)).collect::<Vec<String>>();
 
     let futures = buckets.into_iter().map(|bucket| {
         let client = Arc::clone(&client);

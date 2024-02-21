@@ -33,13 +33,13 @@ pub struct ListPartsResult {
     #[serde(rename = "UploadId")]
     pub upload_id: String,
     #[serde(rename = "NextPartNumberMarker")]
-    pub next_part_number_marker: u64,
+    pub next_part_number_marker: String,
     #[serde(rename = "MaxParts")]
     pub max_parts: u64,
     #[serde(rename = "IsTruncated")]
     pub is_truncated: bool,
-    #[serde(rename = "Part")]
-    pub parts: Vec<Part>,
+    #[serde(rename = "Part", skip_serializing_if = "Option::is_none")]
+    pub parts: Option<Vec<Part>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -244,9 +244,10 @@ mod tests {
 "#;
         let obj: ListPartsResult = quick_xml::de::from_str(&xml_content).unwrap();
         let left = r#""3349DC700140D7F86A0784842780****""#;
-        let right = &obj.parts[0].etag;
+        let right = &obj.parts.unwrap()[0].etag;
         assert_eq!(left, right);
     }
+
 
     #[test]
     fn multipart_7() {
@@ -261,4 +262,24 @@ mod tests {
         let right = obj.bucket;
         assert_eq!(left, right);
     }
+
+    #[test]
+    fn multipart_8() {
+        let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+<ListPartsResult>
+  <Bucket>xtoss-ex1</Bucket>
+  <Key>tmp/temp.jpg</Key>
+  <UploadId>149E85A3897241A2B8A5F5BBFADA5D88</UploadId>
+  <StorageClass>Standard</StorageClass>
+  <PartNumberMarker>0</PartNumberMarker>
+  <NextPartNumberMarker></NextPartNumberMarker>
+  <MaxParts>1000</MaxParts>
+  <IsTruncated>false</IsTruncated>
+</ListPartsResult>"#;
+        let obj: ListPartsResult = quick_xml::de::from_str(&xml_content).unwrap();
+        assert!(obj.parts.is_none());
+    }
+
+
+
 }

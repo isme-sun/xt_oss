@@ -26,8 +26,6 @@ async fn main() {
         }
     };
 
-    // 删除这些bucket
-    // TODO 改有join模式
     if let Some(bucktes) = all_buckets.buckets.bucket {
         for bucket in bucktes {
             let result = client

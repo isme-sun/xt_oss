@@ -74,10 +74,10 @@ pub fn oss_file_md5<'a>(file: &'a str) -> Result<String, io::Error> {
 /// assert_eq!(ByteRange::from((100, -50)).to_string(), "bytes=50-99");
 /// ```
 ///
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct ByteRange {
-    start: Option<usize>,
-    amount: Option<isize>,
+    start: Option<u64>,
+    amount: Option<i64>,
 }
 
 impl ByteRange {
@@ -85,35 +85,43 @@ impl ByteRange {
         Self::default()
     }
 
-    pub fn chunk(total: usize, chunk_size: usize) -> Vec<Self> {
+    pub fn chunk(total: u64, chunk_size: u64) -> Vec<Self> {
         let mut reuslt: Vec<ByteRange> = vec![];
         let mut max_count = 0;
-        for i in 0..total / chunk_size as usize {
-            reuslt.push((i * chunk_size, chunk_size as isize).into());
+        for i in 0..total / chunk_size {
+            reuslt.push((i * chunk_size, chunk_size as i64).into());
             max_count = i;
         }
 
-        let rest = total - ((max_count + 1) * chunk_size as usize);
+        let rest = total - ((max_count + 1) * chunk_size );
         if rest != 0 {
             let start = total - rest;
-            reuslt.push((start, rest as isize).into());
+            reuslt.push((start, rest as i64).into());
         }
         reuslt
     }
 
-    pub fn with_start(mut self, value: usize) -> Self {
+    pub fn with_start(mut self, value: u64) -> Self {
         self.start = Some(value);
         self
     }
 
-    pub fn with_amount(mut self, value: isize) -> Self {
+    pub fn with_amount(mut self, value: i64) -> Self {
         self.amount = Some(value);
         self
     }
+
+    pub fn start(&self) -> u64 {
+        self.start.unwrap_or_default()
+    }
+
+    pub fn amount(&self) -> i64 {
+        self.amount.unwrap_or_default()
+    }
 }
 
-impl From<(usize, isize)> for ByteRange {
-    fn from(item: (usize, isize)) -> Self {
+impl From<(u64, i64)> for ByteRange {
+    fn from(item: (u64, i64)) -> Self {
         Self {
             start: Some(item.0),
             amount: Some(item.1),
@@ -134,11 +142,11 @@ impl fmt::Display for ByteRange {
             }
             (Some(start), None) => write!(f, "bytes={}-", start),
             (Some(start), Some(amount)) if amount > 0 => {
-                write!(f, "bytes={}-{}", start, start + amount as usize - 1)
+                write!(f, "bytes={}-{}", start, start + amount as u64 - 1)
             }
             (Some(start), Some(amount)) => {
-                let start_pos = if start as isize + amount > 0 {
-                    start as isize + amount
+                let start_pos = if start as i64 + amount > 0 {
+                    start as i64 + amount
                 } else {
                     0
                 };
