@@ -5,21 +5,36 @@ use std::{
 };
 
 use base64::{engine::general_purpose, Engine as _};
+use chrono::{DateTime, Local, Utc};
 use crypto::{digest::Digest, md5::Md5};
 use oss::http;
 
 use crate::oss;
 
-pub fn get_env(key: &str, default: &str) -> String {
+fn get_env(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or(default.to_string())
 }
 
-pub fn get_env_bool(key: &str, default: bool) -> bool {
+fn get_env_bool(key: &str, default: bool) -> bool {
     std::env::var(key)
         .unwrap_or(default.to_string())
         .parse()
         .unwrap_or(default)
 }
+
+/// UTC to GMT format
+#[inline]
+pub fn utc_to_gmt(datetime: DateTime<Utc>) -> String {
+    datetime.format(super::oss::GMT_DATE_FMT).to_string()
+}
+
+/// LOCAL to GMT format
+#[inline]
+pub fn local_to_gmt(local_datetime: DateTime<Local>) -> String {
+    let utc_datetime: DateTime<Utc> = local_datetime.with_timezone(&Utc);
+    utc_datetime.format(super::oss::GMT_DATE_FMT).to_string()
+}
+
 pub enum AllowedOriginItem<'a> {
     Any,
     Urls(Vec<&'a str>),
