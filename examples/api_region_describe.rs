@@ -1,3 +1,4 @@
+//! cargo run --example api_region_describe -q
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;
@@ -6,6 +7,10 @@ use xt_oss::prelude::*;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
+    // let options = oss::Options::new()
+    //     .with_access_key_id("-- your access_key_id --")
+    //     .with_access_key_secret("-- your access_key_secret --");
+
     let client = oss::Client::new(options);
 
     match client

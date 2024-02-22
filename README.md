@@ -9,14 +9,18 @@
 ## 应用示例
 
  ```rust no_run
+ //! cargo run --example api_region_describe -q
+use dotenv;
 use std::process;
-use xt_oss::oss;
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv::dotenv().ok();
+    // let options = util::options_from_env();
     let options = oss::Options::new()
-        .with_access_key_id("-- access key id --")
-        .with_access_key_secret("-- access key secret --");
+        .with_access_key_id("-- your access_key_id --")
+        .with_access_key_secret("-- your access_key_secret --");
 
     let client = oss::Client::new(options);
 
@@ -30,19 +34,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             process::exit(-1);
         }) {
         Ok(oss_data) => {
-            oss_data
-                .content()
-                .region_info
-                .into_iter()
-                .for_each(|entry| {
-                    println!("{:>20} | https://{}", entry.region, entry.internet_endpoint);
-                });
+            oss_data.content().region_info.iter().for_each(|entry| {
+                println!("{:>20} | {}", entry.region, entry.internet_endpoint);
+            });
         }
-        Err(oss_error_message) => println!("oss error: {}", oss_error_message.content()),
+        Err(error_message) => {
+            // let message = error_message.content();
+            println!("request id: {}", &error_message.request_id());
+            println!("oss error: {}", &error_message.content());
+        }
     }
     Ok(())
 }
-
  ```
 
 ## 配置说明

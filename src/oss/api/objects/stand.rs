@@ -23,7 +23,6 @@ pub mod builders {
         api::{self, insert_custom_header, insert_header, ApiResponseFrom},
         entities::{
             object::{CopyObjectResult, JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
-            tag::{Tag, TagSet, Tagging},
             ObjectACL, ServerSideEncryption, StorageClass,
         },
         http, Bytes,
