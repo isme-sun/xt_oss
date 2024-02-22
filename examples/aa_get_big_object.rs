@@ -9,10 +9,7 @@ use std::{
     path::PathBuf,
     process,
 };
-use xt_oss::{
-    oss,
-    util::{self, ByteRange},
-};
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

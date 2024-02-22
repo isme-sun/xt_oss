@@ -1,76 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 pub mod builder {
-    use std::fmt;
-
     use super::*;
-    use crate::oss::http;
-
-    pub enum AllowedOriginItem<'a> {
-        Any,
-        Urls(Vec<&'a str>),
-    }
-
-    impl<'a> fmt::Display for AllowedOriginItem<'a> {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(
-                f,
-                "{}",
-                match self {
-                    AllowedOriginItem::Any => "*".to_string(),
-                    AllowedOriginItem::Urls(urls) => urls.join(","),
-                }
-            )
-        }
-    }
-
-    pub enum AllowedMethodItem {
-        Any,
-        Methods(Vec<http::Method>),
-    }
-
-    impl fmt::Display for AllowedMethodItem {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(
-                f,
-                "{}",
-                match self {
-                    AllowedMethodItem::Any => "*".to_string(),
-                    AllowedMethodItem::Methods(methods) => {
-                        methods
-                            .into_iter()
-                            .map(|entry| entry.to_string())
-                            .collect::<Vec<String>>()
-                            .join(",")
-                    }
-                }
-            )
-        }
-    }
-
-    pub enum AllowedHeaderItem {
-        Any,
-        Headers(Vec<http::header::HeaderName>),
-    }
-
-    impl fmt::Display for AllowedHeaderItem {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(
-                f,
-                "{}",
-                match self {
-                    AllowedHeaderItem::Any => "*".to_string(),
-                    AllowedHeaderItem::Headers(headers) => {
-                        headers
-                            .into_iter()
-                            .map(|entry| entry.to_string())
-                            .collect::<Vec<String>>()
-                            .join(",")
-                    }
-                }
-            )
-        }
-    }
+    use crate::{
+        oss::http,
+        util::{AllowedHeaderItem, AllowedMethodItem, AllowedOriginItem},
+    };
 
     #[derive(Default, Debug)]
     pub struct CORSRuleBuilder {
@@ -196,6 +131,7 @@ pub mod tests {
     use super::builder::*;
     use super::*;
     use crate::oss::http;
+    use crate::util::{AllowedHeaderItem, AllowedMethodItem, AllowedOriginItem};
 
     #[test]
     fn allowed_origin_item_1() {

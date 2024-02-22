@@ -1,9 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{
-    oss::{self, entities::bucket::LocationConstraint},
-    util,
-};
+use xt_oss::{oss::entities::bucket::LocationConstraint, prelude::*};
 
 #[tokio::main]
 async fn main() {

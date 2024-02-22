@@ -1,6 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{oss, util};
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -10,8 +10,8 @@ async fn main() {
     let result = client
         .PutBucketLogging()
         .with_enabled(true)
-        .with_bucket("xtoss-ex2")
-        .with_target_prefix("ex1-")
+        .with_bucket("xtoss-ex11")
+        .with_target_prefix("ex10-")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {

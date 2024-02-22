@@ -1,9 +1,10 @@
+use dotenv;
 use futures::future::join_all;
 use std::sync::Arc;
-use xt_oss::{oss, util};
+use xt_oss::prelude::*;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = Arc::new(oss::Client::new(options));
@@ -29,4 +30,5 @@ async fn main() {
     });
 
     join_all(futures).await;
+    Ok(())
 }

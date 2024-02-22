@@ -1,9 +1,8 @@
-use std::{process, sync::Arc};
-
 use dotenv;
 use futures::future::join_all;
 use std::io::{self, Write};
-use xt_oss::{oss, util};
+use std::{process, sync::Arc};
+use xt_oss::prelude::*;
 
 async fn del_all() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();

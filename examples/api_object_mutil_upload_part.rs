@@ -1,13 +1,8 @@
+use dotenv;
 use std::io::{Seek, SeekFrom};
-#[allow(unused)]
 use std::{env, fs, io::Read, os::unix::fs::MetadataExt, process};
-#[allow(unused)]
-use xt_oss::{
-    oss,
-    util::{self, ByteRange},
-};
+use xt_oss::prelude::*;
 
-#[allow(unused)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
@@ -45,9 +40,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let chunks = ByteRange::chunk(file_size, chunk_size);
     let file_chunks = chunks.iter().map(|range| {
         let (seek, length) = (range.start(), range.amount() as u64);
-        let mut buffer = vec![0; length.try_into().unwrap()];
-        file.seek(SeekFrom::Start(seek));
-        file.read_exact(&mut buffer);
+        let mut buffer = vec![0; length as usize];
+        let _ = file.seek(SeekFrom::Start(seek));
+        let _ = file.read_exact(&mut buffer);
         oss::Bytes::from(buffer)
     });
 
@@ -75,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         Ok(Ok(data)) => println!("{:#?}", data.content()),
         Ok(Err(message)) => println!("{:#?}", message.content()),
-        Err(error) => println!("{}", error)
+        Err(error) => println!("{}", error),
     }
 
     Ok(())

@@ -1,12 +1,8 @@
 use std::process;
 
 use xt_oss::{
-    oss::{
-        self,
-        entities::{ObjectACL, StorageClass},
-        http,
-    },
-    util,
+    oss::entities::{ObjectACL, StorageClass},
+    prelude::*,
 };
 
 #[tokio::main]

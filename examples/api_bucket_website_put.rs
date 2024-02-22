@@ -2,11 +2,8 @@ use dotenv;
 use reqwest::StatusCode;
 use std::process;
 use xt_oss::{
-    oss::{
-        self,
-        entities::website::builder::{ErrorDocumentBuilder, IndexDocumentBuilder, WebsiteConfigurationBuilder},
-    },
-    util,
+    oss::entities::website::builder::{ErrorDocumentBuilder, IndexDocumentBuilder, WebsiteConfigurationBuilder},
+    prelude::*,
 };
 
 #[tokio::main]

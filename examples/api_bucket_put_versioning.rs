@@ -1,9 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{
-    oss::{self, entities::version::VersioningStatus},
-    util,
-};
+use xt_oss::{oss::entities::version::VersioningStatus, prelude::*};
 
 #[tokio::main]
 async fn main() {

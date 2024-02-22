@@ -1,14 +1,11 @@
+use dotenv;
 use std::process;
-
 use xt_oss::{
-    oss::{
-        self,
-        entities::{
-            lifecycle::builder::{ExpirationBuilder, LifecycleConfigurationBuilder, RuleBuilder},
-            Status,
-        },
+    oss::entities::{
+        lifecycle::builder::{ExpirationBuilder, LifecycleConfigurationBuilder, RuleBuilder},
+        Status,
     },
-    util,
+    prelude::*,
 };
 
 #[tokio::main]

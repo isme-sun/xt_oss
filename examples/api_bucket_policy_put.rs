@@ -1,6 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{oss, util};
+use xt_oss::prelude::*;
 
 const POLICY_TEXT: &'static str = r#"{
     "Version": "1",

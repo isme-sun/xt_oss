@@ -1,14 +1,9 @@
 use dotenv;
 use std::process;
 use xt_oss::{
-    oss::{
-        self,
-        entities::cors::builder::{
-            AllowedHeaderItem, AllowedMethodItem, AllowedOriginItem, CORSConfigurationBuilder, CORSRuleBuilder,
-        },
-        http,
-    },
-    util,
+    prelude::*,
+    oss::entities::cors::builder::{CORSConfigurationBuilder, CORSRuleBuilder},
+    util::{AllowedHeaderItem, AllowedMethodItem, AllowedOriginItem},
 };
 
 #[tokio::main]

@@ -1,5 +1,6 @@
-pub(crate) use std::{env, process};
-use xt_oss::oss::Request;
+use dotenv;
+use std::{env, process};
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -8,7 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET")?;
     let url = "https://oss-cn-hangzhou.aliyuncs.com";
 
-    let resp = Request::new()
+    let resp = oss::Request::new()
         .with_access_key_id(&access_key_id)
         .with_access_key_secret(&access_key_secret)
         .task()

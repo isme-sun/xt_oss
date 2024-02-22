@@ -1,10 +1,8 @@
 use dotenv;
 use std::process;
 use xt_oss::{
-    oss::{
-        self,
-        entities::{DataRedundancyType, OssAcl, StorageClass},
-    },
+    prelude::*,
+    oss::entities::{DataRedundancyType, OssAcl, StorageClass},
     util,
 };
 

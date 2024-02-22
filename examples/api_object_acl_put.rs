@@ -1,8 +1,8 @@
+use dotenv;
 use std::process;
-
 use xt_oss::{
-    oss::{self, entities::ObjectACL},
-    util,
+    prelude::*,
+    oss::entities::ObjectACL,
 };
 
 #[tokio::main]

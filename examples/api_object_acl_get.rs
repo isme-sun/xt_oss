@@ -1,6 +1,6 @@
 use std::process;
 
-use xt_oss::{oss, util};
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() {

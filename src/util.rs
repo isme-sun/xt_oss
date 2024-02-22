@@ -6,6 +6,7 @@ use std::{
 
 use base64::{engine::general_purpose, Engine as _};
 use crypto::{digest::Digest, md5::Md5};
+use oss::http;
 
 use crate::oss;
 
@@ -18,6 +19,71 @@ pub fn get_env_bool(key: &str, default: bool) -> bool {
         .unwrap_or(default.to_string())
         .parse()
         .unwrap_or(default)
+}
+pub enum AllowedOriginItem<'a> {
+    Any,
+    Urls(Vec<&'a str>),
+}
+
+impl<'a> fmt::Display for AllowedOriginItem<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                AllowedOriginItem::Any => "*".to_string(),
+                AllowedOriginItem::Urls(urls) => urls.join(","),
+            }
+        )
+    }
+}
+
+pub enum AllowedMethodItem {
+    Any,
+    Methods(Vec<http::Method>),
+}
+
+impl fmt::Display for AllowedMethodItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                AllowedMethodItem::Any => "*".to_string(),
+                AllowedMethodItem::Methods(methods) => {
+                    methods
+                        .into_iter()
+                        .map(|entry| entry.to_string())
+                        .collect::<Vec<String>>()
+                        .join(",")
+                }
+            }
+        )
+    }
+}
+
+pub enum AllowedHeaderItem {
+    Any,
+    Headers(Vec<http::header::HeaderName>),
+}
+
+impl fmt::Display for AllowedHeaderItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                AllowedHeaderItem::Any => "*".to_string(),
+                AllowedHeaderItem::Headers(headers) => {
+                    headers
+                        .into_iter()
+                        .map(|entry| entry.to_string())
+                        .collect::<Vec<String>>()
+                        .join(",")
+                }
+            }
+        )
+    }
 }
 
 pub fn options_from_env() -> oss::Options<'static> {
@@ -93,7 +159,7 @@ impl ByteRange {
             max_count = i;
         }
 
-        let rest = total - ((max_count + 1) * chunk_size );
+        let rest = total - ((max_count + 1) * chunk_size);
         if rest != 0 {
             let start = total - rest;
             reuslt.push((start, rest as i64).into());

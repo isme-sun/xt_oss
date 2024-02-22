@@ -1,7 +1,6 @@
-use std::process;
-
 use dotenv;
-use xt_oss::{oss::entities::version::VersioningStatus, util};
+use std::process;
+use xt_oss::{oss::entities::version::VersioningStatus, prelude::*};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();

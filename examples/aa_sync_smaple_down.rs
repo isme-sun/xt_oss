@@ -1,7 +1,6 @@
-use std::{env, fs, io::Write, path::PathBuf};
-
 use dotenv;
-use xt_oss::{oss, util};
+use std::{env, fs, io::Write, path::PathBuf};
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

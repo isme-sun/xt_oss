@@ -1,9 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{
-    oss::{self, entities::encryption::SSEAlgorithm},
-    util,
-};
+use xt_oss::{oss::entities::encryption::SSEAlgorithm, prelude::*};
 
 #[tokio::main]
 async fn main() {

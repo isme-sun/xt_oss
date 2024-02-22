@@ -1,6 +1,7 @@
+use dotenv;
 use std::{env, fs::File, io::Read};
 use walkdir::{DirEntry, WalkDir};
-use xt_oss::{oss, util};
+use xt_oss::prelude::*;
 
 fn only_file(entry: &DirEntry) -> bool {
     entry

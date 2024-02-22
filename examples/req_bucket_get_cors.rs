@@ -1,5 +1,6 @@
+use dotenv;
 use std::{env, process};
-use xt_oss::oss;
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

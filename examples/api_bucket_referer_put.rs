@@ -1,9 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{
-    oss::{self, entities::referer::builder::RefererConfigurationBuilder},
-    util,
-};
+use xt_oss::{oss::entities::referer::builder::RefererConfigurationBuilder, prelude::*};
 
 #[tokio::main]
 async fn main() {

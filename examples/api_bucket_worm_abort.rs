@@ -1,7 +1,7 @@
-use std::process;
-
 use dotenv;
-use xt_oss::{oss, util};
+use std::process;
+use xt_oss::prelude::*;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         process::exit(-1);
     }) {
         Ok(oss_data) => {
-            println!("{:#?}", oss_data.content());
+            println!("{:#?}", oss_data.headers());
         }
         Err(oss_error_message) => {
             println!("{:#?}", oss_error_message.content());

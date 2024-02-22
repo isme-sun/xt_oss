@@ -1,11 +1,8 @@
 use std::{env, fs::File, io::Read, process};
 
 use xt_oss::{
-    oss::{
-        self,
-        entities::{ObjectACL, StorageClass},
-    },
-    util::{self, oss_file_md5},
+    oss::entities::{ObjectACL, StorageClass},
+    prelude::*,
 };
 
 #[tokio::main]
@@ -25,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         target_file.display().to_string()
     };
     // md5值
-    let content_md5 = oss_file_md5(&target_file)?;
+    let content_md5 =util::oss_file_md5(&target_file)?;
     // 获得mime
     let content_type = {
         let mime = mime_guess::from_path(&target_file).first().unwrap();

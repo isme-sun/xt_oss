@@ -1,13 +1,7 @@
-use std::process;
-
 use chrono::{Days, Utc};
-use xt_oss::{
-    oss::{
-        self,
-        http,
-    },
-    util::{self, ByteRange},
-};
+use dotenv;
+use std::process;
+use xt_oss::{oss::http::ContentDisposition, prelude::*};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,7 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
 
-    let content_disposition = http::ContentDisposition::ATTACHMENT(Some("文件.ppt".to_string())).to_string();
+    let content_disposition = ContentDisposition::ATTACHMENT(Some("文件.ppt".into())).to_string();
 
     let expire = Utc::now()
         .checked_add_days(Days::new(1))

@@ -5,7 +5,7 @@
 use std::process;
 
 use dotenv;
-use xt_oss::{oss, util};
+use xt_oss::prelude::*;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();

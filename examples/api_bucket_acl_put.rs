@@ -1,9 +1,7 @@
 use std::process;
 
-use xt_oss::{
-    oss::{self, entities::OssAcl},
-    util,
-};
+use xt_oss::oss::entities::OssAcl;
+use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -12,7 +10,7 @@ async fn main() {
     let client = oss::Client::new(options);
 
     match client
-        .PutBucketAcl(OssAcl::PublicReadWrite)
+        .PutBucketAcl(OssAcl::PublicRead)
         .execute()
         .await
         .unwrap_or_else(|error| {
