@@ -1,7 +1,7 @@
 use chrono::{Duration, Utc};
 use dotenv;
 use std::process;
-use xt_oss::oss::http::ContentDisposition::ATTACHMENT;
+use xt_oss::oss::http::ContentDisposition;
 use xt_oss::prelude::*;
 
 #[tokio::main]
@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
 
     let object = "ppt/File-1000kb.ppt";
-    let content_disposition = ATTACHMENT(Some(object.into())).to_string();
+    let content_disposition = ContentDisposition::ATTACHMENT(Some(object.into())).to_string();
     let expire = util::utc_to_gmt(Utc::now() + Duration::days(1));
     let cache_control = http::CacheControl::NoCache.to_string();
     // Retrieve 500 bytes starting from the 100th byte

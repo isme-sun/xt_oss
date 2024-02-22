@@ -11,11 +11,11 @@ pub mod builders {
     use std::collections::HashMap;
 
     use chrono::{DateTime, Utc};
-    use oss::http::header::{
+    use oss::http::{header::{
         HeaderMap, ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE,
         CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
         RANGE,
-    };
+    }, CacheControl, ContentDisposition, ContentEncoding};
     use serde::{Deserialize, Serialize};
 
     use crate::oss::{
@@ -459,7 +459,7 @@ pub mod builders {
             let res = format!("/{}/{}", self.client.bucket(), self.object);
             let url = self.client.object_url(self.object);
             let headers = self.headers();
-            dbg!(&headers);
+            // dbg!(&headers);
             let resp = self
                 .client
                 .request
@@ -475,24 +475,24 @@ pub mod builders {
     }
 
     #[derive(Debug, Default)]
-    struct AppendObjectBuilderArguments {
-        cache_control: Option<String>,
-        content_disposition: Option<String>,
-        content_encoding: Option<String>,
-        // content_md5: Option<String>,
+    struct AppendObjectBuilderHeaders<'a> {
+        cache_control: Option<http::CacheControl>,
+        content_disposition: Option<http::ContentDisposition>,
+        content_encoding: Option<http::ContentEncoding>,
+        content_md5: Option<&'a str>,
         expires: Option<DateTime<Utc>>,
-        server_side_encryption: Option<ServerSideEncryption>,
+        encryption: Option<ServerSideEncryption>,
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
-        // meta: Option<Vec<String>>,
-        // tagging: Option<Tagging>,
+        oss_meta: HashMap<String, String>,
+        oss_tagging: Option<Vec<(&'a str, &'a str)>>,
     }
 
     pub struct AppendObjectBuilder<'a> {
         client: &'a oss::Client<'a>,
         object: String,
         position: u64,
-        arguments: AppendObjectBuilderArguments,
+        headers: AppendObjectBuilderHeaders<'a>,
     }
 
     impl<'a> AppendObjectBuilder<'a> {
@@ -501,7 +501,7 @@ pub mod builders {
                 client,
                 object: object.to_string(),
                 position: 0,
-                arguments: AppendObjectBuilderArguments::default(),
+                headers: AppendObjectBuilderHeaders::default()
             }
         }
 
@@ -510,54 +510,102 @@ pub mod builders {
             self
         }
 
-        pub fn cache_control(mut self, value: &'a str) -> Self {
-            self.arguments.cache_control = Some(value.to_string());
+        pub fn cache_control(mut self, value: CacheControl) -> Self {
+            self.headers.cache_control = Some(value);
             self
         }
-        pub fn content_disposition(mut self, value: &'a str) -> Self {
-            self.arguments.content_disposition = Some(value.to_string());
+        pub fn content_disposition(mut self, value: ContentDisposition) -> Self {
+            self.headers.content_disposition = Some(value);
             self
         }
-        pub fn content_encoding(mut self, value: &str) -> Self {
-            self.arguments.content_encoding = Some(value.to_string());
+        pub fn content_encoding(mut self, value: ContentEncoding) -> Self {
+            self.headers.content_encoding = Some(value);
             self
         }
 
         pub fn expires(mut self, value: DateTime<Utc>) -> Self {
-            self.arguments.expires = Some(value);
+            self.headers.expires = Some(value);
             self
         }
 
-        pub fn server_side_encryption(mut self, value: ServerSideEncryption) -> Self {
-            self.arguments.server_side_encryption = Some(value);
+        pub fn with_encryption(mut self, value: ServerSideEncryption) -> Self {
+            self.headers.encryption = Some(value);
             self
         }
 
         pub fn object_acl(mut self, value: ObjectACL) -> Self {
-            self.arguments.object_acl = Some(value);
+            self.headers.object_acl = Some(value);
             self
         }
 
         pub fn storage_class(mut self, value: StorageClass) -> Self {
-            self.arguments.storage_class = Some(value);
+            self.headers.storage_class = Some(value);
             self
         }
 
-        // pub fn metas(mut self) -> Self {
-        //   self
-        // }
+        pub fn with_content_md5(mut self, value: &'a str) -> Self {
+            self.headers.content_md5 = Some(value);
+            self
+        }
 
-        // pub fn add_meta(mut self) -> Self {
-        //   self
-        // }
+        pub fn with_oss_tagging(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.headers.oss_tagging = Some(value);
+            self
+        }
 
-        // pub fn tagging(mut self) -> Self {
-        //   self
-        // }
+        pub fn with_oss_meta(mut self, key: &'a str, value: &'a str) -> Self {
+            self.headers.oss_meta.insert(key.to_string(), value.to_string());
+            self
+        }
 
-        // pub fn add_tag(mut self) -> Self {
-        //   self
-        // }
+        fn headers(&self) -> http::HeaderMap {
+            let mut headers = http::HeaderMap::new();
+
+            if let Some(cache_control) = &self.headers.cache_control {
+                insert_header(&mut headers, CACHE_CONTROL, cache_control);
+            }
+
+            if let Some(content_disposition) = &self.headers.content_disposition {
+                insert_header(&mut headers, CONTENT_DISPOSITION, content_disposition);
+            }
+
+            if let Some(content_encoding) = &self.headers.content_encoding {
+                insert_header(&mut headers, CONTENT_ENCODING, content_encoding);
+            }
+
+            if let Some(content_md5) = &self.headers.content_md5 {
+                headers.insert("Content-MD5", content_md5.parse().unwrap());
+            }
+
+            if let Some(expires) = &self.headers.expires {
+                insert_header(&mut headers, EXPIRES, expires.format(oss::GMT_DATE_FMT));
+            }
+
+            if let Some(encryption) = &self.headers.encryption {
+                insert_custom_header(&mut headers, "x-oss-server-side-encryption", encryption);
+            }
+
+            if let Some(object_acl) = &self.headers.object_acl {
+                insert_custom_header(&mut headers, "x-oss-object-acl", object_acl);
+            }
+
+            if let Some(storage_class) = &self.headers.storage_class {
+                insert_custom_header(&mut headers, "x-oss-storage-class", storage_class);
+            }
+
+            if let Some(tags) = &self.headers.oss_tagging {
+                let kv: HashMap<&str, &str> = tags.to_owned().into_iter().collect();
+                let value = serde_qs::to_string(&kv).unwrap();
+                insert_custom_header(&mut headers, "x-oss-tagging", value);
+            }
+
+            if !self.headers.oss_meta.is_empty() {
+                for (key, value) in &self.headers.oss_meta {
+                    insert_custom_header(&mut headers, &format!("x-oss-meta-{}", key), value);
+                }
+            }
+            headers
+        }
 
         pub async fn execute(&self) -> api::ApiResult<()> {
             self.client;

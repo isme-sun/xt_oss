@@ -297,16 +297,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 - [★ `PutObject`](https://www.example.com)
 - [★ `GetObject`](https://www.example.com)
-- [☆ `CopyObject`](https://www.example.com)
+- [★ `CopyObject`](https://www.example.com)
 - [☆ `AppendObject`](https://www.example.com)
 - [★ `DeleteObject`](https://www.example.com)
 - [☆ `DeleteMultipleObjects`](https://www.example.com)
 - [★ `HeadObject`](https://www.example.com)
 - [★ `GetObjectMeta`](https://www.example.com)
-- [☆ `PostObject`](https://www.example.com)
-- [☆ `Callback`](https://www.example.com)
-- [☆ `RestoreObject`](https://www.example.com)
-- [☆ `SelectObject`](https://www.example.com)
+<!-- - [☆ `PostObject`](https://www.example.com) -->
+<!-- - [☆ `Callback`](https://www.example.com) -->
+<!-- - [☆ `RestoreObject`](https://www.example.com) -->
+<!-- - [☆ `SelectObject`](https://www.example.com) -->
 
 ### Object 分片上传（MultipartUpload）
 
