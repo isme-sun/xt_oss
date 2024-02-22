@@ -573,7 +573,7 @@ impl<'a> Client<'a> {
 
     /// 在将所有数据Part都上传完成后，您必须调用CompleteMultipartUpload接口来完成整个文件的分片上传。
     ///
-    /// - [official docs]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpartcopy)
     /// - [xtoss example]()
     pub fn CompleteMultipartUpload(&self, object: &'a str) -> CompleteMultipartUploadBuilder {
         CompleteMultipartUploadBuilder::new(self, object)

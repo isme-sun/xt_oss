@@ -190,7 +190,7 @@ pub mod builders {
     }
 }
 
-/// # 自定义域名（CNAME）
+/// # 自定义域名`CNAME``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用CreateCnameToken接口创建域名所有权验证所需的CnameToken
@@ -209,7 +209,7 @@ impl<'a> oss::Client<'a> {
         GetCnameTokenBuilder::new(self, cname)
     }
 
-    /// 调用PutCname接口为某个存储空间（Bucket）绑定自定义域名
+    /// 调用PutCname接口为某个存储空间(Bucket)绑定自定义域名
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putcname)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_put.rs)
@@ -217,7 +217,7 @@ impl<'a> oss::Client<'a> {
         PutCnameBuilder::new(self)
     }
 
-    /// 调用ListCname接口用于查询某个存储空间（Bucket）下绑定的所有的自定义域名（Cname）列表
+    /// 调用ListCname接口用于查询某个存储空间(Bucket)下绑定的所有的自定义域名(Cname)列表
     ///
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listcname)
@@ -226,7 +226,7 @@ impl<'a> oss::Client<'a> {
         ListCnameBuilder::new(self)
     }
 
-    /// 调用DeleteCname接口删除某个存储空间（Bucket）已绑定的Cname
+    /// 调用DeleteCname接口删除某个存储空间(Bucket)已绑定的Cname
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletecname)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_del.rs)

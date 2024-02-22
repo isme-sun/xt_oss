@@ -549,7 +549,7 @@ pub mod builders {
 /// # 基础操作
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutBucket接口创建存储空间（Bucket）。
+    /// 调用PutBucket接口创建存储空间`Bucket`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucket)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_put.rs)
@@ -557,7 +557,7 @@ impl<'a> oss::Client<'a> {
         PutBucketBuilder::new(self)
     }
 
-    /// 调用DeleteBucket删除某个存储空间（Bucket）。
+    /// 调用DeleteBucket删除某个存储空间`Bucket`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucket)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_del.rs)
@@ -565,8 +565,8 @@ impl<'a> oss::Client<'a> {
         DeleteBucketBuilder::new(self)
     }
 
-    /// GetBucket (ListObjects)接口用于列举存储空间（Bucket）中所有文件
-    /// （Object）的信息。
+    /// GetBucket (ListObjects)接口用于列举存储空间`Bucket`中所有文件
+    /// `Object`的信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjects)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_list_object.rs)
@@ -574,8 +574,8 @@ impl<'a> oss::Client<'a> {
         ListObjectBuilder::new(self)
     }
 
-    /// ListObjectsV2（GetBucketV2）接口用于列举存储空间（Bucket）中所有文件
-    ///（Object）的信息。
+    /// ListObjectsV2`GetBucketV2`接口用于列举存储空间`Bucket`中所有文件
+    ///`Object`的信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjectsv2)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_list_object_v2.rs)
@@ -583,7 +583,7 @@ impl<'a> oss::Client<'a> {
         ListObjectsV2Builder::new(self)
     }
 
-    /// 调用GetBucketInfo接口查看存储空间（Bucket）的相关信息。
+    /// 调用GetBucketInfo接口查看存储空间`Bucket`的相关信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketinfo)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_info.rs)
@@ -591,7 +591,7 @@ impl<'a> oss::Client<'a> {
         GetBucketInfoBuilder::new(self)
     }
 
-    /// GetBucketLocation接口用于查看存储空间（Bucket）的位置信息。
+    /// GetBucketLocation接口用于查看存储空间`Bucket`的位置信息。
     /// 只有Bucket的拥有者才能查看Bucket的位置信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlocation)
@@ -600,8 +600,8 @@ impl<'a> oss::Client<'a> {
         GetBucketLocationBuilder::new(self)
     }
 
-    /// 调用GetBucketStat接口获取指定存储空间（Bucket）的存储容量以及文件
-    /// （Object）数量
+    /// 调用GetBucketStat接口获取指定存储空间`Bucket`的存储容量以及文件
+    /// `Object`数量
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketstat)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_stat.rs)

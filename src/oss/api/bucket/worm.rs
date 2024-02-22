@@ -183,7 +183,7 @@ pub mod builders {
     }
 }
 
-/// # 合规保留策略（WORM）
+/// # 合规保留策略`WORM``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用InitiateBucketWorm接口新建一条合规保留策略。
@@ -222,7 +222,7 @@ impl<'a> oss::Client<'a> {
         ExtendBucketWormBuilder::new(self, worm_id)
     }
 
-    /// GetBucketWorm用于获取指定存储空间（Bucket）的合规保留策略信息。
+    /// GetBucketWorm用于获取指定存储空间`Bucket`的合规保留策略信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_get.rs)

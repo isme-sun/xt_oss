@@ -177,8 +177,8 @@ pub mod builders {
 /// # 跨域资源共享（CORS）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutBucketCors接口为指定的存储空间（Bucket）设置跨域资源共享CORS
-    ///（Cross-Origin Resource Sharing）规则
+    /// 调用PutBucketCors接口为指定的存储空间`Bucket`设置跨域资源共享CORS
+    ///`Cross-Origin Resource Sharing`规则
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketcors)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_put.rs)
@@ -186,8 +186,8 @@ impl<'a> oss::Client<'a> {
         PutBucketCorsBuilder::new(&self)
     }
 
-    /// GetBucketCors接口用于获取指定存储空间（Bucket）当前的跨域资源共享CORS
-    /// （Cross-Origin Resource Sharing）规则。
+    /// GetBucketCors接口用于获取指定存储空间`Bucket`当前的跨域资源共享CORS
+    /// `Cross-Origin Resource Sharing`规则。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketcors)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_get.rs)
@@ -195,8 +195,8 @@ impl<'a> oss::Client<'a> {
         GetBucketCorsBuilder::new(&self)
     }
 
-    /// DeleteBucketCors用于关闭指定存储空间（Bucket）对应的跨域资源共享CORS
-    /// （Cross-Origin Resource Sharing）功能并清空所有规则
+    /// DeleteBucketCors用于关闭指定存储空间`Bucket`对应的跨域资源共享CORS
+    /// `Cross-Origin Resource Sharing`功能并清空所有规则
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketcors)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_del.rs)
@@ -204,8 +204,8 @@ impl<'a> oss::Client<'a> {
         DeleteBucketCorsBuilder::new(&self)
     }
 
-    /// 浏览器在发送跨域请求之前会发送一个preflight请求（Options）给OSS，并带上特定的
-    /// 来源域、HTTP方法和header等信息，以决定是否发送真正的请求。Options请求是由浏览
+    /// 浏览器在发送跨域请求之前会发送一个preflight请求`Options`给OSS,并带上特定的
+    /// 来源域、HTTP方法和header等信息,以决定是否发送真正的请求。Options请求是由浏览
     /// 器自动根据是否跨域来决定是否发送。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/options)

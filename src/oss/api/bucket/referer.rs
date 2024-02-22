@@ -80,10 +80,10 @@ pub mod builders {
     }
 }
 
-/// # 防盗链（Referer）
+/// # 防盗链`Referer``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutBucketReferer接口设置存储空间（Bucket）级别的Referer访问白名单以及黑名单
+    /// 调用PutBucketReferer接口设置存储空间`Bucket`级别的Referer访问白名单以及黑名单
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketreferer)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_put.rs)
@@ -91,7 +91,7 @@ impl<'a> oss::Client<'a> {
         PutBucketRefererBuilder::new(self)
     }
 
-    /// GetBucketReferer接口用于查看存储空间（Bucket）的防盗链（Referer）相关配置。
+    /// GetBucketReferer接口用于查看存储空间`Bucket`的防盗链`Referer`相关配置。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketreferer)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_get.rs)

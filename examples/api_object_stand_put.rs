@@ -44,6 +44,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_storage_class(StorageClass::Standard)
         .with_content(content)
         .with_content_md5(&content_md5)
+        .with_oss_tagging(vec![
+            ("k100", "v100"),
+            ("k200", "v200")
+        ])
         // .with_timeout(120)
         .execute()
         .await

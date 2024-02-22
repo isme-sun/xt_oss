@@ -103,12 +103,12 @@ pub mod builders {
     }
 }
 
-/// # 生命周期（Lifecycle）
+/// # 生命周期`Lifecycle``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 您可以基于最后一次修改时间以及最后一次访问时间的策略创建生命周期规则，定期将存储空间
-    /// （Bucket）内的多个文件（Object）转储为指定存储类型，或者将过期的Object和碎片删除，
-    /// 从而节省存储费用。本文为您介绍如何调用PutBucketLifecycle接口为存储空间（Bucket）
+    /// `Bucket`内的多个文件`Object`转储为指定存储类型,或者将过期的Object和碎片删除,
+    /// 从而节省存储费用。本文为您介绍如何调用PutBucketLifecycle接口为存储空间`Bucket``
     /// 设置生命周期规则。
     ///
     ///
@@ -118,18 +118,18 @@ impl<'a> oss::Client<'a> {
         PutBucketLifecycleBuilder::new(&self)
     }
 
-    /// 调用GetBucketLifecycle接口查看存储空间（Bucket）的生命周期规则（Lifecycle）。
+    /// 调用GetBucketLifecycle接口查看存储空间`Bucket`的生命周期规则`Lifecycle`。
     ///
-    /// - [official docs](调用GetBucketLifecycle接口查看存储空间（Bucket）的生命周期规则（Lifecycle）。)
+    /// - [official docs](调用GetBucketLifecycle接口查看存储空间`Bucket`的生命周期规则`Lifecycle`。)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_get.rs)
     #[allow(non_snake_case)]
     pub fn GetBucketLifecycle(&self) -> GetBucketLifecycleBuilder {
         GetBucketLifecycleBuilder::new(&self)
     }
 
-    /// DeleteBucketLifecycle接口用于删除指定存储空间（Bucket）的生命周期规则。
-    /// 使用DeleteBucketLifecycle接口删除指定Bucket所有的生命周期规则后，
-    /// 该Bucket中的文件（Object）不会被自动删除。只有Bucket的拥有者才能删除该Bucket
+    /// DeleteBucketLifecycle接口用于删除指定存储空间`Bucket`的生命周期规则。
+    /// 使用DeleteBucketLifecycle接口删除指定Bucket所有的生命周期规则后,
+    /// 该Bucket中的文件`Object`不会被自动删除。只有Bucket的拥有者才能删除该Bucket
     /// 的生命周期规则。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketlifecycle)

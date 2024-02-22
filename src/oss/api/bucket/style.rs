@@ -148,7 +148,7 @@ pub mod builders {
     }
 }
 
-/// # 图片样式（Style）
+/// # 图片样式`Style`
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 调用PutStyle接口新增图片样式。一个图片样式中可以包含单个或多个图片处理参数

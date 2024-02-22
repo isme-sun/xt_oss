@@ -224,11 +224,11 @@ pub mod builders {
     }
 }
 
-/// # 软链接（Symlink）
+/// # 软链接`Symlink``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutSymlink接口用于为OSS的目标文件（TargetObject）创建软链接
-    /// （Symlink），您可以通过该软链接访问TargetObject。
+    /// 调用PutSymlink接口用于为OSS的目标文件`TargetObject`创建软链接
+    /// `Symlink`,您可以通过该软链接访问TargetObject。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putsymlink)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_symlink_put.rs)

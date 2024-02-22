@@ -106,8 +106,8 @@ pub mod builders {
 /// # 基础操作
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutObjectACL接口修改文件（Object）的访问权限（ACL）。
-    /// 此操作只有Bucket Owner有权限执行，且需对Object有读写权限。
+    /// 调用PutObjectACL接口修改文件`Object`的访问权限`ACL`。
+    /// 此操作只有Bucket Owner有权限执行,且需对Object有读写权限。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjectacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_put.rs)
@@ -115,8 +115,8 @@ impl<'a> oss::Client<'a> {
         PutObjectACLBuilder::new(self, object)
     }
 
-    /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和
-    /// uploadId来分块（Part）
+    /// 初始化一个MultipartUpload后,调用UploadPart接口根据指定的Object名和
+    /// uploadId来分块`Part`
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_get.rs)

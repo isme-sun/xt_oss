@@ -64,7 +64,7 @@ impl<'a> GetBucketAclBuilder<'a> {
     }
 }
 
-/// # 权限控制（ACL）
+/// # 权限控制`ACL``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）。

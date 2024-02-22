@@ -79,6 +79,14 @@ impl fmt::Display for Tier {
     }
 }
 
+#[derive(Debug, Default, Serialize, Deserialize,Clone)]
+pub struct CopyObjectResult {
+  #[serde(rename = "etag")]
+  pub etag: Option<String>,
+  #[serde(rename = "LastModified")]
+  pub last_modified: String
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct JobParameters {
     #[serde(rename = "Tier")]
@@ -93,7 +101,7 @@ pub struct RestoreRequest {
     pub job_parameters: Option<JobParameters>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum MetadataDirective {
     #[default]
     COPY,
@@ -110,7 +118,7 @@ impl fmt::Display for MetadataDirective {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub enum TaggingDirective {
     #[default]
     COPY,

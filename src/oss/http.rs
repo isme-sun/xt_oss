@@ -61,7 +61,7 @@ impl fmt::Display for ContentDisposition {
 /// 指定该Object被下载时网页的缓存行为
 #[derive(Debug, Default, Clone, Copy)]
 pub enum CacheControl {
-    /// 不可直接使用缓存，而是先到服务端验证Object是否已更新。如果Object已更新，表明缓存已过期，需从服务端重新下载Object；如果Object未更新，表明缓存未过期，此时将使用本地缓存。
+    /// 不可直接使用缓存,而是先到服务端验证Object是否已更新。如果Object已更新,表明缓存已过期,需从服务端重新下载Object;如果Object未更新,表明缓存未过期，此时将使用本地缓存。
     NoCache,
     ///所有内容都不会被缓存。
     NoStore,

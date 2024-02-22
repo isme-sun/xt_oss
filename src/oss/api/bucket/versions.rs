@@ -152,10 +152,10 @@ pub mod builders {
     }
 }
 
-/// # 版本控制（Versioning）
+/// # 版本控制`Versioning``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutBucketVersioning设置指定存储空间（Bucket）的版本控制状态。
+    /// 调用PutBucketVersioning设置指定存储空间`Bucket`的版本控制状态。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketversioning)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_put.rs)
@@ -170,7 +170,7 @@ impl<'a> oss::Client<'a> {
         GetBucketVersioningBuilder::new(self)
     }
 
-    /// 接口用于列出Bucket中包括删除标记（Delete Marker）在内的所有Object
+    /// 接口用于列出Bucket中包括删除标记`Delete Marker`在内的所有Object
     /// 的版本信息
     ///
     /// - [official docs]()

@@ -173,7 +173,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `PutBucketCors`](https://www.example.com)
 - [★ `GetBucketCors`](https://www.example.com)
 - [★ `DeleteBucketCors`](https://www.example.com)
-- [☆ `Options`](https://www.example.com)
+- [★ `Options`](https://www.example.com)
 
 <!-- ##### Bucket 访问跟踪（AccessMonitor）
 

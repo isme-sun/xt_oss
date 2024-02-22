@@ -61,10 +61,10 @@ impl fmt::Display for Status {
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[serde(tag = "DataRedundancyType")]
 pub enum DataRedundancyType {
-    /// 本地冗余LRS将您的数据冗余存储在同一个可用区的不同存储设备上，可支持两个存储设备并发损坏时，仍维持数据不丢失，可正常访问
+    /// 本地冗余LRS将您的数据冗余存储在同一个可用区的不同存储设备上,可支持两个存储设备并发损坏时，仍维持数据不丢失，可正常访问
     #[default]
     LRS,
-    /// 同城冗余ZRS采用多可用区（AZ）内的数据冗余存储机制，将用户的数据冗余存储在同一地域（Region）的多个可用区。当某个可用区不可用时，仍然能够保障数据的正常访问
+    /// 同城冗余ZRS采用多可用区(AZ)内的数据冗余存储机制,将用户的数据冗余存储在同一地域(Region)的多个可用区。当某个可用区不可用时，仍然能够保障数据的正常访问
     ZRS,
 }
 
@@ -87,7 +87,7 @@ impl fmt::Display for OssAcl {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub enum ObjectACL {
     #[default]
     Default,
@@ -140,7 +140,7 @@ impl fmt::Display for StorageClass {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub enum ServerSideEncryption {
     //使用OSS完全托管密钥进行加解密（SSE-OSS）。
     #[default]

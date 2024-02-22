@@ -73,7 +73,7 @@ pub mod builders {
     }
 }
 
-/// # 传输加速（TransferAcceleration）
+/// # 传输加速`TransferAcceleration``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
     /// 接口用于为存储空间（Bucket）配置传输加速。开启传输加速后，可提升全球各地用户对OSS的访问速度，

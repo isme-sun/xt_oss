@@ -193,7 +193,7 @@ impl<'a> RequestTask<'a> {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Request<'a> {
     access_key_id: Option<&'a str>,
     access_key_secret: Option<&'a str>,
@@ -237,7 +237,7 @@ impl<'a> Request<'a> {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Copy)]
 pub struct Options<'a> {
     /// 通过阿里云控制台创建的AccessKey ID
     access_key_id: &'a str,
@@ -379,7 +379,7 @@ impl<'a> Options<'a> {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Client<'a> {
     options: Options<'a>,
     request: Request<'a>,

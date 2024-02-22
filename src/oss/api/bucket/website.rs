@@ -104,11 +104,11 @@ pub mod builders {
     }
 }
 
-/// # 静态网站（Website）
+/// # 静态网站`Website``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutBucketWebsite接口将存储空间（Bucket）设置为静态网站托管模式并设置跳
-    /// 转规则（RoutingRule）。
+    /// 调用PutBucketWebsite接口将存储空间`Bucket`设置为静态网站托管模式并设置跳
+    /// 转规则`RoutingRule`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketwebsite)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_put.rs)
@@ -116,7 +116,7 @@ impl<'a> oss::Client<'a> {
         PutBucketWebsiteBuilder::new(self)
     }
 
-    /// 调用GetBucketWebsite接口查看存储空间（Bucket）的静态网站托管状态以及跳转规则
+    /// 调用GetBucketWebsite接口查看存储空间`Bucket`的静态网站托管状态以及跳转规则
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketwebsite)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_get.rs)
@@ -124,7 +124,7 @@ impl<'a> oss::Client<'a> {
         GetBucketWebsiteBuilder::new(self)
     }
 
-    /// DeleteBucketWebsite接口用于关闭存储空间（Bucket）的静态网站托管模式以及
+    /// DeleteBucketWebsite接口用于关闭存储空间`Bucket`的静态网站托管模式以及
     /// 跳转规则。只有Bucket的拥有者才能关闭Bucket的静态网站托管模式。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketwebsite)

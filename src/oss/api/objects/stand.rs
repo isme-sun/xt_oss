@@ -22,7 +22,7 @@ pub mod builders {
         self,
         api::{self, insert_custom_header, insert_header, ApiResponseFrom},
         entities::{
-            object::{JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
+            object::{CopyObjectResult, JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
             tag::{Tag, TagSet, Tagging},
             ObjectACL, ServerSideEncryption, StorageClass,
         },
@@ -31,7 +31,7 @@ pub mod builders {
     use crate::util::ByteRange;
 
     #[derive(Debug, Default)]
-    struct PutObjectBuilderHeaders {
+    struct PutObjectBuilderHeaders<'a> {
         content_type: Option<String>,
         content_encoding: Option<http::ContentEncoding>,
         content_language: Option<String>,
@@ -47,7 +47,7 @@ pub mod builders {
         encryption_key_id: Option<String>,
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
-        oss_tagging: HashMap<String, String>,
+        oss_tagging: Option<Vec<(&'a str, &'a str)>>,
         oss_meta: HashMap<String, String>,
     }
 
@@ -55,7 +55,7 @@ pub mod builders {
         client: &'a oss::Client<'a>,
         object: &'a str,
         content: oss::Bytes,
-        headers: PutObjectBuilderHeaders,
+        headers: PutObjectBuilderHeaders<'a>,
         timeout: Option<u64>,
     }
 
@@ -145,8 +145,8 @@ pub mod builders {
             self
         }
 
-        pub fn with_oss_tagging(mut self, key: &'a str, value: &'a str) -> Self {
-            self.headers.oss_tagging.insert(key.to_string(), value.to_string());
+        pub fn with_oss_tagging(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.headers.oss_tagging = Some(value);
             self
         }
 
@@ -231,8 +231,9 @@ pub mod builders {
                 insert_custom_header(&mut headers, "x-oss-storage-class", storage_class);
             }
 
-            if !self.headers.oss_tagging.is_empty() {
-                let value = serde_qs::to_string(&self.headers.oss_tagging).expect("Failed to serialize tags");
+            if let Some(tags) = &self.headers.oss_tagging {
+                let kv: HashMap<&str, &str> = tags.to_owned().into_iter().collect();
+                let value = serde_qs::to_string(&kv).unwrap();
                 insert_custom_header(&mut headers, "x-oss-tagging", value);
             }
 
@@ -247,6 +248,7 @@ pub mod builders {
         pub async fn execute(&self) -> api::ApiResult<()> {
             let res = format!("/{}/{}", self.client.bucket(), self.object);
             let url = self.client.object_url(self.object);
+            let headers = self.headers();
 
             let resp = self
                 .client
@@ -254,7 +256,7 @@ pub mod builders {
                 .task()
                 .with_url(&url)
                 .with_method(http::Method::PUT)
-                .with_headers(self.headers())
+                .with_headers(headers)
                 .with_body(self.content.to_owned())
                 .with_resource(&res)
                 .execute_timeout(self.timeout.unwrap_or(self.client.timeout()))
@@ -263,7 +265,7 @@ pub mod builders {
         }
     }
 
-    #[derive(Debug, Default)]
+    #[derive(Debug, Default, Clone)]
     struct CopyObjectBuilderArguments<'a> {
         copy_source: Option<&'a str>,
         source_version_id: Option<&'a str>,
@@ -279,11 +281,11 @@ pub mod builders {
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
         // oss_tagging: Option<Tagging>,
-        oss_tagging: HashMap<String, String>,
+        oss_tagging: Option<Vec<(&'a str, &'a str)>>,
         tagging_directive: Option<TaggingDirective>,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct CopyObjectBuilder<'a> {
         client: &'a oss::Client<'a>,
         object: &'a str,
@@ -299,11 +301,15 @@ pub mod builders {
             }
         }
 
+        /// 指定CopyObject操作时是否覆盖同名目标Object。当目标Bucket处于已开
+        /// 启或已暂停版本控制状态时,x-oss-forbid-overwrite请求Header设置
+        /// 无效,即允许覆盖同名Object。
         pub fn with_forbid_overwrite(mut self, value: bool) -> Self {
             self.arguments.forbid_overwrite = Some(value);
             self
         }
 
+        /// 指定拷贝的源地址
         pub fn with_copy_source(mut self, value: &'a str) -> Self {
             self.arguments.copy_source = Some(value);
             self
@@ -319,6 +325,7 @@ pub mod builders {
             self
         }
 
+        /// 如果源Object的ETag值和您提供的ETag相等,则执行拷贝操作,并返回200 OK
         pub fn with_if_match(mut self, value: &'a str) -> Self {
             self.arguments.if_match = Some(value);
             self
@@ -364,8 +371,8 @@ pub mod builders {
             self
         }
 
-        pub fn with_oss_tagging(mut self, key: &'a str, value: &'a str) -> Self {
-            self.arguments.oss_tagging.insert(key.to_string(), value.to_string());
+        pub fn with_oss_tagging(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.arguments.oss_tagging = Some(value);
             self
         }
 
@@ -376,9 +383,8 @@ pub mod builders {
 
         fn headers(&self) -> HeaderMap {
             let mut headers = HeaderMap::new();
-            if let Some(orbid_overwrite) = self.arguments.forbid_overwrite {
-                let value = if orbid_overwrite == true { "true" } else { "false" };
-                insert_custom_header(&mut headers, "x-oss-forbid-overwrite", value);
+            if let Some(true) = self.arguments.forbid_overwrite {
+                insert_custom_header(&mut headers, "x-oss-forbid-overwrite", "true");
             }
 
             if let Some(copy_source) = self.arguments.copy_source {
@@ -436,21 +442,9 @@ pub mod builders {
                 insert_custom_header(&mut headers, key, value.to_string())
             }
 
-            if !self.arguments.oss_tagging.is_empty() {
-                let tags = self
-                    .arguments
-                    .oss_tagging
-                    .iter()
-                    .map(|(k, v)| Tag {
-                        key: k.to_string(),
-                        value: v.to_string(),
-                    })
-                    .collect::<Vec<Tag>>();
-                let tagging = Tagging {
-                    tag_set: TagSet { tag: Some(tags) },
-                };
-
-                let value = serde_qs::to_string(&tagging).expect("Failed to serialize tags");
+            if let Some(tags) = &self.arguments.oss_tagging {
+                let kv: HashMap<&str, &str> = tags.to_owned().into_iter().collect();
+                let value = serde_qs::to_string(&kv).unwrap();
                 insert_custom_header(&mut headers, "x-oss-tagging", value);
             }
 
@@ -462,20 +456,22 @@ pub mod builders {
             headers
         }
 
-        pub async fn execute(&self) -> api::ApiResult<()> {
+        pub async fn execute(&self) -> api::ApiResult<CopyObjectResult> {
             let res = format!("/{}/{}", self.client.bucket(), self.object);
             let url = self.client.object_url(self.object);
+            let headers = self.headers();
+            dbg!(&headers);
             let resp = self
                 .client
                 .request
                 .task()
                 .with_url(&url)
                 .with_method(http::Method::PUT)
-                .with_headers(self.headers())
+                .with_headers(headers)
                 .with_resource(&res)
                 .execute_timeout(self.client.timeout())
                 .await?;
-            Ok(ApiResponseFrom(resp).to_empty().await)
+            Ok(ApiResponseFrom(resp).to_type().await)
         }
     }
 

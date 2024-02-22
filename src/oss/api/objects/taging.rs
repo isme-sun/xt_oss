@@ -171,11 +171,11 @@ pub mod builders {
     }
 }
 
-/// # 标签（Tagging）
+/// # 标签`Tagging`
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutObjectTagging接口设置或更新对象（Object）的标签（Tagging）信息。
-    /// 对象标签使用一组键值对（Key-Value）标记对象。
+    /// 调用PutObjectTagging接口设置或更新对象`Object`的标签`Tagging`信息。
+    /// 对象标签使用一组键值对`Key-Value`标记对象。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjecttagging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_put.rs)
@@ -183,7 +183,7 @@ impl<'a> oss::Client<'a> {
         PutObjectTaggingBuilder::new(self, object)
     }
 
-    /// 调用GetObjectTagging接口获取对象（Object）的标签（Tagging）信息。
+    /// 调用GetObjectTagging接口获取对象`Object`的标签`Tagging`信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjecttagging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_get.rs)
@@ -191,7 +191,7 @@ impl<'a> oss::Client<'a> {
         GetObjectTaggingbuilder::new(&self, object)
     }
 
-    /// 调用DeleteObjectTagging接口删除指定对象（Object）的标签（Tagging）信息。
+    /// 调用DeleteObjectTagging接口删除指定对象`Object`的标签`Tagging`信息。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deleteobjecttagging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_del.rs)

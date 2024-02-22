@@ -128,7 +128,7 @@ pub mod builders {
 /// # 加密（Encryption）
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// PutBucketEncryption接口用于配置存储空间（Bucket）的加密规则。
+    /// PutBucketEncryption接口用于配置存储空间`Bucket`的加密规则。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketencryption)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_put.rs)
@@ -136,7 +136,7 @@ impl<'a> oss::Client<'a> {
         PutBucketEncryptionBuilder::new(self)
     }
 
-    /// GetBucketEncryption接口用于获取存储空间（Bucket）的加密规则。
+    /// GetBucketEncryption接口用于获取存储空间`Bucket`的加密规则。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketencryption)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_get.rs)

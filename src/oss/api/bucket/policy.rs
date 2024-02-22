@@ -102,10 +102,10 @@ pub mod builders {
     }
 }
 
-/// # 授权策略（Policy）
+/// # 授权策略`Policy`
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// PutBucketPolicy接口用于为指定的存储空间（Bucket）设置授权策略（Policy)。
+    /// PutBucketPolicy接口用于为指定的存储空间`Bucket`设置授权策略`Policy`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketpolicy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_put.rs)
@@ -113,7 +113,7 @@ impl<'a> oss::Client<'a> {
         PutBucketPolicyBuilder::new(self)
     }
 
-    /// GetBucketPolicy用于获取指定存储空间（Bucket）的权限策略（Policy）。
+    /// GetBucketPolicy用于获取指定存储空间`Bucket`的权限策略`Policy`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketpolicy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_get.rs)
@@ -121,7 +121,7 @@ impl<'a> oss::Client<'a> {
         GetBucketPolicyBuilder::new(self)
     }
 
-    /// DeleteBucketPolicy用于删除指定存储空间（Bucket）的权限策略（Policy）。
+    /// DeleteBucketPolicy用于删除指定存储空间`Bucket`的权限策略`Policy`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketpolicy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_del.rs)
