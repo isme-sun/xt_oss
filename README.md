@@ -310,13 +310,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Object 分片上传（MultipartUpload）
 
-- [☆ `InitiateMultipartUpload`](https://www.example.com)
-- [☆ `UploadPart`](https://www.example.com)
-- [☆ `UploadPartCopy`](https://www.example.com)
-- [☆ `CompleteMultipartUpload`](https://www.example.com)
-- [☆ `AbortMultipartUpload`](https://www.example.com)
-- [☆ `ListMultipartUploads`](https://www.example.com)
-- [☆ `ListParts`](https://www.example.com)
+- [★ `InitiateMultipartUpload`](https://www.example.com)
+- [★ `UploadPart`](https://www.example.com)
+- [★ `UploadPartCopy`](https://www.example.com)
+- [★ `CompleteMultipartUpload`](https://www.example.com)
+- [★ `AbortMultipartUpload`](https://www.example.com)
+- [★ `ListMultipartUploads`](https://www.example.com)
+- [★ `ListParts`](https://www.example.com)
 
 ### Object 权限控制（ACL)
 
