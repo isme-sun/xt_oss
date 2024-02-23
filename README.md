@@ -334,7 +334,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `GetObjectTagging`](https://www.example.com)
 - [★ `DeleteObjectTagging`](https://www.example.com)
 
-### 关于LiveChannel的操作
+<!-- ### 关于LiveChannel的操作
 
 - [☆ `PutLiveChannel`](https://www.example.com)
 - [☆ `ListLiveChannel`](https://www.example.com)
@@ -344,7 +344,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [☆ `GetLiveChannelStat`](https://www.example.com)
 - [☆ `GetLiveChannelHistory`](https://www.example.com)
 - [☆ `PostVodPlaylist`](https://www.example.com)
-- [☆ `GetVodPlaylist`](https://www.example.com)
+- [☆ `GetVodPlaylist`](https://www.example.com) -->
 
 ## 关于oss::Request
 

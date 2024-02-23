@@ -11,11 +11,14 @@ pub mod builders {
     use std::collections::HashMap;
 
     use chrono::{DateTime, Utc};
-    use oss::http::{header::{
-        HeaderMap, ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE,
-        CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE,
-        RANGE,
-    }, CacheControl, ContentDisposition, ContentEncoding};
+    use oss::http::{
+        header::{
+            HeaderMap, ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE,
+            CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH,
+            IF_UNMODIFIED_SINCE, RANGE,
+        },
+        CacheControl, ContentDisposition, ContentEncoding,
+    };
     use serde::{Deserialize, Serialize};
 
     use crate::oss::{
@@ -265,7 +268,7 @@ pub mod builders {
     }
 
     #[derive(Debug, Default, Clone)]
-    struct CopyObjectBuilderArguments<'a> {
+    struct CopyObjectBuilderHeaders<'a> {
         copy_source: Option<&'a str>,
         source_version_id: Option<&'a str>,
         version_id: Option<&'a str>,
@@ -279,7 +282,6 @@ pub mod builders {
         enc_key_id: Option<&'a str>,
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
-        // oss_tagging: Option<Tagging>,
         oss_tagging: Option<Vec<(&'a str, &'a str)>>,
         tagging_directive: Option<TaggingDirective>,
     }
@@ -288,7 +290,7 @@ pub mod builders {
     pub struct CopyObjectBuilder<'a> {
         client: &'a oss::Client<'a>,
         object: &'a str,
-        arguments: CopyObjectBuilderArguments<'a>,
+        headers: CopyObjectBuilderHeaders<'a>,
     }
 
     impl<'a> CopyObjectBuilder<'a> {
@@ -296,7 +298,7 @@ pub mod builders {
             Self {
                 client,
                 object,
-                arguments: CopyObjectBuilderArguments::default(),
+                headers: CopyObjectBuilderHeaders::default(),
             }
         }
 
@@ -304,90 +306,90 @@ pub mod builders {
         /// 启或已暂停版本控制状态时,x-oss-forbid-overwrite请求Header设置
         /// 无效,即允许覆盖同名Object。
         pub fn with_forbid_overwrite(mut self, value: bool) -> Self {
-            self.arguments.forbid_overwrite = Some(value);
+            self.headers.forbid_overwrite = Some(value);
             self
         }
 
         /// 指定拷贝的源地址
         pub fn with_copy_source(mut self, value: &'a str) -> Self {
-            self.arguments.copy_source = Some(value);
+            self.headers.copy_source = Some(value);
             self
         }
 
         pub fn with_source_version_id(mut self, value: &'a str) -> Self {
-            self.arguments.source_version_id = Some(value);
+            self.headers.source_version_id = Some(value);
             self
         }
 
         pub fn with_version_id(mut self, value: &'a str) -> Self {
-            self.arguments.version_id = Some(value);
+            self.headers.version_id = Some(value);
             self
         }
 
         /// 如果源Object的ETag值和您提供的ETag相等,则执行拷贝操作,并返回200 OK
         pub fn with_if_match(mut self, value: &'a str) -> Self {
-            self.arguments.if_match = Some(value);
+            self.headers.if_match = Some(value);
             self
         }
 
         pub fn with_if_none_match(mut self, value: &'a str) -> Self {
-            self.arguments.if_none_match = Some(value);
+            self.headers.if_none_match = Some(value);
             self
         }
 
         pub fn with_if_unmodified_since(mut self, value: DateTime<Utc>) -> Self {
-            self.arguments.if_unmodified_since = Some(value);
+            self.headers.if_unmodified_since = Some(value);
             self
         }
 
         pub fn with_if_modified_since(mut self, value: DateTime<Utc>) -> Self {
-            self.arguments.if_modified_since = Some(value);
+            self.headers.if_modified_since = Some(value);
             self
         }
 
         pub fn with_metadata_directive(mut self, value: MetadataDirective) -> Self {
-            self.arguments.metadata_directive = Some(value);
+            self.headers.metadata_directive = Some(value);
             self
         }
 
         pub fn with_encryption(mut self, value: ServerSideEncryption) -> Self {
-            self.arguments.encryption = Some(value);
+            self.headers.encryption = Some(value);
             self
         }
 
         pub fn with_enc_key_id(mut self, value: &'a str) -> Self {
-            self.arguments.enc_key_id = Some(value);
+            self.headers.enc_key_id = Some(value);
             self
         }
 
         pub fn with_object_acl(mut self, value: ObjectACL) -> Self {
-            self.arguments.object_acl = Some(value);
+            self.headers.object_acl = Some(value);
             self
         }
 
         pub fn with_storage_class(mut self, value: StorageClass) -> Self {
-            self.arguments.storage_class = Some(value);
+            self.headers.storage_class = Some(value);
             self
         }
 
         pub fn with_oss_tagging(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
-            self.arguments.oss_tagging = Some(value);
+            self.headers.oss_tagging = Some(value);
             self
         }
 
         pub fn with_tagging_directive(mut self, value: TaggingDirective) -> Self {
-            self.arguments.tagging_directive = Some(value);
+            self.headers.tagging_directive = Some(value);
             self
         }
 
         fn headers(&self) -> HeaderMap {
             let mut headers = HeaderMap::new();
-            if let Some(true) = self.arguments.forbid_overwrite {
+            if let Some(true) = self.headers.forbid_overwrite {
                 insert_custom_header(&mut headers, "x-oss-forbid-overwrite", "true");
             }
 
-            if let Some(copy_source) = self.arguments.copy_source {
-                let value = if let Some(source_version_id) = self.arguments.source_version_id {
+            if let Some(copy_source) = self.headers.copy_source {
+                let value = if let Some(source_version_id) = self.headers.source_version_id {
                     format!("{}?versionId={}", copy_source, source_version_id)
                 } else {
                     copy_source.to_string()
@@ -396,58 +398,58 @@ pub mod builders {
                 insert_custom_header(&mut headers, key, value);
             }
 
-            if let Some(value) = self.arguments.if_match {
+            if let Some(value) = self.headers.if_match {
                 let key = "x-oss-copy-source-if-match";
                 insert_custom_header(&mut headers, key, value);
             }
 
-            if let Some(value) = self.arguments.if_none_match {
+            if let Some(value) = self.headers.if_none_match {
                 let key = "x-oss-copy-source-if-none-match";
                 insert_custom_header(&mut headers, key, value);
             }
 
-            if let Some(value) = &self.arguments.if_unmodified_since {
+            if let Some(value) = &self.headers.if_unmodified_since {
                 let key = "x-oss-copy-source-if-unmodified-since";
                 insert_custom_header(&mut headers, key, value.format(oss::GMT_DATE_FMT).to_string())
             }
 
-            if let Some(value) = &self.arguments.if_modified_since {
+            if let Some(value) = &self.headers.if_modified_since {
                 let key = "x-oss-copy-source-if-modified-since";
                 insert_custom_header(&mut headers, key, value.format(oss::GMT_DATE_FMT).to_string())
             }
 
-            if let Some(value) = &self.arguments.metadata_directive {
+            if let Some(value) = &self.headers.metadata_directive {
                 let key = "x-oss-metadata-directive";
                 insert_custom_header(&mut headers, key, value.to_string())
             }
 
-            if let Some(value) = &self.arguments.encryption {
+            if let Some(value) = &self.headers.encryption {
                 let key = "x-oss-server-side-encryption";
                 insert_custom_header(&mut headers, key, value.to_string())
             }
 
-            if let Some(value) = self.arguments.enc_key_id {
+            if let Some(value) = self.headers.enc_key_id {
                 let key = "x-oss-server-side-encryption-key-id";
                 insert_custom_header(&mut headers, key, value)
             }
 
-            if let Some(value) = &self.arguments.object_acl {
+            if let Some(value) = &self.headers.object_acl {
                 let key = "x-oss-object-acl";
                 insert_custom_header(&mut headers, key, value.to_string())
             }
 
-            if let Some(value) = &self.arguments.storage_class {
+            if let Some(value) = &self.headers.storage_class {
                 let key = "x-oss-storage-class";
                 insert_custom_header(&mut headers, key, value.to_string())
             }
 
-            if let Some(tags) = &self.arguments.oss_tagging {
+            if let Some(tags) = &self.headers.oss_tagging {
                 let kv: HashMap<&str, &str> = tags.to_owned().into_iter().collect();
                 let value = serde_qs::to_string(&kv).unwrap();
                 insert_custom_header(&mut headers, "x-oss-tagging", value);
             }
 
-            if let Some(value) = &self.arguments.tagging_directive {
+            if let Some(value) = &self.headers.tagging_directive {
                 let key = "x-oss-tagging-directive";
                 insert_custom_header(&mut headers, key, value.to_string())
             }
@@ -484,14 +486,15 @@ pub mod builders {
         encryption: Option<ServerSideEncryption>,
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
-        oss_meta: HashMap<String, String>,
+        oss_meta: Option<Vec<(&'a str, &'a str)>>,
         oss_tagging: Option<Vec<(&'a str, &'a str)>>,
     }
 
     pub struct AppendObjectBuilder<'a> {
         client: &'a oss::Client<'a>,
         object: String,
-        position: u64,
+        position: usize,
+        content: oss::Bytes,
         headers: AppendObjectBuilderHeaders<'a>,
     }
 
@@ -501,29 +504,35 @@ pub mod builders {
                 client,
                 object: object.to_string(),
                 position: 0,
-                headers: AppendObjectBuilderHeaders::default()
+                content: oss::Bytes::new(),
+                headers: AppendObjectBuilderHeaders::default(),
             }
         }
 
-        pub fn position(mut self, value: u64) -> Self {
+        pub fn with_position(mut self, value: usize) -> Self {
             self.position = value;
             self
         }
 
-        pub fn cache_control(mut self, value: CacheControl) -> Self {
+        pub fn with_content(mut self, value: oss::Bytes) -> Self {
+            self.content = value;
+            self
+        }
+
+        pub fn with_cache_control(mut self, value: CacheControl) -> Self {
             self.headers.cache_control = Some(value);
             self
         }
-        pub fn content_disposition(mut self, value: ContentDisposition) -> Self {
+        pub fn with_content_disposition(mut self, value: ContentDisposition) -> Self {
             self.headers.content_disposition = Some(value);
             self
         }
-        pub fn content_encoding(mut self, value: ContentEncoding) -> Self {
+        pub fn with_content_encoding(mut self, value: ContentEncoding) -> Self {
             self.headers.content_encoding = Some(value);
             self
         }
 
-        pub fn expires(mut self, value: DateTime<Utc>) -> Self {
+        pub fn with_expires(mut self, value: DateTime<Utc>) -> Self {
             self.headers.expires = Some(value);
             self
         }
@@ -533,12 +542,12 @@ pub mod builders {
             self
         }
 
-        pub fn object_acl(mut self, value: ObjectACL) -> Self {
+        pub fn with_object_acl(mut self, value: ObjectACL) -> Self {
             self.headers.object_acl = Some(value);
             self
         }
 
-        pub fn storage_class(mut self, value: StorageClass) -> Self {
+        pub fn with_storage_class(mut self, value: StorageClass) -> Self {
             self.headers.storage_class = Some(value);
             self
         }
@@ -553,11 +562,12 @@ pub mod builders {
             self
         }
 
-        pub fn with_oss_meta(mut self, key: &'a str, value: &'a str) -> Self {
-            self.headers.oss_meta.insert(key.to_string(), value.to_string());
+        pub fn with_oss_meta(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.headers.oss_meta = Some(value);
             self
         }
 
+        #[allow(unused)]
         fn headers(&self) -> http::HeaderMap {
             let mut headers = http::HeaderMap::new();
 
@@ -599,18 +609,45 @@ pub mod builders {
                 insert_custom_header(&mut headers, "x-oss-tagging", value);
             }
 
-            if !self.headers.oss_meta.is_empty() {
-                for (key, value) in &self.headers.oss_meta {
+            if let Some(oss_meta) = &self.headers.oss_meta {
+                for (key, value) in oss_meta {
                     insert_custom_header(&mut headers, &format!("x-oss-meta-{}", key), value);
                 }
             }
             headers
         }
 
-        pub async fn execute(&self) -> api::ApiResult<()> {
-            self.client;
-            let _ = self.object;
-            todo!()
+        pub async fn execute(&self) -> api::ApiResult {
+            let res = format!(
+                "/{}/{}?append&position={}",
+                self.client.bucket(),
+                &self.object,
+                self.position
+            );
+            let url = format!(
+                "{}?append&position={}",
+                self.client.object_url(&self.object),
+                self.position
+            );
+
+            let mut headers = self.headers();
+            headers.insert(CONTENT_LENGTH, self.content.len().into());
+
+            dbg!(&url);
+            dbg!(&headers);
+
+            let resp = self
+                .client
+                .request
+                .task()
+                .with_url(&url)
+                .with_headers(headers)
+                .with_resource(&res)
+                .with_body(self.content.to_owned())
+                .with_method(http::Method::POST)
+                .execute()
+                .await?;
+            Ok(ApiResponseFrom(resp).to_empty().await)
         }
     }
 
