@@ -19,14 +19,22 @@ mod pages {
     }
 
     pub(crate) async fn index(State(state): State<Arc<AppState<'_>>>) -> Html<String> {
-        let result = state.oss_client.ListBuckets().execute().await.unwrap().unwrap();
+        let result = state
+            .oss_client
+            .ListBuckets()
+            .execute()
+            .await
+            .unwrap()
+            .unwrap();
         let buckets = result.content().buckets.bucket;
         let mut context = Context::new();
         context.insert("buckets", &buckets);
         Html(state.template.render("index.html", &context).unwrap())
     }
 
-    pub(super) async fn describe_regions(State(state): State<Arc<AppState<'_>>>) -> Json<RegionInfoList> {
+    pub(super) async fn describe_regions(
+        State(state): State<Arc<AppState<'_>>>,
+    ) -> Json<RegionInfoList> {
         let result = state.oss_client.DescribeRegions().execute().await.unwrap();
         if let Ok(data) = result {
             Json(data.content())
@@ -35,7 +43,9 @@ mod pages {
         }
     }
 
-    pub(super) async fn buckets(State(state): State<Arc<AppState<'_>>>) -> Json<ListAllMyBucketsResult> {
+    pub(super) async fn buckets(
+        State(state): State<Arc<AppState<'_>>>,
+    ) -> Json<ListAllMyBucketsResult> {
         let result = state.oss_client.ListBuckets().execute().await.unwrap();
         if let Ok(data) = result {
             Json(data.content())

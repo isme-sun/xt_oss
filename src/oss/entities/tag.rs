@@ -79,6 +79,5 @@ mod tests {
 
         let content: Tagging = quick_xml::de::from_str(xml).unwrap();
         assert_eq!("key1", content.tag_set.tag.unwrap()[0].key);
-
     }
 }

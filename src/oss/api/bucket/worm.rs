@@ -1,8 +1,8 @@
 use crate::oss;
 
 use self::builders::{
-    AbortBucketWormBuilder, CompleteBucketWormBuilder, ExtendBucketWormBuilder, GetBucketWormBuilder,
-    InitiateBucketWormBuilder,
+    AbortBucketWormBuilder, CompleteBucketWormBuilder, ExtendBucketWormBuilder,
+    GetBucketWormBuilder, InitiateBucketWormBuilder,
 };
 
 pub mod builders {
@@ -110,8 +110,18 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}&wormId={}", self.client.bucket(), "wormExtend", self.worm_id);
-            let url = format!("{}/?{}&wormId={}", self.client.base_url(), "wormExtend", self.worm_id);
+            let res = format!(
+                "/{}/?{}&wormId={}",
+                self.client.bucket(),
+                "wormExtend",
+                self.worm_id
+            );
+            let url = format!(
+                "{}/?{}&wormId={}",
+                self.client.base_url(),
+                "wormExtend",
+                self.worm_id
+            );
             let config = self.config();
             let data = oss::Bytes::from(config);
 

@@ -17,9 +17,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             process::exit(-1);
         }) {
         Ok(oss_data) => {
-            oss_data.content().region_info.into_iter().for_each(|entry| {
-                println!("{:>20} | https://{}", entry.region, entry.internet_endpoint);
-            });
+            oss_data
+                .content()
+                .region_info
+                .into_iter()
+                .for_each(|entry| {
+                    println!("{:>20} | https://{}", entry.region, entry.internet_endpoint);
+                });
         }
         Err(oss_error_message) => println!("oss error: {}", oss_error_message.content()),
     }

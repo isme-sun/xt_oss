@@ -213,10 +213,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `GetBucketEncryption`](https://www.example.com)
 - [★ `DeleteBucketEncryption`](https://www.example.com)
 
-### Bucket 请求者付费（RequestPayment）
+<!-- ### Bucket 请求者付费（RequestPayment）
 
 - [☆ `PutBucketRequestPayment`](https://www.example.com)
-- [☆ `GetBucketRequestPayment`](https://www.example.com)
+- [☆ `GetBucketRequestPayment`](https://www.example.com) -->
 
 ### Bucket 跨域资源共享（CORS）
 
@@ -298,7 +298,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `PutObject`](https://www.example.com)
 - [★ `GetObject`](https://www.example.com)
 - [★ `CopyObject`](https://www.example.com)
-- [☆ `AppendObject`](https://www.example.com)
+- [★ `AppendObject`](https://www.example.com)
 - [★ `DeleteObject`](https://www.example.com)
 - [☆ `DeleteMultipleObjects`](https://www.example.com)
 - [★ `HeadObject`](https://www.example.com)

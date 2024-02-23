@@ -1,6 +1,8 @@
 use crate::oss;
 
-use self::builders::{DeleteBucketLoggingBuilder, GetBucketLoggingBuilder, PutBucketLoggingBuilder};
+use self::builders::{
+    DeleteBucketLoggingBuilder, GetBucketLoggingBuilder, PutBucketLoggingBuilder,
+};
 
 pub mod builders {
     use crate::oss::{
@@ -47,12 +49,17 @@ pub mod builders {
             let config = if self.enabled == Some(true) {
                 BucketLoggingStatus {
                     logging_enabled: Some(LoggingEnabled {
-                        target_bucket: self.bucket.or(Some(self.client.bucket())).map(|s| s.to_string()),
+                        target_bucket: self
+                            .bucket
+                            .or(Some(self.client.bucket()))
+                            .map(|s| s.to_string()),
                         target_prefix: self.target_prefix.map(|s| s.to_string()),
                     }),
                 }
             } else {
-                BucketLoggingStatus { logging_enabled: None }
+                BucketLoggingStatus {
+                    logging_enabled: None,
+                }
             };
             dbg!(&config);
             quick_xml::se::to_string(&config).unwrap()

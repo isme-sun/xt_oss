@@ -23,7 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(data) => {
             let version_objects = data.content();
             // println!("{:#?}", version_objects);
-            println!("{}", serde_json::to_string_pretty(&version_objects).unwrap());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&version_objects).unwrap()
+            );
         }
         Err(oss_error_message) => {
             println!("{:#?}", oss_error_message.content());

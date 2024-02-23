@@ -3,7 +3,8 @@ use builders::{DeleteObjectBuilder, GetObjectBuilder, PutObjectBuilder};
 use crate::oss::{self, api::objects::stand::builders::GetObjectMetaBuilder};
 
 use self::builders::{
-    AppendObjectBuilder, CopyObjectBuilder, DeleteMultipleObjectsBuilder, HeadObjectBuilder, RestoreObjectBuilder,
+    AppendObjectBuilder, CopyObjectBuilder, DeleteMultipleObjectsBuilder, HeadObjectBuilder,
+    RestoreObjectBuilder,
 };
 
 pub mod builders {
@@ -13,9 +14,9 @@ pub mod builders {
     use chrono::{DateTime, Utc};
     use oss::http::{
         header::{
-            HeaderMap, ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE,
-            CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH,
-            IF_UNMODIFIED_SINCE, RANGE,
+            HeaderMap, ACCEPT_ENCODING, CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING,
+            CONTENT_LANGUAGE, CONTENT_LENGTH, CONTENT_TYPE, ETAG, EXPIRES, IF_MATCH,
+            IF_MODIFIED_SINCE, IF_NONE_MATCH, IF_UNMODIFIED_SINCE, RANGE,
         },
         CacheControl, ContentDisposition, ContentEncoding,
     };
@@ -25,7 +26,10 @@ pub mod builders {
         self,
         api::{self, insert_custom_header, insert_header, ApiResponseFrom},
         entities::{
-            object::{CopyObjectResult, JobParameters, MetadataDirective, RestoreRequest, TaggingDirective, Tier},
+            object::{
+                CopyObjectResult, JobParameters, MetadataDirective, RestoreRequest,
+                TaggingDirective, Tier,
+            },
             ObjectACL, ServerSideEncryption, StorageClass,
         },
         http, Bytes,
@@ -153,7 +157,9 @@ pub mod builders {
         }
 
         pub fn with_oss_meta(mut self, key: &'a str, value: &'a str) -> Self {
-            self.headers.oss_meta.insert(key.to_string(), value.to_string());
+            self.headers
+                .oss_meta
+                .insert(key.to_string(), value.to_string());
             self
         }
 
@@ -218,11 +224,18 @@ pub mod builders {
             }
 
             if let Some(data_encryption) = &self.headers.data_encryption {
-                headers.insert("x-oss-server-side-data-encryption", data_encryption.parse().unwrap());
+                headers.insert(
+                    "x-oss-server-side-data-encryption",
+                    data_encryption.parse().unwrap(),
+                );
             }
 
             if let Some(encryption_key_id) = &self.headers.encryption_key_id {
-                insert_custom_header(&mut headers, "x-oss-server-side-encryption-key-id", encryption_key_id);
+                insert_custom_header(
+                    &mut headers,
+                    "x-oss-server-side-encryption-key-id",
+                    encryption_key_id,
+                );
             }
 
             if let Some(object_acl) = &self.headers.object_acl {
@@ -410,12 +423,20 @@ pub mod builders {
 
             if let Some(value) = &self.headers.if_unmodified_since {
                 let key = "x-oss-copy-source-if-unmodified-since";
-                insert_custom_header(&mut headers, key, value.format(oss::GMT_DATE_FMT).to_string())
+                insert_custom_header(
+                    &mut headers,
+                    key,
+                    value.format(oss::GMT_DATE_FMT).to_string(),
+                )
             }
 
             if let Some(value) = &self.headers.if_modified_since {
                 let key = "x-oss-copy-source-if-modified-since";
-                insert_custom_header(&mut headers, key, value.format(oss::GMT_DATE_FMT).to_string())
+                insert_custom_header(
+                    &mut headers,
+                    key,
+                    value.format(oss::GMT_DATE_FMT).to_string(),
+                )
             }
 
             if let Some(value) = &self.headers.metadata_directive {
@@ -632,10 +653,8 @@ pub mod builders {
 
             let mut headers = self.headers();
             headers.insert(CONTENT_LENGTH, self.content.len().into());
-
-            dbg!(&url);
-            dbg!(&headers);
-
+            // dbg!(&url);
+            // dbg!(&headers);
             let resp = self
                 .client
                 .request
@@ -653,15 +672,30 @@ pub mod builders {
 
     #[derive(Debug, Default, Serialize, Deserialize)]
     pub(crate) struct GetObjectBuilderQuery<'a> {
-        #[serde(rename = "response-cache-control", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename = "response-cache-control",
+            skip_serializing_if = "Option::is_none"
+        )]
         cache_control: Option<&'a str>,
-        #[serde(rename = "response-content-disposition", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename = "response-content-disposition",
+            skip_serializing_if = "Option::is_none"
+        )]
         content_disposition: Option<&'a str>,
-        #[serde(rename = "response-content-encoding", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename = "response-content-encoding",
+            skip_serializing_if = "Option::is_none"
+        )]
         content_encoding: Option<&'a str>,
-        #[serde(rename = "response-content-language", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename = "response-content-language",
+            skip_serializing_if = "Option::is_none"
+        )]
         content_language: Option<&'a str>,
-        #[serde(rename = "response-content-type", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename = "response-content-type",
+            skip_serializing_if = "Option::is_none"
+        )]
         content_type: Option<&'a str>,
         #[serde(rename = "response-expires", skip_serializing_if = "Option::is_none")]
         expires: Option<&'a str>,
@@ -1029,7 +1063,10 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<()> {
-            let mut res = format!("/{}/{}?{}", self.client.options.bucket, self.object, "objectMeta");
+            let mut res = format!(
+                "/{}/{}?{}",
+                self.client.options.bucket, self.object, "objectMeta"
+            );
 
             let mut url = format!("{}?{}", self.client.object_url(self.object), "objectMeta");
 
@@ -1084,7 +1121,10 @@ pub mod builders {
             let days = self.days?;
             let request = RestoreRequest {
                 days,
-                job_parameters: self.tier.as_ref().map(|tier| JobParameters { tier: tier.clone() }),
+                job_parameters: self
+                    .tier
+                    .as_ref()
+                    .map(|tier| JobParameters { tier: tier.clone() }),
             };
             quick_xml::se::to_string(&request).ok()
         }

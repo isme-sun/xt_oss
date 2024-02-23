@@ -2,7 +2,9 @@ use dotenv;
 use reqwest::StatusCode;
 use std::process;
 use xt_oss::{
-    oss::entities::website::builder::{ErrorDocumentBuilder, IndexDocumentBuilder, WebsiteConfigurationBuilder},
+    oss::entities::website::builder::{
+        ErrorDocumentBuilder, IndexDocumentBuilder, WebsiteConfigurationBuilder,
+    },
     prelude::*,
 };
 

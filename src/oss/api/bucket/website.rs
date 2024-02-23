@@ -1,6 +1,8 @@
 use crate::oss;
 
-use self::builders::{DeleteBucketWebsiteBuilder, GetBucketWebsiteBuilder, PutBucketWebsiteBuilder};
+use self::builders::{
+    DeleteBucketWebsiteBuilder, GetBucketWebsiteBuilder, PutBucketWebsiteBuilder,
+};
 
 pub mod builders {
     use crate::oss::{

@@ -8,7 +8,8 @@ pub mod builders {
 
     use chrono::{DateTime, Utc};
     use reqwest::header::{
-        CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE, CONTENT_TYPE, EXPIRES,
+        CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE, CONTENT_TYPE,
+        EXPIRES,
     };
 
     use crate::oss::{
@@ -120,7 +121,11 @@ pub mod builders {
                 insert_custom_header(&mut headers, "x-oss-object-acl", object_acl.to_string());
             }
             if let Some(storage_class) = &self.storage_class {
-                insert_custom_header(&mut headers, "x-oss-storage-class", storage_class.to_string());
+                insert_custom_header(
+                    &mut headers,
+                    "x-oss-storage-class",
+                    storage_class.to_string(),
+                );
             }
             if let Some(content_type) = &self.headers.content_type {
                 insert_header(&mut headers, CONTENT_TYPE, content_type);

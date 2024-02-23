@@ -63,7 +63,12 @@ impl<T> ApiData<T> {
     }
 
     pub fn request_id(&self) -> String {
-        self.headers.get("x-oss-request-id").unwrap().to_str().unwrap().into()
+        self.headers
+            .get("x-oss-request-id")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .into()
     }
 
     pub fn content_length(&self) -> Option<u64> {
@@ -199,14 +204,28 @@ fn insert_header<T: ToString + std::fmt::Display>(
     key: http::header::HeaderName,
     value: T,
 ) {
-    headers.insert(key, value.to_string().parse().expect("Failed to parse header value"));
+    headers.insert(
+        key,
+        value
+            .to_string()
+            .parse()
+            .expect("Failed to parse header value"),
+    );
 }
 
-fn insert_custom_header<T: ToString + std::fmt::Display>(headers: &mut http::HeaderMap, key: &str, value: T) {
-    let header_name = http::HeaderName::from_bytes(key.as_bytes()).expect("Failed to create header name");
+fn insert_custom_header<T: ToString + std::fmt::Display>(
+    headers: &mut http::HeaderMap,
+    key: &str,
+    value: T,
+) {
+    let header_name =
+        http::HeaderName::from_bytes(key.as_bytes()).expect("Failed to create header name");
     headers.insert(
         header_name,
-        value.to_string().parse().expect("Failed to parse header value"),
+        value
+            .to_string()
+            .parse()
+            .expect("Failed to parse header value"),
     );
 }
 

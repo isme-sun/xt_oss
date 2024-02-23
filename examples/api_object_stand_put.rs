@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         target_file.display().to_string()
     };
     // md5值
-    let content_md5 =util::oss_file_md5(&target_file)?;
+    let content_md5 = util::oss_file_md5(&target_file)?;
     // 获得mime
     let content_type = {
         let mime = mime_guess::from_path(&target_file).first().unwrap();
@@ -44,10 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_storage_class(StorageClass::Standard)
         .with_content(content)
         .with_content_md5(&content_md5)
-        .with_oss_tagging(vec![
-            ("k100", "v100"),
-            ("k200", "v200")
-        ])
+        .with_oss_tagging(vec![("k100", "v100"), ("k200", "v200")])
         // .with_timeout(120)
         .execute()
         .await

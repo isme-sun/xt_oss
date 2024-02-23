@@ -1,9 +1,6 @@
 use dotenv;
 use std::process;
-use xt_oss::{
-    prelude::*,
-    oss::entities::ObjectACL,
-};
+use xt_oss::{oss::entities::ObjectACL, prelude::*};
 
 #[tokio::main]
 async fn main() {

@@ -45,7 +45,9 @@ mod tests {
 
         let object: ServerSideEncryptionRule = quick_xml::de::from_str(xml_conrtent).unwrap();
         assert_eq!(
-            object.apply_server_side_encryption_by_default.kms_data_encryption,
+            object
+                .apply_server_side_encryption_by_default
+                .kms_data_encryption,
             Some("SM4".to_string())
         )
     }

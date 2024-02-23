@@ -17,7 +17,10 @@ pub mod builders {
     struct ListBucketsQuery<'a> {
         #[serde(skip_serializing_if = "Option::is_none")]
         marker: Option<&'a str>,
-        #[serde(rename(serialize = "max-keys"), skip_serializing_if = "Option::is_none")]
+        #[serde(
+            rename(serialize = "max-keys"),
+            skip_serializing_if = "Option::is_none"
+        )]
         max_keys: Option<i32>,
         #[serde(skip_serializing_if = "Option::is_none")]
         prefix: Option<&'a str>,

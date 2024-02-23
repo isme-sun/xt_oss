@@ -142,7 +142,10 @@ pub mod tests {
     #[test]
     fn allowed_origin_item_2() {
         let value = AllowedOriginItem::Urls(vec!["http://localhost:3000", "http://localhost:3001"]);
-        assert_eq!("http://localhost:3000,http://localhost:3001", value.to_string());
+        assert_eq!(
+            "http://localhost:3000,http://localhost:3001",
+            value.to_string()
+        );
     }
 
     #[test]
@@ -165,7 +168,10 @@ pub mod tests {
 
     #[test]
     fn allowed_header_item_2() {
-        let value = AllowedHeaderItem::Headers(vec![http::header::CONTENT_DISPOSITION, http::header::CONTENT_LANGUAGE]);
+        let value = AllowedHeaderItem::Headers(vec![
+            http::header::CONTENT_DISPOSITION,
+            http::header::CONTENT_LANGUAGE,
+        ]);
         assert_eq!("content-disposition,content-language", &value.to_string());
     }
 
@@ -208,7 +214,10 @@ pub mod tests {
                 "http://localhost:3000",
                 "http://localhost:3001",
             ]))
-            .with_allowed_method(AllowedMethodItem::Methods(vec![http::Method::GET, http::Method::POST]))
+            .with_allowed_method(AllowedMethodItem::Methods(vec![
+                http::Method::GET,
+                http::Method::POST,
+            ]))
             .with_allowed_header(AllowedHeaderItem::Headers(vec![
                 http::header::CACHE_CONTROL,
                 http::header::CONTENT_ENCODING,

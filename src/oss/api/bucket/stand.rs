@@ -1,8 +1,8 @@
 use crate::oss;
 
 use self::builders::{
-    DeleteBucketBuilder, GetBucketInfoBuilder, GetBucketLocationBuilder, GetBucketStatBuilder, ListObjectBuilder,
-    ListObjectsV2Builder, PutBucketBuilder,
+    DeleteBucketBuilder, GetBucketInfoBuilder, GetBucketLocationBuilder, GetBucketStatBuilder,
+    ListObjectBuilder, ListObjectsV2Builder, PutBucketBuilder,
 };
 
 pub mod builders {
@@ -11,8 +11,8 @@ pub mod builders {
         api::{self, insert_custom_header, ApiResponseFrom},
         entities::{
             bucket::{
-                BucketInfo, BucketStat, CreateBucketConfiguration, ListBucketResult, ListBucketResult2,
-                LocationConstraint,
+                BucketInfo, BucketStat, CreateBucketConfiguration, ListBucketResult,
+                ListBucketResult2, LocationConstraint,
             },
             DataRedundancyType, OssAcl, StorageClass,
         },
@@ -400,7 +400,10 @@ pub mod builders {
 
     impl<'a> GetBucketInfoBuilder<'a> {
         pub fn new(client: &'a oss::Client) -> Self {
-            Self { client, bucket: None }
+            Self {
+                client,
+                bucket: None,
+            }
         }
 
         pub fn with_bucket(mut self, value: &'a str) -> Self {
@@ -447,7 +450,10 @@ pub mod builders {
 
     impl<'a> GetBucketLocationBuilder<'a> {
         pub fn new(client: &'a oss::Client) -> Self {
-            Self { client, bucket: None }
+            Self {
+                client,
+                bucket: None,
+            }
         }
 
         pub fn with_bucket(mut self, value: &'a str) -> Self {

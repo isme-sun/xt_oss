@@ -20,7 +20,10 @@ async fn main() {
 
     match result {
         Ok(oss_data) => {
-            println!("{}", serde_json::to_string_pretty(&oss_data.content()).unwrap());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&oss_data.content()).unwrap()
+            );
         }
         Err(oss_error_message) => {
             println!("{:#?}", oss_error_message.content())

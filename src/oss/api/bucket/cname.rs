@@ -7,7 +7,9 @@ pub mod builders {
     use crate::oss::{
         self,
         api::{self, ApiResponseFrom},
-        entities::cname::{BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken, ListCnameResult},
+        entities::cname::{
+            BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken, ListCnameResult,
+        },
         http,
     };
 
@@ -64,7 +66,11 @@ pub mod builders {
 
         pub async fn execute(&self) -> api::ApiResult<CnameToken> {
             let res = format!("/{}/?cname={}&comp=token", self.client.bucket(), self.cname);
-            let url = format!("{}/?cname={}&comp=token", self.client.base_url(), self.cname);
+            let url = format!(
+                "{}/?cname={}&comp=token",
+                self.client.base_url(),
+                self.cname
+            );
 
             let resp = self
                 .client

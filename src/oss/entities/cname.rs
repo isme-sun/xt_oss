@@ -86,7 +86,10 @@ pub struct Cname {
     pub is_purge_cdn_cache: Option<bool>,
     #[serde(rename = "Certificate", skip_serializing_if = "Option::is_none")]
     pub certificate: Option<Certificate>,
-    #[serde(rename = "CertificateConfiguration", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "CertificateConfiguration",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub certificate_configuration: Option<CertificateConfiguration>,
 }
 
@@ -213,10 +216,10 @@ mod tests {
 
     #[test]
     fn bucket_cname_configuration_builder() {
-        let builder = BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
+        let builder =
+            BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
         let left = r#"<BucketCnameConfiguration><Cname><Domain>https://dev.xuetube.com</Domain></Cname></BucketCnameConfiguration>"#;
         let right = builder.config();
         assert_eq!(left, right);
-
     }
 }

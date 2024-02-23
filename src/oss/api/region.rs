@@ -16,7 +16,10 @@ pub mod builders {
 
     impl<'a> DescribeRegionsBuilder<'a> {
         pub(crate) fn new(client: &'a oss::Client) -> Self {
-            Self { client, region: None }
+            Self {
+                client,
+                region: None,
+            }
         }
 
         pub fn with_region(&mut self, value: &'a str) -> &Self {

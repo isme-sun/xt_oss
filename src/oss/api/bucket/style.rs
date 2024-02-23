@@ -43,8 +43,18 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}&styleName={}", self.client.bucket(), "style", self.style.name);
-            let url = format!("{}?{}&styleName={}", self.client.base_url(), "style", self.style.name);
+            let res = format!(
+                "/{}/?{}&styleName={}",
+                self.client.bucket(),
+                "style",
+                self.style.name
+            );
+            let url = format!(
+                "{}?{}&styleName={}",
+                self.client.base_url(),
+                "style",
+                self.style.name
+            );
 
             let data = oss::Bytes::from(self.style());
             // dbg!(&data);
@@ -99,7 +109,12 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult<Style> {
-            let res = format!("/{}/?{}&styleName={}", self.client.bucket(), "style", self.name);
+            let res = format!(
+                "/{}/?{}&styleName={}",
+                self.client.bucket(),
+                "style",
+                self.name
+            );
             let url = format!(
                 "{}/?{}&styleName={}",
                 self.client.options.base_url(),
@@ -131,8 +146,18 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/?{}&styleName={}", self.client.bucket(), "style", self.name);
-            let url = format!("{}/?{}&styleName={}", self.client.base_url(), "style", self.name);
+            let res = format!(
+                "/{}/?{}&styleName={}",
+                self.client.bucket(),
+                "style",
+                self.name
+            );
+            let url = format!(
+                "{}/?{}&styleName={}",
+                self.client.base_url(),
+                "style",
+                self.name
+            );
 
             let resp = self
                 .client

@@ -1,12 +1,16 @@
 use crate::oss;
 
-use self::builders::{DeleteBucketEncryptionBuilder, GetBucketEncryptionBuilder, PutBucketEncryptionBuilder};
+use self::builders::{
+    DeleteBucketEncryptionBuilder, GetBucketEncryptionBuilder, PutBucketEncryptionBuilder,
+};
 
 pub mod builders {
     use crate::oss::{
         self,
         api::{self, ApiResponseFrom},
-        entities::encryption::{ApplyServerSideEncryptionByDefault, SSEAlgorithm, ServerSideEncryptionRule},
+        entities::encryption::{
+            ApplyServerSideEncryptionByDefault, SSEAlgorithm, ServerSideEncryptionRule,
+        },
         http,
     };
 

@@ -417,19 +417,31 @@ pub struct Redirect {
     pub replace_key_with: Option<String>,
     #[serde(rename = "MirrorURL", skip_serializing_if = "Option::is_none")]
     pub mirror_url: Option<String>,
-    #[serde(rename = "MirrorPassQueryString", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "MirrorPassQueryString",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mirror_pass_query_string: Option<bool>,
-    #[serde(rename = "MirrorFollowRedirect", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "MirrorFollowRedirect",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mirror_follow_redirect: Option<bool>,
     #[serde(rename = "MirrorCheckMd5", skip_serializing_if = "Option::is_none")]
     pub mirror_check_md5: Option<bool>,
     #[serde(rename = "MirrorHeaders", skip_serializing_if = "Option::is_none")]
     pub mirror_headers: Option<MirrorHeaders>,
-    #[serde(rename = "EnableReplacePrefix", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "EnableReplacePrefix",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub enable_replace_prefix: Option<bool>,
     #[serde(rename = "HttpRedirectCode", skip_serializing_if = "Option::is_none")]
     pub http_redirect_code: Option<u16>,
-    #[serde(rename = "ReplaceKeyPrefixWith", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "ReplaceKeyPrefixWith",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub replace_key_prefix_with: Option<String>,
     #[serde(rename = "HostName", skip_serializing_if = "Option::is_none")]
     pub host_name: Option<String>,
@@ -447,7 +459,10 @@ pub struct IncludeHeader {
 pub struct Condition {
     #[serde(rename = "KeyPrefixEquals", skip_serializing_if = "Option::is_none")]
     pub key_prefix_equals: Option<String>,
-    #[serde(rename = "HttpErrorCodeReturnedEquals", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "HttpErrorCodeReturnedEquals",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub http_error_code_returned_equals: Option<u16>,
     #[serde(rename = "IncludeHeader", skip_serializing_if = "Option::is_none")]
     pub include_header: Option<IncludeHeader>,
@@ -529,8 +544,8 @@ pub mod tests {
 
     use super::{
         builder::{
-            ConditionBuilder, ErrorDocumentBuilder, IndexDocumentBuilder, MirrorHeadersBuilder, RedirectBuilder,
-            RoutingRulesBuilder, WebsiteConfigurationBuilder,
+            ConditionBuilder, ErrorDocumentBuilder, IndexDocumentBuilder, MirrorHeadersBuilder,
+            RedirectBuilder, RoutingRulesBuilder, WebsiteConfigurationBuilder,
         },
         RedirectType,
     };

@@ -4,7 +4,6 @@ use std::process;
 #[allow(unused)]
 use xt_oss::prelude::*;
 
-
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();

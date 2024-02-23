@@ -42,7 +42,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         None
     };
     assert!(size.is_some());
-    println!(" - total file size: {:.2} MB", size.unwrap() as f64 / chunk_size as f64);
+    println!(
+        " - total file size: {:.2} MB",
+        size.unwrap() as f64 / chunk_size as f64
+    );
     let byte_range_list = ByteRange::chunk(size.unwrap(), chunk_size);
     let byte_range_len = byte_range_list.len();
 

@@ -204,7 +204,10 @@ pub struct Request<'a> {
 impl<'a> Request<'a> {
     pub fn new() -> Self {
         let mut headers = http::HeaderMap::new();
-        headers.insert(CONTENT_TYPE, http::HeaderValue::from_static(DEFAULT_CONTENT_TYPE));
+        headers.insert(
+            CONTENT_TYPE,
+            http::HeaderValue::from_static(DEFAULT_CONTENT_TYPE),
+        );
         let client = reqwest::Client::builder()
             .default_headers(headers)
             .user_agent(oss::USER_AGENT)

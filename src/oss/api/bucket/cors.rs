@@ -1,16 +1,21 @@
 use crate::oss;
 
-use self::builders::{DeleteBucketCorsBuilder, GetBucketCorsBuilder, OptionsBuilder, PutBucketCorsBuilder};
+use self::builders::{
+    DeleteBucketCorsBuilder, GetBucketCorsBuilder, OptionsBuilder, PutBucketCorsBuilder,
+};
 
 pub mod builders {
     use reqwest::header::ORIGIN;
 
-    use crate::{oss::{
-        self,
-        api::{self, insert_custom_header, insert_header, ApiResponseFrom},
-        entities::cors::CORSConfiguration,
-        http,
-    }, util::AllowedHeaderItem};
+    use crate::{
+        oss::{
+            self,
+            api::{self, insert_custom_header, insert_header, ApiResponseFrom},
+            entities::cors::CORSConfiguration,
+            http,
+        },
+        util::AllowedHeaderItem,
+    };
 
     pub struct PutBucketCorsBuilder<'a> {
         client: &'a oss::Client<'a>,
@@ -112,8 +117,7 @@ pub mod builders {
         request_headers: AllowedHeaderItem,
     }
 
-    impl<'a> OptionsBuilder<'a>
-    {
+    impl<'a> OptionsBuilder<'a> {
         pub(crate) fn new(client: &'a oss::Client, object: &'a str) -> Self {
             Self {
                 client,
@@ -124,17 +128,17 @@ pub mod builders {
             }
         }
 
-        pub fn with_origin(mut self, value:&'a str) -> Self {
+        pub fn with_origin(mut self, value: &'a str) -> Self {
             self.origin = value;
             self
         }
-        
-        pub fn with_request_method(mut self, value:http::Method) -> Self {
+
+        pub fn with_request_method(mut self, value: http::Method) -> Self {
             self.request_method = value;
             self
         }
 
-        pub fn with_request_headers(mut self, value:AllowedHeaderItem) -> Self {
+        pub fn with_request_headers(mut self, value: AllowedHeaderItem) -> Self {
             self.request_headers = value;
             self
         }

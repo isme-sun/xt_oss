@@ -39,7 +39,6 @@ impl fmt::Display for Directive {
     }
 }
 
-
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum Status {
     Enabled,

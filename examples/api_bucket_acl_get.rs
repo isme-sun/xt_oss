@@ -9,12 +9,19 @@ async fn main() {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
 
-    match client.GetBucketAcl().execute().await.unwrap_or_else(|reqwest_error| {
-        println!("reqwest error: {}", reqwest_error);
-        process::exit(-1);
-    }) {
+    match client
+        .GetBucketAcl()
+        .execute()
+        .await
+        .unwrap_or_else(|reqwest_error| {
+            println!("reqwest error: {}", reqwest_error);
+            process::exit(-1);
+        }) {
         Ok(oss_data) => {
-            println!("{}", serde_json::to_string_pretty(&oss_data.content()).unwrap());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&oss_data.content()).unwrap()
+            );
         }
         Err(error_message) => {
             println!("{:#?}", error_message.content());

@@ -90,8 +90,7 @@ mod tests {
         };
 
         let left = quick_xml::se::to_string(&style).unwrap();
-        let right =
-            r#"<Style><Name>imagestyle</Name><Content>image/resize,p_50</Content><Category>image</Category></Style>"#;
+        let right = r#"<Style><Name>imagestyle</Name><Content>image/resize,p_50</Content><Category>image</Category></Style>"#;
         assert_eq!(left, right);
     }
 }

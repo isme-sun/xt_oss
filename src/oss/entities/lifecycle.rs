@@ -5,7 +5,8 @@ pub mod builder {
     use crate::oss::entities::{Status, StorageClass};
 
     use super::{
-        AbortMultipartUpload, Expiration, Filter, LifecycleConfiguration, NoncurrentVersionExpiration, Rule, Transition,
+        AbortMultipartUpload, Expiration, Filter, LifecycleConfiguration,
+        NoncurrentVersionExpiration, Rule, Transition,
     };
 
     #[derive(Default)]
@@ -161,7 +162,9 @@ pub mod builder {
         }
 
         pub fn with_noncurrent_version_expiration(mut self, days: i32) -> Self {
-            self.noncurrent_version_expiration = Some(NoncurrentVersionExpiration { noncurrent_days: days });
+            self.noncurrent_version_expiration = Some(NoncurrentVersionExpiration {
+                noncurrent_days: days,
+            });
             self
         }
 
@@ -220,7 +223,10 @@ pub struct Not {
 pub struct Filter {
     #[serde(rename = "Not", skip_serializing_if = "Option::is_none")]
     pub not: Option<Not>,
-    #[serde(rename = "ObjectSizeGreaterThan", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "ObjectSizeGreaterThan",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub object_size_greater_than: Option<i32>,
     #[serde(rename = "ObjectSizeLessThan", skip_serializing_if = "Option::is_none")]
     pub object_size_less_than: Option<i32>,
@@ -248,7 +254,10 @@ pub struct Transition {
     pub storage_class: StorageClass,
     #[serde(rename = "IsAccessTime", skip_serializing_if = "Option::is_none")]
     pub is_access_time: Option<bool>,
-    #[serde(rename = "ReturnToStdWhenVisit", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "ReturnToStdWhenVisit",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub return_to_std_when_visit: Option<bool>,
     #[serde(rename = "AllowSmallFile", skip_serializing_if = "Option::is_none")]
     pub allow_small_file: Option<bool>,
@@ -260,7 +269,10 @@ pub struct Expiration {
     pub days: Option<i32>,
     #[serde(rename = "CreatedBeforeDate", skip_serializing_if = "Option::is_none")]
     pub created_before_date: Option<String>,
-    #[serde(rename = "ExpiredObjectDeleteMarker", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "ExpiredObjectDeleteMarker",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub expired_object_delete_marker: Option<bool>,
 }
 
@@ -284,9 +296,15 @@ pub struct Rule {
     pub filter: Option<Filter>,
     #[serde(rename = "Expiration", skip_serializing_if = "Option::is_none")]
     pub expiration: Option<Expiration>,
-    #[serde(rename = "NoncurrentVersionExpiration", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "NoncurrentVersionExpiration",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub noncurrent_version_expiration: Option<NoncurrentVersionExpiration>,
-    #[serde(rename = "AbortMultipartUpload", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "AbortMultipartUpload",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub abort_multipart_upload: Option<AbortMultipartUpload>,
 }
 
@@ -470,7 +488,11 @@ mod tests {
                     .with_id("rule")
                     .with_prefix("")
                     .with_status(Status::Enabled)
-                    .with_expiration(ExpirationBuilder::new().with_expired_object_delete_marker(true).build())
+                    .with_expiration(
+                        ExpirationBuilder::new()
+                            .with_expired_object_delete_marker(true)
+                            .build(),
+                    )
                     .with_noncurrent_version_expiration(5)
                     .build(),
             )

@@ -1,6 +1,8 @@
 use crate::oss;
 
-use self::builders::{DeleteBucketLifecycleBuilder, GetBucketLifecycleBuilder, PutBucketLifecycleBuilder};
+use self::builders::{
+    DeleteBucketLifecycleBuilder, GetBucketLifecycleBuilder, PutBucketLifecycleBuilder,
+};
 
 pub mod builders {
 

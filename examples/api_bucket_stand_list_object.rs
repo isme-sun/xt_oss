@@ -1,7 +1,7 @@
 use dotenv;
+use serde_json;
 use std::process;
 use xt_oss::prelude::*;
-use serde_json;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

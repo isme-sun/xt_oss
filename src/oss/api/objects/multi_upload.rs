@@ -1,8 +1,8 @@
 // use crate::OssClient;
 use crate::oss::{api::objects::multi_upload::builders::AbortMultipartUploadBuilder, Client};
 use builders::{
-    CompleteMultipartUploadBuilder, InitiateMultipartUploadBuilder, ListMultipartUploadsBuilder, UploadPartBuilder,
-    UploadPartCopyBuilder,
+    CompleteMultipartUploadBuilder, InitiateMultipartUploadBuilder, ListMultipartUploadsBuilder,
+    UploadPartBuilder, UploadPartCopyBuilder,
 };
 
 use self::builders::ListPartsBuilder;
@@ -17,11 +17,14 @@ pub mod builders {
 
     use crate::oss::{
         self,
-        api::{self, bucket::stand::builders::ListObjectQuery, insert_custom_header, insert_header, ApiResponseFrom},
+        api::{
+            self, bucket::stand::builders::ListObjectQuery, insert_custom_header, insert_header,
+            ApiResponseFrom,
+        },
         entities::{
             multi_upload::{
-                CompleteMultipartUploadResult, InitiateMultipartUploadResult, ListMultipartUploadsResult,
-                ListPartsResult,
+                CompleteMultipartUploadResult, InitiateMultipartUploadResult,
+                ListMultipartUploadsResult, ListPartsResult,
             },
             object, ServerSideEncryption, StorageClass,
         },
@@ -114,7 +117,9 @@ pub mod builders {
         }
 
         pub fn with_oss_tagging(mut self, key: &'a str, value: &'a str) -> Self {
-            self.headers.oss_tagging.insert(key.to_string(), value.to_string());
+            self.headers
+                .oss_tagging
+                .insert(key.to_string(), value.to_string());
             self
         }
 
@@ -154,11 +159,18 @@ pub mod builders {
             }
 
             if let Some(data_encryption) = &self.headers.data_encryption {
-                headers.insert("x-oss-server-side-data-encryption", data_encryption.parse().unwrap());
+                headers.insert(
+                    "x-oss-server-side-data-encryption",
+                    data_encryption.parse().unwrap(),
+                );
             }
 
             if let Some(encryption_key_id) = &self.headers.encryption_key_id {
-                insert_custom_header(&mut headers, "x-oss-server-side-encryption-key-id", encryption_key_id);
+                insert_custom_header(
+                    &mut headers,
+                    "x-oss-server-side-encryption-key-id",
+                    encryption_key_id,
+                );
             }
 
             if let Some(storage_class) = &self.headers.storage_class {
@@ -166,7 +178,8 @@ pub mod builders {
             }
 
             if !self.headers.oss_tagging.is_empty() {
-                let value = serde_qs::to_string(&self.headers.oss_tagging).expect("Failed to serialize tags");
+                let value = serde_qs::to_string(&self.headers.oss_tagging)
+                    .expect("Failed to serialize tags");
                 insert_custom_header(&mut headers, "x-oss-tagging", value);
             }
 
@@ -369,8 +382,17 @@ pub mod builders {
         }
 
         pub async fn execute(&self) -> api::ApiResult {
-            let res = format!("/{}/{}?uploadId={}", self.client.bucket(), self.object, self.upload_id);
-            let url = format!("{}?uploadId={}", self.client.object_url(self.object), self.upload_id);
+            let res = format!(
+                "/{}/{}?uploadId={}",
+                self.client.bucket(),
+                self.object,
+                self.upload_id
+            );
+            let url = format!(
+                "{}?uploadId={}",
+                self.client.object_url(self.object),
+                self.upload_id
+            );
             let resp = self
                 .client
                 .request

@@ -81,7 +81,10 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbuckettransferacceleration)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_put.rs)
-    pub fn PutBucketTransferAcceleration(&self, value: bool) -> PutBucketTransferAccelerationBuilder<'_> {
+    pub fn PutBucketTransferAcceleration(
+        &self,
+        value: bool,
+    ) -> PutBucketTransferAccelerationBuilder<'_> {
         PutBucketTransferAccelerationBuilder::new(&self, value)
     }
 

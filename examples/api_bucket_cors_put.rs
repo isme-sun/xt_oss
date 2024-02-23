@@ -1,8 +1,8 @@
 use dotenv;
 use std::process;
 use xt_oss::{
-    prelude::*,
     oss::entities::cors::builder::{CORSConfigurationBuilder, CORSRuleBuilder},
+    prelude::*,
     util::{AllowedHeaderItem, AllowedMethodItem, AllowedOriginItem},
 };
 
@@ -29,7 +29,10 @@ async fn main() {
             http::header::CONTENT_LENGTH,
             http::header::CONTENT_RANGE,
         ]))
-        .with_allowed_method(AllowedMethodItem::Methods(vec![http::Method::GET, http::Method::POST]))
+        .with_allowed_method(AllowedMethodItem::Methods(vec![
+            http::Method::GET,
+            http::Method::POST,
+        ]))
         .with_expose_header(vec!["x-oss-test", "x-oss-test1"])
         .with_max_age_seconds(60)
         .builder();

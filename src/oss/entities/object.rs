@@ -2,9 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-pub mod builder {
-
-}
+pub mod builder {}
 
 pub mod delete_multiple {
     use serde::{Deserialize, Serialize};
@@ -79,12 +77,12 @@ impl fmt::Display for Tier {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize,Clone)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct CopyObjectResult {
-  #[serde(rename = "etag")]
-  pub etag: Option<String>,
-  #[serde(rename = "LastModified")]
-  pub last_modified: String
+    #[serde(rename = "etag")]
+    pub etag: Option<String>,
+    #[serde(rename = "LastModified")]
+    pub last_modified: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -139,7 +137,10 @@ impl fmt::Display for TaggingDirective {
 pub mod tests {
     use crate::oss::entities::object::RestoreRequest;
 
-    use super::{delete_multiple::{Delete, DeleteResult}, JobParameters, Tier};
+    use super::{
+        delete_multiple::{Delete, DeleteResult},
+        JobParameters, Tier,
+    };
 
     #[test]
     fn restore_request_1() {
@@ -160,7 +161,9 @@ pub mod tests {
     fn restore_request_2() {
         let restore = RestoreRequest {
             days: 7,
-            job_parameters: Some(JobParameters { tier: Tier::Expedited }),
+            job_parameters: Some(JobParameters {
+                tier: Tier::Expedited,
+            }),
         };
         let left =
             "<RestoreRequest><days>7</days><JobParameters><Tier>Expedited</Tier></JobParameters></RestoreRequest>";
@@ -214,11 +217,10 @@ pub mod tests {
     <Key>demo.jpg</Key>
   </Deleted>
 </DeleteResult>"#;
-        let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
+        let obj: DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
         let left = "multipart.data";
         let right = &obj.deleted[0].key;
         assert_eq!(left, right);
-
     }
 
     #[test]
@@ -230,9 +232,8 @@ pub mod tests {
     <VersionId>CAEQNRiBgIDyz.6C0BYiIGQ2NWEwNmVhNTA3ZTQ3MzM5ODliYjM1ZTdjYjA4****</VersionId>
   </Deleted>
 </DeleteResult>"#;
-        let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
+        let obj: DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
         assert_eq!("multipart.data", obj.deleted[0].key);
-
     }
 
     #[test]
@@ -247,11 +248,10 @@ pub mod tests {
   </Deleted>
 </DeleteResult>"#;
 
-        let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
+        let obj: DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
         assert_eq!("demo.jpg", obj.deleted[0].key);
-
     }
-    
+
     #[test]
     fn delete_result_4() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -268,8 +268,7 @@ pub mod tests {
   </Deleted>
 </DeleteResult>"#;
 
-        let obj:DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
+        let obj: DeleteResult = quick_xml::de::from_str(&xml_content).unwrap();
         assert_eq!("multipart.data", obj.deleted[0].key);
-
     }
 }

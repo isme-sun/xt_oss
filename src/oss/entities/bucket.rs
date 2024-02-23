@@ -6,7 +6,10 @@ use serde::{Deserialize, Serialize};
 pub struct CreateBucketConfiguration {
     #[serde(rename = "StorageClass", skip_serializing_if = "Option::is_none")]
     pub storage_class: Option<StorageClass>,
-    #[serde(rename = "data_redundancy_type", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "data_redundancy_type",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub data_redundancy_type: Option<DataRedundancyType>,
 }
 

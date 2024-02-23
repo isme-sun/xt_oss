@@ -1,8 +1,8 @@
 use dotenv;
 use std::process;
 use xt_oss::{
-    prelude::*,
     oss::entities::{DataRedundancyType, OssAcl, StorageClass},
+    prelude::*,
     util,
 };
 
@@ -26,7 +26,12 @@ async fn main() {
             process::exit(-1);
         }) {
         Ok(oss_data) => {
-            let location = oss_data.headers().get("location").unwrap().to_str().unwrap();
+            let location = oss_data
+                .headers()
+                .get("location")
+                .unwrap()
+                .to_str()
+                .unwrap();
             println!("location: {}", location);
         }
         Err(oss_error_message) => {

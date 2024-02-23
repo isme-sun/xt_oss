@@ -1,6 +1,8 @@
 use crate::oss::{self, entities::version::VersioningStatus};
 
-use self::builders::{GetBucketVersioningBuilder, ListObjectVersionsBuilder, PutBucketVersioningBuilder};
+use self::builders::{
+    GetBucketVersioningBuilder, ListObjectVersionsBuilder, PutBucketVersioningBuilder,
+};
 
 pub mod builders {
     use std::fmt;

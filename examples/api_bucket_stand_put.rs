@@ -25,7 +25,12 @@ async fn main() {
             process::exit(-1);
         }) {
         Ok(oss_data) => {
-            let location = oss_data.headers().get("location").unwrap().to_str().unwrap();
+            let location = oss_data
+                .headers()
+                .get("location")
+                .unwrap()
+                .to_str()
+                .unwrap();
             println!("location: {}", location);
         }
         Err(oss_error_message) => {

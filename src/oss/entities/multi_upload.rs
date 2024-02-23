@@ -248,7 +248,6 @@ mod tests {
         assert_eq!(left, right);
     }
 
-
     #[test]
     fn multipart_7() {
         let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -279,7 +278,4 @@ mod tests {
         let obj: ListPartsResult = quick_xml::de::from_str(&xml_content).unwrap();
         assert!(obj.parts.is_none());
     }
-
-
-
 }
