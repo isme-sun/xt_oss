@@ -19,7 +19,7 @@ pub mod delete_multiple {
     pub struct Object {
         #[serde(rename = "Key")]
         pub key: String,
-        #[serde(rename = "VersionId")]
+        #[serde(rename = "VersionId", skip_serializing_if = "Option::is_none")]
         pub version_id: Option<String>,
     }
 

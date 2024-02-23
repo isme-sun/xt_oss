@@ -137,6 +137,13 @@ pub fn oss_file_md5<'a>(file: &'a str) -> Result<String, io::Error> {
     Ok(general_purpose::STANDARD.encode(&bytes))
 }
 
+pub fn oss_md5<'a>(content: &'a [u8]) -> Result<String, io::Error> {
+    let mut hasher = Md5::new();
+    hasher.input(content);
+    let bytes = hex::decode(&hasher.result_str()).unwrap();
+    Ok(general_purpose::STANDARD.encode(&bytes))
+}
+
 /// 获取字节范围描述
 ///
 /// - `start`  开始位置

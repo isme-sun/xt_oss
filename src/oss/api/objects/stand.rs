@@ -20,21 +20,26 @@ pub mod builders {
         },
         CacheControl, ContentDisposition, ContentEncoding,
     };
+    use reqwest::Response;
     use serde::{Deserialize, Serialize};
 
-    use crate::oss::{
-        self,
-        api::{self, insert_custom_header, insert_header, ApiResponseFrom},
-        entities::{
-            object::{
-                CopyObjectResult, JobParameters, MetadataDirective, RestoreRequest,
-                TaggingDirective, Tier,
+    use crate::{oss::entities::object::delete_multiple::DeleteResult, util::ByteRange};
+    use crate::{
+        oss::{
+            self,
+            api::{self, insert_custom_header, insert_header, ApiResponseFrom},
+            entities::{
+                object::{
+                    delete_multiple::{Delete, Object},
+                    CopyObjectResult, JobParameters, MetadataDirective, RestoreRequest,
+                    TaggingDirective, Tier,
+                },
+                ObjectACL, ServerSideEncryption, StorageClass,
             },
-            ObjectACL, ServerSideEncryption, StorageClass,
+            http, Bytes,
         },
-        http, Bytes,
+        util::oss_md5,
     };
-    use crate::util::ByteRange;
 
     #[derive(Debug, Default)]
     struct PutObjectBuilderHeaders<'a> {
@@ -904,6 +909,7 @@ pub mod builders {
         client: &'a oss::Client<'a>,
         quiet: Option<bool>,
         encoding_type: Option<&'a str>,
+        deletes: Vec<(&'a str, &'a str)>,
         content_length: Option<u64>,
         content_md5: Option<&'a str>,
     }
@@ -912,11 +918,19 @@ pub mod builders {
         pub fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
-                quiet: None,
+                quiet: Some(false),
+                deletes: Vec::new(),
                 encoding_type: None,
                 content_length: None,
                 content_md5: None,
             }
+        }
+
+        /// 添加删除目标 Vec<(object, version_id)>
+        ///
+        pub fn with_deletes(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.deletes = value;
+            self
         }
 
         pub fn with_quiet(mut self, value: bool) -> Self {
@@ -929,19 +943,60 @@ pub mod builders {
             self
         }
 
-        pub async fn execute(&self) -> api::ApiResult {
+        fn content(&self) -> Delete {
+            Delete {
+                quiet: self.quiet,
+                object: self
+                    .deletes
+                    .iter()
+                    .map(|item| Object {
+                        key: item.0.to_string(),
+                        version_id: if item.1.is_empty() {
+                            None
+                        } else {
+                            Some(item.1.to_string())
+                        },
+                    })
+                    .collect(),
+            }
+        }
+
+        pub async fn execute(&self) -> api::ApiResult<DeleteResult> {
+            let resp = self.inner_execute(false).await?;
+            Ok(ApiResponseFrom(resp).to_type().await)
+        }
+
+        pub async fn execute_quiet(&self) -> api::ApiResult {
+            let resp = self.inner_execute(true).await?;
+            Ok(ApiResponseFrom(resp).to_empty().await)
+        }
+
+        async fn inner_execute(&self, quiet: bool) -> oss::Result<Response> {
             let res = format!("/{}/?{}", self.client.bucket(), "delete");
-            let url = format!("{}/?{}", self.client.base_url(), "delete");
-            let resp = self
-                .client
+            let url = format!("{}?{}", self.client.base_url(), "delete");
+            let mut content = self.content();
+            content.quiet = Some(quiet);
+            let content = quick_xml::se::to_string(&content).unwrap();
+            let content = oss::Bytes::from(content);
+
+            let mut headers = http::header::HeaderMap::new();
+            headers.insert(CONTENT_LENGTH, content.len().into());
+            let content_md5 = oss_md5(&content).unwrap();
+            headers.insert("Content-MD5", content_md5.parse().unwrap());
+            if let Some(encoding_type) = self.encoding_type {
+                headers.insert("Encoding-type", encoding_type.parse().unwrap());
+            }
+
+            self.client
                 .request
                 .task()
                 .with_url(&url)
                 .with_method(http::Method::POST)
+                .with_headers(headers)
                 .with_resource(&res)
+                .with_body(content)
                 .execute_timeout(self.client.timeout())
-                .await?;
-            Ok(ApiResponseFrom(resp).to_empty().await)
+                .await
         }
     }
 

@@ -300,7 +300,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [★ `CopyObject`](https://www.example.com)
 - [★ `AppendObject`](https://www.example.com)
 - [★ `DeleteObject`](https://www.example.com)
-- [☆ `DeleteMultipleObjects`](https://www.example.com)
+- [★ `DeleteMultipleObjects`](https://www.example.com)
 - [★ `HeadObject`](https://www.example.com)
 - [★ `GetObjectMeta`](https://www.example.com)
 <!-- - [☆ `PostObject`](https://www.example.com) -->
