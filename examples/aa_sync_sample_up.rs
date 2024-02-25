@@ -1,7 +1,15 @@
+use chrono::Utc;
 use dotenv;
 use std::{env, fs::File, io::Read};
 use walkdir::{DirEntry, WalkDir};
-use xt_oss::prelude::*;
+use xt_oss::{
+    oss::{
+        entities::ServerSideEncryption,
+        http::{CacheControl, ContentDisposition, ContentEncoding},
+    },
+    prelude::*,
+    util::utc_to_gmt,
+};
 
 fn only_file(entry: &DirEntry) -> bool {
     entry
@@ -50,20 +58,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match client
             .PutObject(&object)
             .with_forbid_overwrite(true)
-            // .with_content_encoding(ContentEncoding::IDENTITY)
-            // .with_cache_control(CacheControl::NoCache)
-            // .with_content_disposition(ContentDisposition::ATTACHMENT(Some(
-            //   "myfle.tmp".to_string(),
-            // )))
+            .with_content_encoding(ContentEncoding::IDENTITY)
+            .with_cache_control(CacheControl::NoCache)
+            .with_content_disposition(ContentDisposition::ATTACHMENT(Some(
+                "myfile.tmp".to_string(),
+            )))
             .with_content_type(&mime)
             // .with_content_language("zh-CN")
             .with_content(content)
-            // .with_oss_meta("upload-at", Utc::now().timestamp().to_string().as_str())
-            // .with_oss_meta("upload-by", "xtoss")
-            // .with_encryption(ServerSideEncryption::AES256)
-            // .with_expires(Utc::now())
-            // .with_oss_tagging("tag1", "value1")
-            // .with_oss_tagging("tag2", "value2")
+            .with_oss_meta(vec![
+                ("upload-at", &Utc::now().timestamp().to_string()),
+                ("upload-by", "xtoss"),
+            ])
+            .with_encryption(ServerSideEncryption::AES256)
+            .with_expires(&utc_to_gmt(Utc::now()))
+            .with_oss_tagging(vec![("tag1", "value1"), ("tag2", "value1")])
             .execute()
             .await
         {

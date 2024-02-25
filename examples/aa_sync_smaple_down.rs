@@ -9,7 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
 
     let down_dir = {
-        let base_dir = env::var("HOME").unwrap_or_else(|_| env::temp_dir().display().to_string());
+        let base_dir = env::var("HOME").unwrap_or(env::temp_dir().display().to_string());
         let mut down_dir = PathBuf::from(base_dir);
         down_dir.push("xtoss");
         down_dir.push("samples");
@@ -35,11 +35,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }) {
             Ok(data) => {
                 let objects = data.content();
-                if objects.key_count == Some(0) {
+                if let Some(0) = objects.key_count {
                     println!("not object");
                 } else {
                     token = objects.next_continuation_token.clone();
                     for object in objects.contents.unwrap() {
+                        // 下载文件
                         match client.GetObject(&object.key).execute().await {
                             Ok(Ok(data)) => {
                                 let target_file = down_dir.clone().join(&object.key);

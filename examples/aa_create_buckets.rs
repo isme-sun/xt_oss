@@ -9,7 +9,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let options = util::options_from_env();
     let client = Arc::new(oss::Client::new(options));
     let region = "oss-cn-shanghai".to_string();
-    let buckets = (10..20)
+
+    let buckets = (1..10)
         .map(|i| format!("xtoss-ex{}", i))
         .collect::<Vec<String>>();
 

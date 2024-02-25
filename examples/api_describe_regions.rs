@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .region_info
                 .into_iter()
                 .for_each(|entry| {
-                    println!("{:>20} | https://{}", entry.region, entry.internet_endpoint);
+                    println!("{:>20} | {}", entry.region, entry.internet_endpoint);
                 });
         }
         Err(oss_error_message) => println!("oss error: {}", oss_error_message.content()),

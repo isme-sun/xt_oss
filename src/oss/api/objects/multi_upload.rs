@@ -35,16 +35,16 @@ pub mod builders {
     };
 
     #[derive(Debug, Default)]
-    struct InitiateMultipartUploadBuilderHeaders {
+    struct InitiateMultipartUploadBuilderHeaders<'a> {
         cache_control: Option<http::CacheControl>,
         content_disposition: Option<http::ContentDisposition>,
         content_encoding: Option<http::ContentEncoding>,
-        expires: Option<DateTime<Utc>>,
-        content_type: Option<String>,
+        expires: Option<&'a str>,
+        content_type: Option<&'a str>,
         forbid_overwrite: Option<bool>,
         encryption: Option<ServerSideEncryption>,
-        data_encryption: Option<String>,
-        encryption_key_id: Option<String>,
+        data_encryption: Option<ServerSideEncryption>,
+        encryption_key_id: Option<&'a str>,
         storage_class: Option<StorageClass>,
         oss_tagging: HashMap<String, String>,
     }
@@ -53,7 +53,7 @@ pub mod builders {
         client: &'a oss::Client<'a>,
         object: &'a str,
         encoding_type: Option<&'a str>,
-        headers: InitiateMultipartUploadBuilderHeaders,
+        headers: InitiateMultipartUploadBuilderHeaders<'a>,
     }
 
     impl<'a> InitiateMultipartUploadBuilder<'a> {
@@ -67,7 +67,7 @@ pub mod builders {
         }
 
         pub fn with_content_type(mut self, value: &'a str) -> Self {
-            self.headers.content_type = Some(value.to_string());
+            self.headers.content_type = Some(value);
             self
         }
 
@@ -86,7 +86,7 @@ pub mod builders {
             self
         }
 
-        pub fn with_expires(mut self, value: DateTime<Utc>) -> Self {
+        pub fn with_expires(mut self, value: &'a str) -> Self {
             self.headers.expires = Some(value);
             self
         }
@@ -101,13 +101,13 @@ pub mod builders {
             self
         }
 
-        pub fn with_data_encryption(mut self, value: &'a str) -> Self {
-            self.headers.data_encryption = Some(value.to_string());
+        pub fn with_data_encryption(mut self, value: ServerSideEncryption) -> Self {
+            self.headers.data_encryption = Some(value);
             self
         }
 
         pub fn with_encryption_key_id(mut self, value: &'a str) -> Self {
-            self.headers.encryption_key_id = Some(value.to_string());
+            self.headers.encryption_key_id = Some(value);
             self
         }
 
@@ -143,7 +143,7 @@ pub mod builders {
             }
 
             if let Some(expires) = &self.headers.expires {
-                insert_header(&mut headers, EXPECT, expires.format(oss::GMT_DATE_FMT));
+                insert_header(&mut headers, EXPECT, expires);
             }
 
             if let Some(content_type) = &self.headers.content_type {
@@ -159,9 +159,10 @@ pub mod builders {
             }
 
             if let Some(data_encryption) = &self.headers.data_encryption {
-                headers.insert(
+                insert_custom_header(
+                    &mut headers,
                     "x-oss-server-side-data-encryption",
-                    data_encryption.parse().unwrap(),
+                    data_encryption.to_string(),
                 );
             }
 

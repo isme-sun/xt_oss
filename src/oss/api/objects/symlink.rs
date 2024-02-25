@@ -6,7 +6,6 @@ pub mod builders {
 
     use std::collections::HashMap;
 
-    use chrono::{DateTime, Utc};
     use reqwest::header::{
         CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_ENCODING, CONTENT_LANGUAGE, CONTENT_TYPE,
         EXPIRES,
@@ -20,13 +19,13 @@ pub mod builders {
     };
 
     #[derive(Debug, Default, Clone)]
-    struct PutSymlinkBuilderHeaders {
+    struct PutSymlinkBuilderHeaders<'a> {
         cache_control: Option<http::CacheControl>,
         content_disposition: Option<http::ContentDisposition>,
-        content_language: Option<String>,
+        content_language: Option<&'a str>,
         content_encoding: Option<http::ContentEncoding>,
-        content_type: Option<String>,
-        expires: Option<DateTime<Utc>>,
+        content_type: Option<&'a str>,
+        expires: Option<&'a str>,
     }
 
     #[derive(Debug)]
@@ -39,7 +38,7 @@ pub mod builders {
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
         oss_meta: HashMap<&'a str, &'a str>,
-        headers: PutSymlinkBuilderHeaders,
+        headers: PutSymlinkBuilderHeaders<'a>,
     }
 
     impl<'a> PutSymlinkBuilder<'a> {
@@ -82,12 +81,12 @@ pub mod builders {
             self
         }
         pub fn with_content_type(mut self, value: &'a str) -> Self {
-            self.headers.content_type = Some(value.to_string());
+            self.headers.content_type = Some(value);
             self
         }
 
         pub fn with_content_language(mut self, value: &'a str) -> Self {
-            self.headers.content_language = Some(value.to_string());
+            self.headers.content_language = Some(value);
             self
         }
 
@@ -106,7 +105,7 @@ pub mod builders {
             self
         }
 
-        pub fn with_expires(mut self, value: DateTime<Utc>) -> Self {
+        pub fn with_expires(mut self, value: &'a str) -> Self {
             self.headers.expires = Some(value);
             self
         }
@@ -148,7 +147,7 @@ pub mod builders {
             }
 
             if let Some(expires) = &self.headers.expires {
-                insert_header(&mut headers, EXPIRES, expires.format(oss::GMT_DATE_FMT));
+                insert_header(&mut headers, EXPIRES, expires);
             }
 
             if !self.oss_meta.is_empty() {

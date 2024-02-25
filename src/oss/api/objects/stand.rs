@@ -48,7 +48,7 @@ pub mod builders {
         content_language: Option<String>,
         content_disposition: Option<http::ContentDisposition>,
         cache_control: Option<http::CacheControl>,
-        expires: Option<DateTime<Utc>>,
+        expires: Option<&'a str>,
         content_length: Option<u64>,
         content_md5: Option<String>,
         etag: Option<String>,
@@ -59,7 +59,8 @@ pub mod builders {
         object_acl: Option<ObjectACL>,
         storage_class: Option<StorageClass>,
         oss_tagging: Option<Vec<(&'a str, &'a str)>>,
-        oss_meta: HashMap<String, String>,
+        // oss_meta:  HashMap<String, String>,
+        oss_meta: Option<Vec<(&'a str, &'a str)>>,
     }
 
     pub struct PutObjectBuilder<'a> {
@@ -121,7 +122,7 @@ pub mod builders {
             self
         }
 
-        pub fn with_expires(mut self, value: DateTime<Utc>) -> Self {
+        pub fn with_expires(mut self, value: &'a str) -> Self {
             self.headers.expires = Some(value);
             self
         }
@@ -161,10 +162,8 @@ pub mod builders {
             self
         }
 
-        pub fn with_oss_meta(mut self, key: &'a str, value: &'a str) -> Self {
-            self.headers
-                .oss_meta
-                .insert(key.to_string(), value.to_string());
+        pub fn with_oss_meta(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.headers.oss_meta = Some(value);
             self
         }
 
@@ -217,7 +216,7 @@ pub mod builders {
             }
 
             if let Some(expires) = &self.headers.expires {
-                insert_header(&mut headers, EXPIRES, expires.format(oss::GMT_DATE_FMT));
+                insert_header(&mut headers, EXPIRES, expires);
             }
 
             if let Some(forbid_overwrite) = &self.headers.forbid_overwrite {
@@ -257,8 +256,8 @@ pub mod builders {
                 insert_custom_header(&mut headers, "x-oss-tagging", value);
             }
 
-            if !self.headers.oss_meta.is_empty() {
-                for (key, value) in &self.headers.oss_meta {
+            if let Some(oss_meta) = &self.headers.oss_meta {
+                for (key, value) in oss_meta {
                     insert_custom_header(&mut headers, &format!("x-oss-meta-{}", key), value);
                 }
             }
@@ -487,7 +486,6 @@ pub mod builders {
             let res = format!("/{}/{}", self.client.bucket(), self.object);
             let url = self.client.object_url(self.object);
             let headers = self.headers();
-            // dbg!(&headers);
             let resp = self
                 .client
                 .request

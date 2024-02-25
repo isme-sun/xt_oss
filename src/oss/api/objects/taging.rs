@@ -3,8 +3,6 @@ use crate::oss;
 use builders::{DeleteObjectTaggingBuilder, GetObjectTaggingbuilder, PutObjectTaggingBuilder};
 
 pub mod builders {
-    use std::collections::HashMap;
-
     use crate::oss::{
         self,
         api::{self, ApiResponseFrom},
@@ -16,7 +14,7 @@ pub mod builders {
         client: &'a oss::Client<'a>,
         object: &'a str,
         version_id: Option<&'a str>,
-        tags: HashMap<&'a str, &'a str>,
+        tags: Vec<(&'a str, &'a str)>,
     }
 
     impl<'a> PutObjectTaggingBuilder<'a> {
@@ -25,7 +23,7 @@ pub mod builders {
                 client,
                 object,
                 version_id: None,
-                tags: HashMap::new(),
+                tags: Vec::new(),
             }
         }
 
@@ -34,13 +32,8 @@ pub mod builders {
             self
         }
 
-        pub fn with_tag(mut self, key: &'a str, value: &'a str) -> Self {
-            self.tags.insert(key, value);
-            self
-        }
-
-        pub fn with_tags(mut self, tags: HashMap<&'a str, &'a str>) -> Self {
-            self.tags = tags;
+        pub fn with_tags(mut self, value: Vec<(&'a str, &'a str)>) -> Self {
+            self.tags = value;
             self
         }
 

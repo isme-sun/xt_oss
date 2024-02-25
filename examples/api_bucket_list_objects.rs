@@ -9,9 +9,9 @@ async fn main() {
     let client = oss::Client::new(options);
     let result = client
         .ListObjects()
-        .with_max_keys(2)
-        .with_prefix("course/video")
-        .with_marker("course/video/00518bfd279de57ea6a8b26a5af2c0fc/content.mp4")
+        // .with_max_keys(20)
+        // .with_prefix("course/video")
+        // .with_marker("course/video/00518bfd279de57ea6a8b26a5af2c0fc/content.mp4")
         .execute()
         .await
         .unwrap_or_else(|error| {

@@ -10,9 +10,11 @@ async fn main() {
 
     match client
         .PutObjectTagging("excel/Spreadsheet-1000-rows.xls")
-        .with_tag("key1", "value1")
-        .with_tag("key2", "value2")
-        .with_tag("key3", "value3")
+        .with_tags(vec![
+            ("key1", "value1"),
+            ("key2", "value2"),
+            ("key3", "value3"),
+        ])
         .execute()
         .await
         .unwrap_or_else(|error| {

@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 pub mod builders {
@@ -76,10 +75,9 @@ pub struct Cname {
     pub domain: String,
     #[serde(
         rename = "LastModified",
-        with = "super::private::serde_date::utc_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub last_modified: Option<DateTime<Utc>>,
+    pub last_modified: Option<String>,
     #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
     #[serde(rename = "IsPurgeCdnCache", skip_serializing_if = "Option::is_none")]

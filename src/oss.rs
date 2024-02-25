@@ -8,94 +8,18 @@ pub const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 pub const XML_CONTENT: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
 use std::time::Duration;
-// re-export
 pub use bytes::Bytes;
 pub mod http;
-
-// entity defined
 pub mod entities;
-// api impl
 pub mod api;
+pub(super) mod auth;
 
-// core
 use super::oss::{
     self,
     http::header::{AUTHORIZATION, CONTENT_TYPE, DATE},
 };
-use base64::{engine::general_purpose, Engine as _};
 use chrono::Utc;
-// use hmacsha1;
-use hmac_sha1;
 use reqwest::{header::HeaderMap, Response, Result};
-
-#[allow(unused)]
-#[derive(Debug)]
-struct Authorization<'a> {
-    access_key_id: &'a str,
-    access_key_secret: &'a str,
-    sts_token: Option<&'a str>,
-    headers: &'a http::HeaderMap,
-    method: &'a http::Method,
-    date: &'a String,
-    resourse: Option<&'a str>,
-}
-
-impl<'a> Authorization<'a> {
-    fn complute(&self) -> String {
-        format!("OSS {}:{}", self.access_key_id, self.signature())
-    }
-
-    fn headers_str(&self) -> String {
-        let mut oss_key_name: Vec<&str> = Vec::new();
-        let keys = self.headers.keys();
-        for item in keys {
-            let name = item.as_str();
-            if name.starts_with("x-oss") {
-                oss_key_name.push(name);
-            }
-        }
-        oss_key_name.sort();
-        let mut value: Vec<String> = Vec::new();
-        for key_name in oss_key_name {
-            let key_value = self.headers.get(key_name).unwrap().to_str().unwrap();
-            value.push(format!("{}:{}\n", key_name, key_value));
-        }
-        value.join("").to_string()
-    }
-
-    fn signature(&self) -> String {
-        let header_str = self.headers_str();
-        let content_type = match self.headers.get(CONTENT_TYPE) {
-            Some(content_type) => content_type.to_str().unwrap(),
-            None => oss::DEFAULT_CONTENT_TYPE,
-        };
-        let content_md5 = match self.headers.get("content-md5") {
-            Some(content_type) => content_type.to_str().unwrap().to_string(),
-            None => "".to_string(),
-        };
-
-        // !! ? :(
-        let resource = urlencoding::decode(self.resourse.unwrap_or("/"))
-            .unwrap()
-            .replace("+", " ");
-
-        let value = format!(
-            "{VERB}\n{ContentMD5}\n{ContentType}\n{Date}\n{Header}{Resource}",
-            VERB = self.method,
-            ContentMD5 = content_md5,
-            ContentType = content_type,
-            Date = self.date,
-            Header = header_str,
-            Resource = resource
-        );
-        // dbg!(&value);
-        let key = self.access_key_secret.as_bytes();
-        let message = value.as_bytes();
-        let value = hmac_sha1::hmac_sha1(key, message);
-        let encoded = general_purpose::STANDARD.encode(value.as_slice());
-        encoded
-    }
-}
 
 pub struct RequestTask<'a> {
     request: &'a oss::Request<'a>,
@@ -156,7 +80,7 @@ impl<'a> RequestTask<'a> {
         let access_key_secret = self.request.access_key_secret.unwrap_or_default();
         let sts_token = self.request.sts_token;
         let resourse = self.resource;
-        Authorization {
+        auth::SingerV1 {
             access_key_id,
             access_key_secret,
             sts_token,
@@ -172,7 +96,6 @@ impl<'a> RequestTask<'a> {
         let date = Utc::now().format(oss::GMT_DATE_FMT).to_string();
         let mut headers = http::HeaderMap::new();
         headers.insert(DATE, date.parse().unwrap());
-
         if let Some(sts_token) = self.request.sts_token {
             headers.insert("x-oss-security-token", sts_token.parse().unwrap());
         }
@@ -180,7 +103,6 @@ impl<'a> RequestTask<'a> {
         let auth = self.authorization(&headers, &date);
         headers.insert(AUTHORIZATION, auth.parse().unwrap());
         // dbg!(&headers);
-
         let timeout = Duration::from_secs(timeout.unwrap_or(oss::DEFAULT_TIMEOUT));
         self.request
             .client

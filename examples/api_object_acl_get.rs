@@ -10,7 +10,7 @@ async fn main() {
 
     match client
         .GetObjectACL("excel/Spreadsheet-1000-rows.xls")
-        .with_version_id("CAEQmgEYgYDA9I_smO0YIiBhOGJmMTczNzY0ZmM0NTE1YTA5MDJlOWE1YmI1ZTZlNQ--")
+        // .with_version_id("CAEQmgEYgYDA9I_smO0YIiBhOGJmMTczNzY0ZmM0NTE1YTA5MDJlOWE1YmI1ZTZlNQ--")
         .execute()
         .await
         .unwrap_or_else(|error| {

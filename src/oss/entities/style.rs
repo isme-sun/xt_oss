@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -12,15 +11,13 @@ pub struct Style {
     #[serde(
         rename = "CreateTime",
         skip_serializing_if = "Option::is_none",
-        with = "super::private::serde_date::gmt_option"
     )]
-    pub create_time: Option<DateTime<Utc>>,
+    pub create_time: Option<String>,
     #[serde(
         rename = "LastModifyTime",
         skip_serializing_if = "Option::is_none",
-        with = "super::private::serde_date::gmt_option"
     )]
-    pub last_modify_time: Option<DateTime<Utc>>,
+    pub last_modify_time: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

@@ -6,8 +6,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     match util::options_from_env()
         .client()
-        .PutBucketVersioning(VersioningStatus::Enabled)
-        // .PutBucketVersioning(VersioningStatus::Suspended)
+        // .PutBucketVersioning(VersioningStatus::Enabled)
+        .PutBucketVersioning(VersioningStatus::Suspended)
         .execute()
         .await
         .unwrap_or_else(|error| {

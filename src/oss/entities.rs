@@ -12,7 +12,6 @@ pub mod lifecycle;
 pub mod log;
 pub mod multi_upload;
 pub mod object;
-pub mod private;
 pub mod referer;
 pub mod region;
 pub mod style;

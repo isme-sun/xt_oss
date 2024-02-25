@@ -1,5 +1,4 @@
 use super::{acl::AccessControlList, object::Object, oss, DataRedundancyType, StorageClass};
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Default, Clone)]
@@ -38,8 +37,8 @@ pub struct BucketPolicy {
 pub struct Bucket {
     #[serde(rename = "AccessMonitor")]
     pub access_monitor: Option<String>,
-    #[serde(rename = "CreationDate", with = "super::private::serde_date::utc")]
-    pub creation_date: DateTime<Utc>,
+    #[serde(rename = "CreationDate")]
+    pub creation_date: String,
     #[serde(rename = "ExtranetEndpoint")]
     pub extranet_endpoint: String,
     #[serde(rename = "IntranetEndpoint")]
