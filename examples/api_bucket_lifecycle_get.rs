@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_lifecycle_get -q`
+//! 
+//! 调用GetBucketLifecycle接口查看存储空间`Bucket`的生命周期规则`Lifecycle`。
+//!
+//! - [official docs](调用GetBucketLifecycle接口查看存储空间`Bucket`的生命周期规则`Lifecycle`。)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_get.rs)
 use std::process;
 
 use xt_oss::prelude::*;

@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_cname_list -q`
+//!
+//! 调用ListCname接口用于查询某个存储空间(Bucket)下绑定的所有的自定义域名(Cname)列表
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listcname)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_list.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

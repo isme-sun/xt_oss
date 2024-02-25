@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_encryption_put -q`
+//!
+//! PutBucketEncryption接口用于配置存储空间`Bucket`的加密规则。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketencryption)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::encryption::SSEAlgorithm, prelude::*};

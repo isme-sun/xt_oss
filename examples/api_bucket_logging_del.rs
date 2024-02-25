@@ -1,3 +1,10 @@
+//! `cargo run --example api_bucket_logging_del -q`
+//!
+//! DeleteBucketLogging用于关闭存储空间`Bucket`的访问日志记录功能。
+//! 只有Bucket的拥有者才有权限关闭Bucket访问日志记录功能
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketlogging)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_del.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

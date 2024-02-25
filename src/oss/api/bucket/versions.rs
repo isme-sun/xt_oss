@@ -175,8 +175,8 @@ impl<'a> oss::Client<'a> {
     /// 接口用于列出Bucket中包括删除标记`Delete Marker`在内的所有Object
     /// 的版本信息
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjectversions)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_list.rs)
     pub fn ListObjectVersions(&self) -> ListObjectVersionsBuilder {
         ListObjectVersionsBuilder::new(self)
     }

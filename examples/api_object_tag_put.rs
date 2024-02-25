@@ -1,3 +1,10 @@
+//! `cargo run --example api_object_tag_put -q`
+//!
+//! 调用PutObjectTagging接口设置或更新对象`Object`的标签`Tagging`信息。
+//! 对象标签使用一组键值对`Key-Value`标记对象。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjecttagging)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

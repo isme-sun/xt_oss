@@ -1,3 +1,10 @@
+//! cargo run --example api_bucket_cors_put -q
+//!
+//! 调用PutBucketCors接口为指定的存储空间`Bucket`设置跨域资源共享CORS
+//!`Cross-Origin Resource Sharing`规则
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketcors)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::{

@@ -1,30 +1,19 @@
-use std::process;
-use xt_oss::prelude::*;
+use xt_oss::{oss::entities::bucket::ListAllMyBucketsResult, prelude::*};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
 
     // 列出所有以xtoss-开头的bucket
-    let result = client
+    let all_buckets: ListAllMyBucketsResult = client
         .ListBuckets()
         .with_prefix("xtoss-")
         .execute()
-        .await
-        .unwrap_or_else(|error| {
-            println!("reqwest error: {}", error);
-            process::exit(-1);
-        });
-
-    let all_buckets = match result {
-        Ok(data) => data.content(),
-        Err(error) => {
-            println!("oss error: {}", error.content());
-            process::exit(-1);
-        }
-    };
+        .await?
+        .unwrap()
+        .content();
 
     if let Some(bucktes) = all_buckets.buckets.bucket {
         for bucket in bucktes {
@@ -46,4 +35,5 @@ async fn main() {
     } else {
         println!("no match bucket!");
     }
+    Ok(())
 }

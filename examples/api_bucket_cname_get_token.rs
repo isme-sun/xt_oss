@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_cname_get_token -q`
+//!
+//! 调用GetCnameToken接口获取已创建的CnameToken
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getcnametoken)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_get_token.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;
@@ -8,7 +14,7 @@ async fn main() {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .GetCnameToken("xtoss-ex3.xuetube.com")
+        .GetCnameToken("xtoss-ex1.xuetube.com")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {

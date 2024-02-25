@@ -1,3 +1,12 @@
+//!  cargo run --example api_bucket_lifecycle_del -q
+//!
+//! DeleteBucketLifecycle接口用于删除指定存储空间`Bucket`的生命周期规则。
+//! 使用DeleteBucketLifecycle接口删除指定Bucket所有的生命周期规则后,
+//! 该Bucket中的文件`Object`不会被自动删除。只有Bucket的拥有者才能删除该Bucket
+//! 的生命周期规则。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketlifecycle)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_del.rs)
 use std::process;
 
 use xt_oss::prelude::*;

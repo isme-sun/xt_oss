@@ -1,3 +1,9 @@
+//! cargo run --example api_bucket_encryption_get -q
+//!
+//! GetBucketEncryption接口用于获取存储空间`Bucket`的加密规则。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketencryption)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_get.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

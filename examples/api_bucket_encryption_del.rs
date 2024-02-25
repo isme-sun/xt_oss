@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_encryption_del -q`
+//! 
+//! DeleteBucketEncryption接口用于删除Bucket加密规则。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketencryption)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_del.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

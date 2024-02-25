@@ -1,3 +1,10 @@
+//! cargo run --example api_bucket_acl_get -q
+//!   
+//! GetBucketAcl接口用于获取某个存储空间`Bucket`的访问权限`ACL`。
+//! 只有Bucket的拥有者才能获取Bucket的访问权限。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketacl)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_acl_get.rs)
 use dotenv;
 use serde_json;
 use std::process;

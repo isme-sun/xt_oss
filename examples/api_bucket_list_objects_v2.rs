@@ -1,3 +1,10 @@
+//! `cargo run --example api_bucket_list_objects_v2 -q`
+//!
+//! ListObjectsV2`GetBucketV2`接口用于列举存储空间`Bucket`中所有文件
+//! `Object`的信息。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjectsv2)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

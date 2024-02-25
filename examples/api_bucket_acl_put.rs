@@ -1,3 +1,8 @@
+//! `cargo run --example api_bucket_acl_put -q`
+//! PutBucketAcl接口用于设置或修改存储空间`Bucket`的访问权限`ACL`。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketacl)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_acl_put.rs)
 use std::process;
 
 use xt_oss::oss::entities::OssAcl;

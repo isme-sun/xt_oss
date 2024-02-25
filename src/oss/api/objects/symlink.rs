@@ -166,9 +166,6 @@ pub mod builders {
                 url = format!("{}&versionId={}", url, version_id);
             }
 
-            dbg!(&res);
-            dbg!(&url);
-
             let headers = self.headers();
 
             let resp = self

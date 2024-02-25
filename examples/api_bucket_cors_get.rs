@@ -1,3 +1,11 @@
+//! cargo run --example api_bucket_cors_get -q
+//!
+//! GetBucketCors接口用于获取指定存储空间Bucket当前的跨域资源共享CORS Cross-Origin Resource Sharing规则。
+//! GetBucketCors接口用于获取指定存储空间`Bucket`当前的跨域资源共享CORS
+//! `Cross-Origin Resource Sharing`规则。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketcors)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_get.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

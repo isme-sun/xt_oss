@@ -1,3 +1,8 @@
+//! `cargo run --example api_bucket_cname_create_token -q`
+//! 调用CreateCnameToken接口创建域名所有权验证所需的CnameToken
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/createcnametoken)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cname_create_token.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;
@@ -8,7 +13,7 @@ async fn main() {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .CreateCnameToken("xtoss-ex3.xuetube.com")
+        .CreateCnameToken("xtoss-ex1.xuetube.com")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {

@@ -1,3 +1,9 @@
+//! `cargo run --example api_object_symlink_get -q`
+//!
+//! 调用GetSymlink接口获取软链接。此操作需要您对该软链接有读权限。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getsymlink)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_symlink_get.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

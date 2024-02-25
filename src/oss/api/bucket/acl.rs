@@ -67,7 +67,7 @@ impl<'a> GetBucketAclBuilder<'a> {
 /// # 权限控制`ACL``
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// PutBucketAcl接口用于设置或修改存储空间（Bucket）的访问权限（ACL）。
+    /// PutBucketAcl接口用于设置或修改存储空间`Bucket`的访问权限`ACL`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_acl_put.rs)
@@ -75,7 +75,7 @@ impl<'a> oss::Client<'a> {
         PutBucketAclBuilder::new(self, acl)
     }
 
-    /// GetBucketAcl接口用于获取某个存储空间（Bucket）的访问权限（ACL）。
+    /// GetBucketAcl接口用于获取某个存储空间`Bucket`的访问权限`ACL`。
     /// 只有Bucket的拥有者才能获取Bucket的访问权限。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketacl)
