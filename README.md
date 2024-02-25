@@ -1,15 +1,24 @@
 # XT - Aliyun OSS SDK
 
-> 参考官方其他SDK实现的阿里云OSS SDK
+这是一个`Rust`语言编写的阿里云OSS的SDK，依据官网文档并参考了其他语言的实现。
 
-## 简介
+- 基于`tokio-rs`异步运行时与流行的`reqwest`库实现.
+- 尽量完整的OSS数据结构描述（`struct`、`enum`）.
+- `Builder`设计模式的传参风格.
+- 实现常用的大部分API.
+- 完整`Examples`演示.
 
-内容
-
-## 应用示例
+```toml
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+```
 
  ```rust no_run
- //! cargo run --example api_region_describe -q
+//! `cargo run --example api_region_describe -q`
+//!
+//! 调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息，
+//! 包括外网Endpoint、内网Endpoint和传输加速Endpoint。
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;
@@ -17,10 +26,10 @@ use xt_oss::prelude::*;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
-    // let options = util::options_from_env();
-    let options = oss::Options::new()
-        .with_access_key_id("-- your access_key_id --")
-        .with_access_key_secret("-- your access_key_secret --");
+    let options = util::options_from_env();
+    // let options = oss::Options::new()
+    //     .with_access_key_id("-- your access_key_id --")
+    //     .with_access_key_secret("-- your access_key_secret --");
 
     let client = oss::Client::new(options);
 
@@ -46,12 +55,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     Ok(())
 }
- ```
+```
 
 ```rust no_run
+//! ` cargo run --example api_object_stand_get -q`
+//! GetObject接口用于获取某个文件`Object`。此操作需要对此Object具有读权限
 use chrono::{Duration, Utc};
 use dotenv;
 use std::process;
+use xt_oss::oss::http::ContentDisposition;
 use xt_oss::prelude::*;
 
 #[tokio::main]
@@ -61,8 +73,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
 
     let object = "ppt/File-1000kb.ppt";
-    let content_disposition = http::ContentDisposition::ATTACHMENT(Some(object.into())).to_string();
-    let expire = (Utc::now() + Duration::days(1)).format(oss::GMT_DATE_FMT).to_string();
+    let content_disposition = ContentDisposition::ATTACHMENT(Some(object.into())).to_string();
+    let expire = util::utc_to_gmt(Utc::now() + Duration::days(1));
     let cache_control = http::CacheControl::NoCache.to_string();
     // Retrieve 500 bytes starting from the 100th byte
     let range = ByteRange::from((100, 500));
@@ -94,28 +106,56 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+## `Options` 配置
 
-## 配置说明
+- `access_key_id` 通过阿里云控制台创建的AccessKey ID
+- `access_key_secret` 通过阿里云控制台创建的AccessKey Secret
+- `sts_token` 使用临时授权方式
+- `bucket` 通过控制台或PutBucket创建的Bucket
+- `endpoint` OSS访问域名。
+- `region` Bucket所在的区域,默认值为oss-cn-hangzhou
+- `internal`  是否使用阿里云内网访问,默认值为false
+- `cname`  是否支持上传自定义域名,默认值为false
+- `is_request_pay` Bucket是否开启请求者付费模,默认值为false
+- `secure`  设置secure为true,则使用HTTPS;设置secure为false,则使用HTTP
+- `timeout` 超时时间,默认值为60秒
 
- 概要说明 ...
+### 构建方式
 
- ```rust no_run
- fn main() {
-     println!("示例说明");
- }
- ```
+```rust no_run
+// 构建方式
+let options = oss::Options::new()
+    .with_access_key_id("access_key_id")
+    .with_access_key_secret("access_key_secret")
+    .with_bucket("xtoss-ex1")
+    .with_cname(true)
+    .with_endpoint("http://cdn-dev.xuetube.com")
+    .with_internal(false)
+    .with_region("oss-cn-shanghai")
+    .with_secret(true)
+    // .with_sts_token("sts token")
+    .with_timeout(60);
+
+let client = oss::Client::new(options);
+```
+
+### 从.env加载,格式参见 .env.example.
+
+```rust no_run
+// ...
+dotenv::dotenv().ok();
+let options = util::options_from_env();
+let client = oss::Client::new(options);
+// ...
+```
 
 ## 参数构建
 
-
 ## 错误处理
-
 
 ## 其他
 
 ## 实现的Api
-
-简介
 
 ### 关于Service/Region
 
@@ -345,175 +385,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - [☆ `GetLiveChannelHistory`](https://www.example.com)
 - [☆ `PostVodPlaylist`](https://www.example.com)
 - [☆ `GetVodPlaylist`](https://www.example.com) -->
-
-## 关于oss::Request
-
-```no_run
-use std::env;
-
-use xt_oss::oss::Request;
-#[tokio::main]
-async fn main() {
-    dotenv::dotenv().ok();
-    let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
-    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
-    let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions=oss-us-west-1";
-    // let url = "https://oss-cn-hangzhou.aliyuncs.com/?regions";
-
-    let resp = Request::new()
-        .with_access_key_id(&access_key_id)
-        .with_access_key_secret(&access_key_secret)
-        .task()
-        .with_url(&url)
-        // default Method::GET
-        // .with_method(http::Method::GET)
-        .execute_timeout(30)
-        // default timeout = 60
-        // .execute()
-        .await;
-
-    match resp {
-        Ok(resp) => {
-            let bytes = resp.bytes().await.unwrap();
-            let content = String::from_utf8_lossy(&bytes);
-            println!("{}", content);
-        }
-        Err(error) => {
-            println!("reqwest error: {}", error)
-        }
-    }
-}
-```
-
-```no_run
-use std::env;
-use xt_oss::oss::Request;
-
-#[tokio::main]
-async fn main() {
-    dotenv::dotenv().ok();
-    let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
-    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
-    let url = "https://oss-cn-hangzhou.aliyuncs.com";
-
-    let resp = Request::new()
-        .with_access_key_id(&access_key_id)
-        .with_access_key_secret(&access_key_secret)
-        .task()
-        .with_url(&url)
-        // default Method::GET
-        // .with_method(http::Method::GET)
-        .execute()
-        .await;
-
-    match resp {
-        Ok(resp) => {
-            let bytes = resp.bytes().await.unwrap();
-            let content = String::from_utf8_lossy(&bytes);
-            println!("{}", content);
-        }
-        Err(error) => {
-            println!("reqwest error: {}", error)
-        }
-    }
-}
-
-```
-
-```rust no_run
-use std::env;
-use xt_oss::oss::{self, http, Request};
-#[tokio::main]
-async fn main() {
-    dotenv::dotenv().ok();
-    let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
-    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
-    let url = "https://xtoss-t1.oss-cn-shanghai.aliyuncs.com/?cors";
-
-    let cors_config = r#"<?xml version="1.0" encoding="UTF-8"?>
-<CORSConfiguration>
-    <CORSRule>
-        <AllowedOrigin>*</AllowedOrigin>
-        <AllowedMethod>PUT</AllowedMethod>
-        <AllowedMethod>GET</AllowedMethod>
-        <AllowedHeader>Authorization</AllowedHeader>
-    </CORSRule>
-    <CORSRule>
-        <AllowedOrigin>http://example.com</AllowedOrigin>
-        <AllowedOrigin>http://example.net</AllowedOrigin>
-        <AllowedMethod>GET</AllowedMethod>
-        <AllowedHeader> Authorization</AllowedHeader>
-        <ExposeHeader>x-oss-test</ExposeHeader>
-        <ExposeHeader>x-oss-test1</ExposeHeader>
-        <MaxAgeSeconds>100</MaxAgeSeconds>
-    </CORSRule>
-    <ResponseVary>false</ResponseVary>
-</CORSConfiguration >"#
-        .to_string();
-
-    let data = oss::Bytes::from(cors_config);
-
-    let resp = Request::new()
-        .with_access_key_id(&access_key_id)
-        .with_access_key_secret(&access_key_secret)
-        .task()
-        .with_url(&url)
-        .with_resource("/xtoss-t1/?cors")
-        .with_method(http::Method::PUT)
-        .with_body(data)
-        .execute_timeout(30)
-        .await;
-
-    match resp {
-        Ok(resp) => {
-            println!("is success: {}", resp.status().is_success());
-            let status = resp.status();
-            let bytes = resp.bytes().await.unwrap();
-            let content = String::from_utf8_lossy(&bytes);
-            println!("{}", status);
-            println!("{}", content);
-        }
-        Err(error) => {
-            println!("{:#?}", error);
-        }
-    }
-}
-
-```
-
-```rust no_run
-use std::env;
-use xt_oss::oss::Request;
-
-#[tokio::main]
-async fn main() {
-    dotenv::dotenv().ok();
-    let access_key_id = env::var("OSS_ACCESS_KEY_ID").unwrap();
-    let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
-    let url = "https://xtoss-t1.oss-cn-shanghai.aliyuncs.com/?cors";
-    let resp = Request::new()
-        .with_access_key_id(&access_key_id)
-        .with_access_key_secret(&access_key_secret)
-        .task()
-        .with_url(&url)
-        .with_resource("/xtoss-t1/?cors")
-        .execute_timeout(30)
-        .await;
-
-    match resp {
-        Ok(resp) => {
-            println!("is success: {}", resp.status().is_success());
-            let status = resp.status();
-            let bytes = resp.bytes().await.unwrap();
-            let content = String::from_utf8_lossy(&bytes);
-            println!("{}", status);
-            println!("{}", content);
-        }
-        Err(error) => {
-            println!("{:#?}", error);
-        }
-    }
-}
-```
-
-## oss request

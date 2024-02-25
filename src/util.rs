@@ -110,7 +110,7 @@ pub fn options_from_env() -> oss::Options<'static> {
         .with_sts_token(get_env("OSS_STS_TOKEN", "").leak())
         .with_internal(get_env_bool("OSS_INTERNAL", false))
         .with_cname(get_env_bool("OSS_CNAME", false))
-        .with_is_request_pay(get_env_bool("OSS_IS_REQUEST_PAY", false))
+        // .with_is_request_pay(get_env_bool("OSS_IS_REQUEST_PAY", false))
         .with_secret(get_env_bool("OSS_SECURE", false))
         .with_timeout(
             get_env("OSS_TIMEOUT", "60")

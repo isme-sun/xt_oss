@@ -174,17 +174,17 @@ pub struct Options<'a> {
     bucket: &'a str,
     /// OSS访问域名。
     endpoint: &'a str,
-    /// Bucket所在的区域， 默认值为oss-cn-hangzhou
+    /// Bucket所在的区域,默认值为oss-cn-hangzhou
     region: &'a str,
-    /// 是否使用阿里云内网访问，默认值为false
+    /// 是否使用阿里云内网访问,默认值为false
     internal: bool,
-    /// 是否支持上传自定义域名，默认值为false
+    /// 是否支持上传自定义域名,默认值为false
     cname: bool,
-    /// Bucket是否开启请求者付费模式，默认值为false
-    is_request_pay: bool,
-    /// 设置secure为true，则使用HTTPS；设置secure为false，则使用HTTP
+    // /// Bucket是否开启请求者付费模,默认值为false
+    // is_request_pay: bool,
+    /// 设置secure为true,则使用HTTPS;设置secure为false,则使用HTTP
     secure: bool,
-    /// 超时时间，默认值为60000
+    /// 超时时间,默认值为60秒
     timeout: u64,
 }
 
@@ -194,7 +194,7 @@ impl<'a> Options<'a> {
             region: oss::DEFAULT_REGION,
             internal: false,
             cname: false,
-            is_request_pay: false,
+            // is_request_pay: false,
             secure: false,
             timeout: 60u64,
             ..Self::default()
@@ -241,10 +241,10 @@ impl<'a> Options<'a> {
         self.cname = value;
         self
     }
-    pub fn with_is_request_pay(mut self, value: bool) -> Self {
-        self.is_request_pay = value;
-        self
-    }
+    // pub fn with_is_request_pay(mut self, value: bool) -> Self {
+    //     self.is_request_pay = value;
+    //     self
+    // }
 
     pub fn with_secret(mut self, value: bool) -> Self {
         self.secure = value;
@@ -394,10 +394,14 @@ pub mod tests {
         let options = oss::Options::new()
             .with_access_key_id("access_key_id")
             .with_access_key_secret("access_key_secret")
-            .with_endpoint("http://cdn-dev.xuetube.com")
             .with_bucket("xtoss-ex1")
             .with_cname(true)
-            .with_secret(false);
+            .with_endpoint("http://cdn-dev.xuetube.com")
+            .with_internal(false)
+            .with_region("oss-cn-shanghai")
+            .with_secret(true)
+            // .with_sts_token("sts token")
+            .with_timeout(60);
 
         let host = "cdn-dev.xuetube.com";
         let root_url = "http://cdn-dev.xuetube.com";
