@@ -1,3 +1,8 @@
+//! `cargo run --example api_object_stand_del -q`
+//! 调用DeleteObject删除某个文件`Object`
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deleteobject)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_del.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

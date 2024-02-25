@@ -1211,74 +1211,75 @@ pub mod builders {
 /// # 基础操作
 #[allow(non_snake_case)]
 impl<'a> oss::Client<'a> {
-    /// 调用PutObject接口上传文件（Object）
+    /// 调用PutObject接口上传文件`Object`
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_put.rs)
     pub fn PutObject(&self, object: &'a str) -> PutObjectBuilder {
         PutObjectBuilder::new(self, object)
     }
 
-    /// GetObject接口用于获取某个文件（Object）。此操作需要对此Object具有读权限
+    /// GetObject接口用于获取某个文件`Object`。此操作需要对此Object具有读权限
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_get.rs)
     pub fn GetObject(&self, object: &'a str) -> GetObjectBuilder {
         GetObjectBuilder::new(self, object)
     }
 
-    /// 调用CopyObject接口拷贝同一地域下相同或不同存储空间（Bucket）之间的文件（Object）
+    /// 调用CopyObject接口拷贝同一地域下相同或不同存储空间`Bucket`之间的文件`Object`
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/copyobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_copy.rs)
     pub fn CopyObject(&self, object: &'a str) -> CopyObjectBuilder {
         CopyObjectBuilder::new(self, object)
     }
 
-    /// 调用AppendObject接口用于以追加写的方式上传文件（Object）。通过AppendObject操
+    /// 调用AppendObject接口用于以追加写的方式上传文件`Object`。通过AppendObject操
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/appendobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_append.rs)
     pub fn AppendObject(&self, object: &'a str) -> AppendObjectBuilder {
         AppendObjectBuilder::new(self, object)
     }
 
-    /// 调用DeleteObject删除某个文件（Object）
+    /// 调用DeleteObject删除某个文件`Object`
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deleteobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_del.rs)
     pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder {
         DeleteObjectBuilder::new(self, object)
     }
 
-    /// DeleteMultipleObjects接口用于删除同一个存储空间（Bucket）中的多个文件（Object）
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// DeleteMultipleObjects接口用于删除同一个存储空间`Bucket`中的多个文件`Object`
+    ///
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletemultipleobjects)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_mutil_del.rs)
     pub fn DeleteMultipleObjects(&self) -> DeleteMultipleObjectsBuilder {
         DeleteMultipleObjectsBuilder::new(self)
     }
 
-    /// HeadObject接口用于获取某个文件（Object）的元信息
+    /// HeadObject接口用于获取某个文件`Object`的元信息
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/headobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_head.rs)
     pub fn HeadObject(&self, object: &'a str) -> HeadObjectBuilder {
         HeadObjectBuilder::new(self, object)
     }
 
-    /// 调用GetObjectMeta接口获取一个文件（Object）的元数据信息
-    /// 包括该Object的ETag、Size、LastModified信息，并且不返回该Object的内容。
+    /// 调用GetObjectMeta接口获取一个文件`Object`的元数据信息
+    /// 包括该Object的ETag、Size、LastModified信息,并且不返回该Object的内容。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectmeta)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_meta.rs)
     pub fn GetObjectMeta(&self, object: &'a str) -> GetObjectMetaBuilder {
         GetObjectMetaBuilder::new(self, object)
     }
 
-    /// 调用RestoreObject接口解冻归档类型、冷归档、深度冷归档类型的文件（Object）
+    /// 调用RestoreObject接口解冻归档类型、冷归档、深度冷归档类型的文件`Object`
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/restoreobject)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_restore.rs)
     pub fn RestoreObject(&self, object: &'a str) -> RestoreObjectBuilder {
         RestoreObjectBuilder::new(self, object)
     }

@@ -1,5 +1,5 @@
 //!  `cargo run --example api_bucket_logging_get -q`
-//! 
+//!
 //! GetBucketLogging接口用于查看存储空间`Bucket`的访问日志配置。
 //! 只有Bucket的拥有者才能查看Bucket的访问日志配置。
 //!

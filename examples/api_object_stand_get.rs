@@ -1,3 +1,8 @@
+//! ` cargo run --example api_object_stand_get -q`
+//! GetObject接口用于获取某个文件`Object`。此操作需要对此Object具有读权限
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobject)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_get.rs)
 use chrono::{Duration, Utc};
 use dotenv;
 use std::process;

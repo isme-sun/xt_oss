@@ -1,3 +1,9 @@
+//! ` cargo run --example api_object_stand_copy -q`
+//!
+//! 调用CopyObject接口拷贝同一地域下相同或不同存储空间`Bucket`之间的文件`Object`
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/copyobject)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_copy.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::object::TaggingDirective, prelude::*};
@@ -12,7 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match client
         .CopyObject("tmp/tmp/copy_test_index.html")
-        .with_copy_source("/xtoss-ex10/index.html")
+        .with_copy_source("/xtoss-ex9/index.html")
         .with_oss_tagging(tags)
         .with_tagging_directive(TaggingDirective::REPLACE)
         .execute()

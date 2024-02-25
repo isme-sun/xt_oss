@@ -1,3 +1,10 @@
+//! `cargo run --example api_object_stand_meta -q`
+//!
+//! 调用GetObjectMeta接口获取一个文件`Object`的元数据信息
+//! 包括该Object的ETag、Size、LastModified信息,并且不返回该Object的内容。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectmeta)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_meta.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

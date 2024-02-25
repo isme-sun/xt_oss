@@ -1,3 +1,9 @@
+//! `cargo run --example api_object_stand_append -q`
+//!
+//! 调用AppendObject接口用于以追加写的方式上传文件`Object`。通过AppendObject操
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/appendobject)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_append.rs)
 use dotenv;
 use std::process;
 use std::{

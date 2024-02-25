@@ -1,5 +1,5 @@
 //! `cargo run --example api_bucket_logging_put -q`
-//! 
+//!
 //! PutBucketLogging接口用于为存储空间`Bucket`开启日志转存功能，
 //! 可将OSS的访问日志按照固定命名规则,以小时为单位生成日志文件写入您
 //! 指定的Bucket。
