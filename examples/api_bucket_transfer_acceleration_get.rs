@@ -1,3 +1,9 @@
+//! `cargo run --package xt-oss --example api_bucket_transfer_acceleration_get `
+//!
+//! 接口用于获取目标存储空间（Bucket）的传输加速配置
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbuckettransferacceleration)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_get.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::acceleration::TransferAccelerationConfiguration, prelude::*};

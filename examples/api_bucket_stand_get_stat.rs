@@ -1,3 +1,10 @@
+//! `cargo run --package xt-oss --example api_bucket_stand_get_stat`
+//!
+//! 调用GetBucketStat接口获取指定存储空间`Bucket`的存储容量以及文件
+//! `Object`数量
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketstat)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_stat.rs)
 use dotenv;
 use serde_json;
 use std::process;

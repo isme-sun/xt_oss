@@ -1,3 +1,9 @@
+//! `cargo run --package xt-oss --example api_bucket_put`
+//!
+//! 调用PutBucket接口创建存储空间`Bucket`。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucket)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_put.rs)
 use dotenv;
 use std::process;
 

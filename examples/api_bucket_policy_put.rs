@@ -1,3 +1,9 @@
+//! ` cargo run --package xt-oss --example api_bucket_policy_put -q`
+//!
+//! PutBucketPolicy接口用于为指定的存储空间`Bucket`设置授权策略`Policy`。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketpolicy)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

@@ -1,3 +1,9 @@
+//! `cargo run --package xt-oss --example api_bucket_style_put`
+//!
+//! 调用PutStyle接口新增图片样式。一个图片样式中可以包含单个或多个图片处理参数
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putstyle)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

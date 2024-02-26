@@ -1,3 +1,9 @@
+//! `cargo run --package xt-oss --example api_bucket_referer_get`
+//!
+//! GetBucketReferer接口用于查看存储空间`Bucket`的防盗链`Referer`相关配置。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketreferer)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_get.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

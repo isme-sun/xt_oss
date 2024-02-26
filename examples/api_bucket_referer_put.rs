@@ -1,3 +1,9 @@
+//!  `cargo run --package xt-oss --example api_bucket_referer_put`
+//!
+//! 调用PutBucketReferer接口设置存储空间`Bucket`级别的Referer访问白名单以及黑名单
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketreferer)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::referer::builder::RefererConfigurationBuilder, prelude::*};

@@ -1,3 +1,9 @@
+//!  `cargo run --package xt-oss --example api_bucket_put_versioning`
+//!
+//! 调用PutBucketVersioning设置指定存储空间`Bucket`的版本控制状态。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketversioning)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::version::VersioningStatus, prelude::*};

@@ -1,3 +1,9 @@
+//! `cargo run --package xt-oss --example api_bucket_stand_get_info`
+//!
+//! 调用GetBucketInfo接口查看存储空间`Bucket`的相关信息。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketinfo)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_info.rs)
 use dotenv;
 use serde_json;
 use std::process;

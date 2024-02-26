@@ -1,3 +1,10 @@
+//! `cargo run --package xt-oss --example api_bucket_stand_get_location`
+//!
+//! GetBucketLocation接口用于查看存储空间`Bucket`的位置信息。
+//! 只有Bucket的拥有者才能查看Bucket的位置信息。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlocation)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_stand_get_location.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::bucket::LocationConstraint, prelude::*};
