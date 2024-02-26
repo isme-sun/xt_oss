@@ -10,8 +10,8 @@
 
 ```toml
 [dependencies]
-reqwest = { version = "0.11", features = ["json"] }
-tokio = { version = "1", features = ["full"] }
+tokio = {version = "1.36.0", features = ["full"]}
+# xt-oss = { git = "https://github.com/isme-sun/xt_oss", version = "0.1.0" }
 ```
 
  ```rust no_run
