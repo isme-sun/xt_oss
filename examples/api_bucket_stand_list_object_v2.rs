@@ -19,8 +19,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
     match client
         .ListObjectsV2()
+        .with_prefix("txt")
         .with_max_keys(10)
-        .with_delimiter("/")
+        // .with_delimiter("/")
         .execute()
         .await
         .unwrap_or_else(|error| {

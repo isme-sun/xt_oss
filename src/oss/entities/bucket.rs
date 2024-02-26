@@ -130,7 +130,6 @@ pub struct BucketStat {
     pub cold_archive_object_count: u64,
 }
 
-#[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListBucketResult2 {
     #[serde(rename = "Name")]
@@ -149,6 +148,8 @@ pub struct ListBucketResult2 {
     pub next_continuation_token: Option<String>,
     #[serde(rename = "Contents")]
     pub contents: Option<Vec<Object>>,
+    #[serde(rename = "CommonPrefixes")]
+    pub common_prefixes: Option<Vec<CommonPrefixes>>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
