@@ -26,7 +26,7 @@ const POLICY_TEXT: &'static str = r#"{
   }"#;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
@@ -48,4 +48,5 @@ async fn main() {
             println!("{}", error_message.content())
         }
     }
+    Ok(())
 }

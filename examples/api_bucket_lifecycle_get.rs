@@ -9,7 +9,7 @@ use std::process;
 use xt_oss::prelude::*;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
@@ -29,4 +29,5 @@ async fn main() {
             println!("{:#?}", error_message.content())
         }
     }
+    Ok(())
 }

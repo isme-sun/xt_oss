@@ -14,7 +14,6 @@
 //! 5. 如果成功删除存储桶，则打印出删除成功的消息，否则打印出错误信息。
 //!
 //! -- ChatGPT3.5 解读
-
 use xt_oss::{oss::entities::bucket::ListAllMyBucketsResult, prelude::*};
 
 #[tokio::main]

@@ -21,22 +21,64 @@ pub mod builders {
             self
         }
 
-        // pub fn with_cert_id(mut self, value: &str) -> Self {
-        //     let certificate =
-        //         if let Some(mut certificate) = self.bucket_cname_configuration.cname.certificate {
-        //             certificate.cert_id = value.to_string();
-        //             certificate
-        //         } else {
-        //             let mut certificate = super::Certificate::default();
-        //             certificate.cert_id = value.to_string();
-        //             certificate
-        //         };
-        //     self.bucket_cname_configuration.cname.certificate = Some(certificate);
-        //     self
-        // }
+        pub fn with_cert_id(mut self, value: &str) -> Self {
+            self.bucket_cname_configuration
+                .cname
+                .certificate_configuration
+                .get_or_insert_with(super::CertificateConfiguration::default)
+                .cert_id = Some(value.to_string());
+            self
+        }
 
-        pub fn config(&self) -> String {
-            quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
+        pub fn with_certificate(mut self, value: &str) -> Self {
+            self.bucket_cname_configuration
+                .cname
+                .certificate_configuration
+                .get_or_insert_with(super::CertificateConfiguration::default)
+                .certificate = Some(value.to_string());
+            self
+        }
+        pub fn with_private_key(mut self, value: &str) -> Self {
+            self.bucket_cname_configuration
+                .cname
+                .certificate_configuration
+                .get_or_insert_with(super::CertificateConfiguration::default)
+                .private_key = Some(value.to_string());
+            self
+        }
+
+        /*
+           <Force>true</Force>
+        */
+        pub fn with_previous_cert_id(mut self, value: &str) -> Self {
+            self.bucket_cname_configuration
+                .cname
+                .certificate_configuration
+                .get_or_insert_with(super::CertificateConfiguration::default)
+                .previous_cert_id = Some(value.to_string());
+            self
+        }
+
+        pub fn with_force(mut self, value: bool) -> Self {
+            self.bucket_cname_configuration
+                .cname
+                .certificate_configuration
+                .get_or_insert_with(super::CertificateConfiguration::default)
+                .force = Some(value);
+            self
+        }
+
+        pub fn with_delete_certificate(mut self, value: bool) -> Self {
+            self.bucket_cname_configuration
+                .cname
+                .certificate_configuration
+                .get_or_insert_with(super::CertificateConfiguration::default)
+                .delete_certificate = Some(value);
+            self
+        }
+
+        pub fn build(&self) -> BucketCnameConfiguration {
+            self.bucket_cname_configuration.clone()
         }
     }
 }
@@ -73,10 +115,7 @@ pub struct Certificate {
 pub struct Cname {
     #[serde(rename = "Domain")]
     pub domain: String,
-    #[serde(
-        rename = "LastModified",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "LastModified", skip_serializing_if = "Option::is_none")]
     pub last_modified: Option<String>,
     #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
@@ -111,18 +150,18 @@ pub struct BucketCnameConfiguration {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct CertificateConfiguration {
-    #[serde(rename = "CertId")]
-    pub cert_id: String,
-    #[serde(rename = "Certificate")]
-    pub certificate: String,
-    #[serde(rename = "PrivateKey")]
-    pub private_key: String,
-    #[serde(rename = "PreviousCertId")]
-    pub previous_cert_id: String,
-    #[serde(rename = "Force")]
-    pub force: bool,
-    #[serde(rename = "DeleteCertificate")]
-    pub delete_certificate: bool,
+    #[serde(rename = "CertId", skip_serializing_if = "Option::is_none")]
+    pub cert_id: Option<String>,
+    #[serde(rename = "Certificate", skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(rename = "PrivateKey", skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+    #[serde(rename = "PreviousCertId", skip_serializing_if = "Option::is_none")]
+    pub previous_cert_id: Option<String>,
+    #[serde(rename = "Force", skip_serializing_if = "Option::is_none")]
+    pub force: Option<bool>,
+    #[serde(rename = "DeleteCertificate", skip_serializing_if = "Option::is_none")]
+    pub delete_certificate: Option<bool>,
 }
 
 #[cfg(test)]
@@ -213,11 +252,27 @@ mod tests {
     }
 
     #[test]
-    fn bucket_cname_configuration_builder() {
-        let builder =
-            BucketCnameConfigurationBuilder::default().with_domain("https://dev.xuetube.com");
-        let left = r#"<BucketCnameConfiguration><Cname><Domain>https://dev.xuetube.com</Domain></Cname></BucketCnameConfiguration>"#;
-        let right = builder.config();
+    fn bucket_cname_configuration_builder_1() {
+        let config = BucketCnameConfigurationBuilder::new()
+            .with_domain("example.com")
+            .with_cert_id("493****-cn-hangzhou")
+            .with_certificate("-----BEGIN CERTIFICATE----- MIIDhDCCAmwCCQCFs8ixARsyrDANBgkqhkiG9w0BAQsFADCBgzELMAkGA1UEBhMC **** -----END CERTIFICATE-----")
+            .with_private_key("-----BEGIN CERTIFICATE----- MIIDhDCCAmwCCQCFs8ixARsyrDANBgkqhkiG9w0BAQsFADCBgzELMAkGA1UEBhMC **** -----END CERTIFICATE-----<")
+            .with_previous_cert_id("493****-cn-hangzhou")
+            .with_force(true)
+            .build();
+        let left = r###"<BucketCnameConfiguration><Cname><Domain>example.com</Domain><CertificateConfiguration><CertId>493****-cn-hangzhou</CertId><Certificate>-----BEGIN CERTIFICATE----- MIIDhDCCAmwCCQCFs8ixARsyrDANBgkqhkiG9w0BAQsFADCBgzELMAkGA1UEBhMC **** -----END CERTIFICATE-----</Certificate><PrivateKey>-----BEGIN CERTIFICATE----- MIIDhDCCAmwCCQCFs8ixARsyrDANBgkqhkiG9w0BAQsFADCBgzELMAkGA1UEBhMC **** -----END CERTIFICATE-----&lt;</PrivateKey><PreviousCertId>493****-cn-hangzhou</PreviousCertId><Force>true</Force></CertificateConfiguration></Cname></BucketCnameConfiguration>"###;
+        let right = quick_xml::se::to_string(&config).unwrap();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn bucket_cname_configuration_builder_2() {
+        let config = BucketCnameConfigurationBuilder::new()
+            .with_delete_certificate(true)
+            .build();
+        let left = r#"<BucketCnameConfiguration><Cname><Domain/><CertificateConfiguration><DeleteCertificate>true</DeleteCertificate></CertificateConfiguration></Cname></BucketCnameConfiguration>"#;
+        let right = quick_xml::se::to_string(&config).unwrap();
         assert_eq!(left, right);
     }
 }

@@ -20,7 +20,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 目标文件
     let target_file = {
         let mut target_file = env::current_dir()?;
-        ["examples", "samples", "zip", "ZIPFile_10mbmb.zip"]
+        // ["examples", "samples", "zip", "ZIPFile_10mbmb.zip"]
+        ["examples", "samples", "index.html"]
             .iter()
             .for_each(|e| {
                 target_file.push(e);
@@ -44,7 +45,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 上传文件到 OSS
     let resp = client
-        .PutObject("tmp/test.zip")
+        // .PutObject("tmp/test.zip")
+        .PutObject("index.html")
         .with_object_acl(ObjectACL::PublicRead)
         .with_content_type(content_type)
         .with_storage_class(StorageClass::Standard)

@@ -74,7 +74,7 @@ pub mod builder {
             self
         }
 
-        pub fn builder(self) -> CORSRule {
+        pub fn build(self) -> CORSRule {
             self.rule
         }
     }
@@ -99,7 +99,7 @@ pub mod builder {
             self
         }
 
-        pub fn builder(self) -> CORSConfiguration {
+        pub fn build(self) -> CORSConfiguration {
             self.cors_configuration
         }
     }
@@ -207,7 +207,7 @@ pub mod tests {
             .with_allowed_origin(AllowedOriginItem::Any)
             .with_allowed_method(AllowedMethodItem::Any)
             .with_allowed_header(AllowedHeaderItem::Any)
-            .builder();
+            .build();
 
         let rule2 = CORSRuleBuilder::new()
             .with_allowed_origin(AllowedOriginItem::Urls(vec![
@@ -223,13 +223,13 @@ pub mod tests {
                 http::header::CONTENT_ENCODING,
             ]))
             .with_expose_header(vec!["x-oss-test", "x-oss-test1"])
-            .builder();
+            .build();
 
         let config = CORSConfigurationBuilder::new()
             .add_rule(rule1)
             .add_rule(rule2)
             .with_response_vary(false)
-            .builder();
+            .build();
 
         let left = quick_xml::se::to_string(&config).unwrap().to_string();
 

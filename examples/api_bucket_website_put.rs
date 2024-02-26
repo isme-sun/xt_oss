@@ -14,10 +14,11 @@ async fn main() {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
 
+    // 构建website配置
     let index_document = IndexDocumentBuilder::new()
         .with_suffix("index.html")
         .with_support_sub_dir(true)
-        .with_type(1)
+        .with_type(0)
         .build();
 
     let error_document = ErrorDocumentBuilder::new()
@@ -25,9 +26,27 @@ async fn main() {
         .with_key("error.html")
         .build();
 
+    // let rules = RoutingRulesBuilder::new()
+    //     .with_rule(
+    //         RoutingRuleBuilder::new()
+    //             .with_rule_number(1)
+    //             .with_condition(ConditionBuilder::new().build())
+    //             .with_redirect(RedirectBuilder::new().build())
+    //             .build(),
+    //     )
+    //     .with_rule(
+    //         RoutingRuleBuilder::new()
+    //             .with_rule_number(2)
+    //             .with_condition(ConditionBuilder::new().build())
+    //             .with_redirect(RedirectBuilder::new().build())
+    //             .build(),
+    //     )
+    //     .build();
+
     let config = WebsiteConfigurationBuilder::new()
         .with_index_document(index_document)
         .with_error_document(error_document)
+        // .with_routing_rules(rules)
         .build();
 
     let result = client

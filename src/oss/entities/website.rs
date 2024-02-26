@@ -296,7 +296,36 @@ pub mod builder {
         }
     }
 
-    #[derive(Debug, Default)]
+    #[derive(Debug, Default, Clone)]
+    pub struct RoutingRuleBuilder {
+        rule: RoutingRule,
+    }
+
+    impl RoutingRuleBuilder {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        pub fn with_rule_number(mut self, value: u32) -> Self {
+            self.rule.rule_number = value;
+            self
+        }
+
+        pub fn with_condition(mut self, value: Condition) -> Self {
+            self.rule.condition = value;
+            self
+        }
+        pub fn with_redirect(mut self, value: Redirect) -> Self {
+            self.rule.redirect = value;
+            self
+        }
+
+        pub fn build(&self) -> RoutingRule {
+            self.rule.clone()
+        }
+    }
+
+    #[derive(Debug, Default, Clone)]
     pub struct RoutingRulesBuilder {
         rules: Vec<RoutingRule>,
     }

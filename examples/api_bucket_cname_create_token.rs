@@ -8,12 +8,14 @@ use std::process;
 use xt_oss::prelude::*;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
+    // 测试域名改成自己的域名
+    let cname_domain = "xtoss-web.example.com";
     let result = client
-        .CreateCnameToken("xtoss-ex1.xuetube.com")
+        .CreateCnameToken(cname_domain)
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {
@@ -29,4 +31,5 @@ async fn main() {
             println!("{}", error_message.content())
         }
     }
+    Ok(())
 }

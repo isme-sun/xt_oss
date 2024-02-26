@@ -1,5 +1,5 @@
 //! `cargo run --example api_bucket_lifecycle_put -q`
-//! 
+//!
 //! 您可以基于最后一次修改时间以及最后一次访问时间的策略创建生命周期规则，定期将存储空间
 //! `Bucket`内的多个文件`Object`转储为指定存储类型,或者将过期的Object和碎片删除,
 //! 从而节省存储费用。本文为您介绍如何调用PutBucketLifecycle接口为存储空间`Bucket``
@@ -18,7 +18,7 @@ use xt_oss::{
 };
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
@@ -26,29 +26,29 @@ async fn main() {
     let expire_180_day = ExpirationBuilder::new().with_days(180).build();
     let expire_30_day = ExpirationBuilder::new().with_days(30).build();
 
+    let rule1 = RuleBuilder::new()
+        .with_id("Rule1")
+        .with_prefix("mp3")
+        // Status default Diabled
+        // .with_status(Status::Enabled)
+        .with_expiration(expire_180_day)
+        .build();
+
+    let rule2 = RuleBuilder::new()
+        .with_id("Rule2")
+        .with_prefix("excel")
+        .with_status(Status::Enabled)
+        .with_expiration(expire_30_day)
+        .build();
+
+    let config = LifecycleConfigurationBuilder::new()
+        .with_rule(rule1)
+        .with_rule(rule2)
+        .build();
+
     match client
         .PutBucketLifecycle()
-        .with_config(
-            LifecycleConfigurationBuilder::new()
-                .with_rule(
-                    RuleBuilder::new()
-                        .with_id("Rule1")
-                        .with_prefix("mp3")
-                        // Status default Diabled
-                        // .with_status(Status::Enabled)
-                        .with_expiration(expire_180_day)
-                        .build(),
-                )
-                .with_rule(
-                    RuleBuilder::new()
-                        .with_id("Rule2")
-                        .with_prefix("excel")
-                        .with_status(Status::Enabled)
-                        .with_expiration(expire_30_day)
-                        .build(),
-                )
-                .build(),
-        )
+        .with_config(config)
         .execute()
         .await
         .unwrap_or_else(|error| {
@@ -62,4 +62,5 @@ async fn main() {
             println!("{:#?}", message.content())
         }
     }
+    Ok(())
 }

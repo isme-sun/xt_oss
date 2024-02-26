@@ -14,7 +14,7 @@ use xt_oss::{
 };
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
@@ -27,7 +27,7 @@ async fn main() {
         .with_allowed_header(AllowedHeaderItem::Any)
         .with_allowed_method(AllowedMethodItem::Any)
         .with_max_age_seconds(30)
-        .builder();
+        .build();
 
     let cors_rule2 = CORSRuleBuilder::new()
         .with_allowed_origin(AllowedOriginItem::Urls(vec!["https://dev.example.local"]))
@@ -42,13 +42,13 @@ async fn main() {
         ]))
         .with_expose_header(vec!["x-oss-test", "x-oss-test1"])
         .with_max_age_seconds(60)
-        .builder();
+        .build();
 
     let cors_config = CORSConfigurationBuilder::new()
         .add_rule(cors_rule1)
         .add_rule(cors_rule2)
         .with_response_vary(false)
-        .builder();
+        .build();
 
     println!("{}", serde_json::to_string_pretty(&cors_config).unwrap());
 
@@ -70,4 +70,6 @@ async fn main() {
             println!("{}", error_message.content())
         }
     }
+
+    Ok(())
 }

@@ -7,7 +7,7 @@ use xt_oss::{
 };
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
     let client = oss::Client::new(options);
@@ -38,4 +38,5 @@ async fn main() {
             println!("oss error message: {}", oss_error_message.content())
         }
     }
+    Ok(())
 }

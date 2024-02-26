@@ -8,7 +8,8 @@ pub mod builders {
         self,
         api::{self, ApiResponseFrom},
         entities::cname::{
-            BucketCnameConfiguration, CertificateConfiguration, Cname, CnameToken, ListCnameResult,
+            builders::BucketCnameConfigurationBuilder, BucketCnameConfiguration, Cname, CnameToken,
+            ListCnameResult,
         },
         http,
     };
@@ -94,16 +95,16 @@ pub mod builders {
         pub(crate) fn new(client: &'a oss::Client) -> Self {
             Self {
                 client,
-                bucket_cname_configuration: BucketCnameConfiguration {
-                    cname: Cname {
-                        certificate_configuration: Some(CertificateConfiguration::default()),
-                        ..Cname::default()
-                    },
-                },
+                bucket_cname_configuration: BucketCnameConfiguration::default(),
             }
         }
 
-        pub fn config(&self) -> String {
+        pub fn with_config(mut self, value: BucketCnameConfiguration) -> Self {
+            self.bucket_cname_configuration = value;
+            self
+        }
+
+        fn config(&self) -> String {
             quick_xml::se::to_string(&self.bucket_cname_configuration).unwrap()
         }
 
@@ -165,12 +166,9 @@ pub mod builders {
         }
 
         fn config(&self) -> String {
-            let config = BucketCnameConfiguration {
-                cname: Cname {
-                    domain: self.cname.to_string(),
-                    ..Cname::default()
-                },
-            };
+            let config = BucketCnameConfigurationBuilder::new()
+                .with_domain(self.cname)
+                .build();
             quick_xml::se::to_string(&config).unwrap()
         }
 
