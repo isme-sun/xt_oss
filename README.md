@@ -82,6 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### 构建方式
 
 ```rust no_run
+use xt_oss::prelude::*;
 // 构建方式
 let options = oss::Options::new()
     .with_access_key_id("access_key_id")
@@ -101,6 +102,7 @@ let client = oss::Client::new(options);
 ### 从.env加载,格式参见 .env.example.
 
 ```rust no_run
+use xt_oss::prelude::*;
 // ...
 dotenv::dotenv().ok();
 let options = util::options_from_env();
