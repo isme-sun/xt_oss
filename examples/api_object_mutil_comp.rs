@@ -1,3 +1,9 @@
+//! `cargo run --example api_object_mutil_comp -q`
+//!
+//! 在将所有数据Part都上传完成后,您必须调用CompleteMultipartUpload接口来完成整个文件的分片上传。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completemultipartupload)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_comp.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

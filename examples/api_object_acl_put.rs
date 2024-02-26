@@ -1,3 +1,10 @@
+//! `cargo run --example api_object_acl_put -q`
+//! 
+//! 调用PutObjectACL接口修改文件`Object`的访问权限`ACL`。
+//! 此操作只有Bucket Owner有权限执行,且需对Object有读写权限。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjectacl)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_put.rs)
 use dotenv;
 use std::process;
 use xt_oss::{oss::entities::ObjectACL, prelude::*};

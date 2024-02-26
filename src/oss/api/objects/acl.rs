@@ -115,8 +115,7 @@ impl<'a> oss::Client<'a> {
         PutObjectACLBuilder::new(self, object)
     }
 
-    /// 初始化一个MultipartUpload后,调用UploadPart接口根据指定的Object名和
-    /// uploadId来分块`Part`
+    /// 调用GetObjectACL接口获取存储空间`Bucket`下某个文件`Object`的访问权限`ACL`。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_get.rs)

@@ -1,3 +1,9 @@
+//! `cargo run --example api_object_mutil_list_part -q`
+//!
+//! ListParts接口用于列举指定Upload ID所属的所有已经上传成功Part。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listparts)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_list_part.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

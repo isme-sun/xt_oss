@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_worm_get -q`
+//! 
+//! GetBucketWorm用于获取指定存储空间`Bucket`的合规保留策略信息。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketworm)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_get.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

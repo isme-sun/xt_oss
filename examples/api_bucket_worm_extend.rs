@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_worm_extend -q`
+//! 
+//! ExtendBucketWorm用于延长已锁定的合规保留策略对应Bucket中Object的保留天数。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/extendbucketworm)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_extend.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

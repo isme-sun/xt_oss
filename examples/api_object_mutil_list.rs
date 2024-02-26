@@ -1,3 +1,10 @@
+//! `cargo run --example api_object_mutil_list -q`
+//!
+//! 调用ListMultipartUploads接口列举所有执行中的Multipart Upload事件,即已经初始化但还未完成
+//! `Complete`或者还未中止`Abort`的Multipart Upload事件。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listmultipartuploads)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_list.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

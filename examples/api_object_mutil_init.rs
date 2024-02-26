@@ -1,3 +1,10 @@
+//! `cargo run --example api_object_mutil_init -q`
+//!
+//! 使用Multipart Upload模式传输数据前,您必须先调用InitiateMultipartUpload接口来通知OSS初始化一
+//! 个Multipart Upload事件。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/initiatemultipartupload)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_init.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

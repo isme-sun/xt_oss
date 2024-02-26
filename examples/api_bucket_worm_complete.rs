@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_worm_complete -q`
+//! 
+//! CompleteBucketWorm用于锁定合规保留策略。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completebucketworm)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_complete.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

@@ -1,3 +1,9 @@
+//! `cargo run --example api_object_acl_get -q`
+//! 
+//! 调用GetObjectACL接口获取存储空间`Bucket`下某个文件`Object`的访问权限`ACL`。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectacl)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_get.rs)
 use std::process;
 
 use xt_oss::prelude::*;

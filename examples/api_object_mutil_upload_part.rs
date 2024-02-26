@@ -1,3 +1,21 @@
+//! `cargo run --package xt-oss --example api_object_mutil_upload_part -q`
+//!
+//! 初始化一个MultipartUpload后,调用UploadPart接口根据指定的Object名和uploadId来分块`Part`上传数据。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpart)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_upload_part.rs)
+//!
+//! 这个例子展示了如何使用 xt_oss 库进行分块上传大文件到阿里云 OSS。主要的逻辑如下：
+//!
+//! 1. 初始化一个 Multipart Upload，获取上传会话的 UploadId。
+//! 2. 将文件分成固定大小的块（chunk）。
+//! 3. 对每个块执行上传操作，使用 UploadPart 接口上传分块数据，每个块对应一个 PartNumber。
+//! 4. 完成分块上传，调用 CompleteMultipartUpload 接口完成整个上传过程。
+//!
+//! 这个例子中，通过迭代器将文件分块，并在每个块上执行上传操作，最后完成整个文件的上传。在上传过程中，
+//! 可以根据需要处理上传成功或失败的情况，并进行相应的处理。
+//!
+//! -- ChatGPT3.5 解读
 use dotenv;
 use std::io::{Seek, SeekFrom};
 use std::{env, fs, io::Read, os::unix::fs::MetadataExt, process};

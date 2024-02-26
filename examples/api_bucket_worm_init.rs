@@ -1,3 +1,9 @@
+//! `cargo run --example api_bucket_worm_init -q`
+//! 
+//! 调用InitiateBucketWorm接口新建一条合规保留策略。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/initiatebucketworm)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_init.rs)
 use dotenv;
 use std::process;
 use xt_oss::prelude::*;

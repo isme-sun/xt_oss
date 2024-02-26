@@ -205,7 +205,7 @@ impl<'a> oss::Client<'a> {
         InitiateBucketWormBuilder::new(self)
     }
 
-    /// 调用InitiateBucketWorm接口新建一条合规保留策略。
+    /// AbortBucketWorm用于删除未锁定的合规保留策略。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/abortbucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_abort.rs)
@@ -214,7 +214,6 @@ impl<'a> oss::Client<'a> {
         AbortBucketWormBuilder::new(self)
     }
 
-    /// AbortBucketWorm用于删除未锁定的合规保留策略。
     /// CompleteBucketWorm用于锁定合规保留策略。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completebucketworm)

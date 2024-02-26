@@ -568,61 +568,61 @@ pub mod builders {
 /// 基础操作
 #[allow(non_snake_case)]
 impl<'a> Client<'a> {
-    /// 使用Multipart Upload模式传输数据前，您必须先调用InitiateMultipartUpload接口来通知OSS初始化一
+    /// 使用Multipart Upload模式传输数据前,您必须先调用InitiateMultipartUpload接口来通知OSS初始化一
     /// 个Multipart Upload事件。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/initiatemultipartupload)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_init.rs)
     pub fn InitiateMultipartUpload(&self, object: &'a str) -> InitiateMultipartUploadBuilder {
         InitiateMultipartUploadBuilder::new(self, object)
     }
 
-    /// 初始化一个MultipartUpload后，调用UploadPart接口根据指定的Object名和uploadId来分块（Part）上传数据。
+    /// 初始化一个MultipartUpload后,调用UploadPart接口根据指定的Object名和uploadId来分块`Part`上传数据。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpart)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_upload_part.rs)
     pub fn UploadPart(&self, object: &'a str) -> UploadPartBuilder {
         UploadPartBuilder::new(self, object)
     }
 
-    /// 通过在UploadPart请求的基础上增加一个请求头x-oss-copy-source来调用UploadPartCopy接口，实现从一个
+    /// 通过在UploadPart请求的基础上增加一个请求头x-oss-copy-source来调用UploadPartCopy接口,实现从一个
     /// 已存在的Object中拷贝数据来上传一个Part。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpartcopy)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_upload_part.rs)
     pub fn UploadPartCopy(&self) -> UploadPartCopyBuilder {
         UploadPartCopyBuilder::new(self)
     }
 
-    /// 在将所有数据Part都上传完成后，您必须调用CompleteMultipartUpload接口来完成整个文件的分片上传。
+    /// 在将所有数据Part都上传完成后,您必须调用CompleteMultipartUpload接口来完成整个文件的分片上传。
     ///
-    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpartcopy)
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completemultipartupload)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_comp.rs)
     pub fn CompleteMultipartUpload(&self, object: &'a str) -> CompleteMultipartUploadBuilder {
         CompleteMultipartUploadBuilder::new(self, object)
     }
 
     /// AbortMultipartUpload接口用于取消MultipartUpload事件并删除对应的Part数据。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/abortmultipartupload)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_abort.rs)
     pub fn AbortMultipartUpload(&self, object: &'a str) -> AbortMultipartUploadBuilder {
         AbortMultipartUploadBuilder::new(self, object)
     }
 
-    /// 调用ListMultipartUploads接口列举所有执行中的Multipart Upload事件，即已经初始化但还未完成
-    ///（Complete）或者还未中止（Abort）的Multipart Upload事件。
+    /// 调用ListMultipartUploads接口列举所有执行中的Multipart Upload事件,即已经初始化但还未完成
+    /// `Complete`或者还未中止`Abort`的Multipart Upload事件。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listmultipartuploads)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_list.rs)
     pub fn ListMultipartUploads(&self) -> ListMultipartUploadsBuilder {
         ListMultipartUploadsBuilder::new(self)
     }
 
     /// ListParts接口用于列举指定Upload ID所属的所有已经上传成功Part。
     ///
-    /// - [official docs]()
-    /// - [xtoss example]()
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listparts)
+    /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_list_part.rs)
     pub fn ListParts(&self, object: &'a str) -> ListPartsBuilder {
         ListPartsBuilder::new(self, object)
     }

@@ -1,3 +1,9 @@
+//! `cargo run --example api_object_mutil_abort -q`
+//! 
+//! AbortMultipartUpload接口用于取消MultipartUpload事件并删除对应的Part数据。
+//!
+//! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/abortmultipartupload)
+//! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_abort.rs)
 use std::process;
 use xt_oss::prelude::*;
 
