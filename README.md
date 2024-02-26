@@ -11,7 +11,7 @@
 ```toml
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}
-# xt-oss = { git = "https://github.com/isme-sun/xt_oss", version = "0.1.0" }
+xt-oss = "0.4.2"
 ```
 
  ```rust no_run

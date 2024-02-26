@@ -11,7 +11,7 @@ repository = "https://github.com/isme-sun/xt_oss"
 keywords = ["oss", "aliyun"]
 categories = ["filesystem"]
 # publish = false
-exclude = ["examples/samples/*", "xt-oss.png", "xt-oss.xmind"]
+exclude = ["examples/samples/*", "xt-oss.png", "xt-oss.xmind", ".vscode"]
 
 [badges]
 maintenance = { status = "actively-developed" }
