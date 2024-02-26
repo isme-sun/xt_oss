@@ -11,7 +11,7 @@
 ```toml
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}
-xt-oss = "0.4.3"
+xt-oss = "0.4.4"
 ```
 
  ```rust no_run
