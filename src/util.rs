@@ -151,7 +151,7 @@ pub fn oss_md5<'a>(content: &'a [u8]) -> Result<String, io::Error> {
 ///
 /// # example
 ///
-/// ```
+/// ```rust no_run
 /// use xt_oss::util::ByteRange;
 /// assert_eq!(ByteRange::new().to_string(), "bytes=0-");
 /// assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");

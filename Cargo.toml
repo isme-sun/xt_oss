@@ -6,10 +6,12 @@ rust-version = "1.73"
 authors = ["isme.sun <isme.sun@icloud.com>"]
 description = "Aliyun OSS SDK"
 # license = "MIT OR Apache-2.0"
-homepage = "https://www.xuetube.com/res/xuetiube-oss"
+documentation = "https://docs.rs/xt-oss"
+repository = "https://github.com/isme-sun/xt_oss"
 keywords = ["oss", "aliyun"]
 categories = ["filesystem"]
 # publish = false
+exclude = ["examples/samples/*", "xt-oss.png", "xt-oss.xmind"]
 
 [badges]
 maintenance = { status = "actively-developed" }

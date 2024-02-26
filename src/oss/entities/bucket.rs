@@ -234,8 +234,8 @@ pub mod test {
 </ListAllMyBucketsResult>
 "#;
         let obj: ListAllMyBucketsResult = quick_xml::de::from_str(xml).unwrap();
-        let left = "2014-02-17 18:12:43 UTC";
-        let right = obj.buckets.bucket.unwrap()[0].creation_date.to_string();
+        let left = "2014-02-17T18:12:43.000Z";
+        let right = &obj.buckets.bucket.unwrap()[0].creation_date;
         assert_eq!(left, right);
     }
 

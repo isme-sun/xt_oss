@@ -396,16 +396,16 @@ pub mod tests {
             .with_access_key_secret("access_key_secret")
             .with_bucket("xtoss-ex1")
             .with_cname(true)
-            .with_endpoint("http://cdn-dev.xuetube.com")
+            .with_endpoint("https://cdn.xuetube.com")
             .with_internal(false)
             .with_region("oss-cn-shanghai")
             .with_secret(true)
             // .with_sts_token("sts token")
             .with_timeout(60);
 
-        let host = "cdn-dev.xuetube.com";
-        let root_url = "http://cdn-dev.xuetube.com";
-        let base_url = "http://cdn-dev.xuetube.com";
+        let host = "cdn.xuetube.com";
+        let root_url = "https://cdn.xuetube.com";
+        let base_url = "https://cdn.xuetube.com";
 
         assert_eq!(options.host(), host);
         assert_eq!(options.root_url(), root_url);
