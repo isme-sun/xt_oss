@@ -122,7 +122,7 @@ impl<'a> oss::Client<'a> {
 
     /// 调用GetBucketLifecycle接口查看存储空间`Bucket`的生命周期规则`Lifecycle`。
     ///
-    /// - [official docs](调用GetBucketLifecycle接口查看存储空间`Bucket`的生命周期规则`Lifecycle`。)
+    /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlifecycle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_get.rs)
     #[allow(non_snake_case)]
     pub fn GetBucketLifecycle(&self) -> GetBucketLifecycleBuilder {
