@@ -57,7 +57,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }) {
         // 处理正常返回的数据
         Ok(oss_data) => {
-
             oss_data.content().region_info.iter().for_each(|entry| {
                 println!("{:>20} | {}", entry.region, entry.internet_endpoint);
             });
@@ -378,7 +377,6 @@ match client
 
 欢迎大家提出bug报告和功能需求。如果你在使用过程中遇到了任何问题或者有任何改进的建议，都可以在[Issues](https://github.com/isme-sun/xt_oss/issues)中告知。
 
-我们欢迎所有的贡献和反馈！
-
 - 邮箱：isme.sun@icloud.com
 - 微信：ismeSun
+- github: https://github.com/isme-sun/xt_oss
