@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-[跟多例子参见github](https://github.com/isme-sun/xt_oss/tree/main/examples)
+[更多例子](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ## `Options` 配置
 
@@ -98,8 +98,7 @@ let options = oss::Options::new()
     .with_secret(true)
     .with_internal(false);
 
-let host = "oss-cn-shanghai.aliyuncs.com";
-let root_url = "https://oss-cn-shanghai.aliyuncs.com";
+let root_url = "https://oss-cn-hangzhou.aliyuncs.com";
 let base_url = "https://xtoss-ex.oss-cn-shanghai.aliyuncs.com";
 
 assert_eq!(options.root_url(), root_url);
