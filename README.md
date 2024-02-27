@@ -119,7 +119,7 @@ let client = oss::Client::new(options);
 
 ## Api方法与参数构建
 
-![xtoss-2](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-2.jpg)
+![xtoss-2](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-2.png)
 
 ## 错误处理
 
