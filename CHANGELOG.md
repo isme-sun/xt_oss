@@ -1,3 +1,10 @@
+
+## [0.5.1] - 2023-02-27
+
+### Changed
+- 添加 pub use bytes::BytesMut;
+- 修正相关example
+
 ## [0.5.0] - 2023-02-27
 
 ### Changed

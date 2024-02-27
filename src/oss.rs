@@ -7,7 +7,7 @@ pub const DEFAULT_TIMEOUT: u64 = 60;
 pub const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 pub const XML_CONTENT: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
-pub use bytes::Bytes;
+pub use bytes::{Bytes, BytesMut};
 use std::time::Duration;
 pub mod api;
 pub(super) mod auth;

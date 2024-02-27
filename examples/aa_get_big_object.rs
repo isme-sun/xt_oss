@@ -13,7 +13,6 @@
 //! 6. 将所有分段的文件内容合并到一起，并保存到本地文件中。
 //!
 //! -- ChatGPT3.5 解读
-use bytes::BytesMut;
 use dotenv;
 use std::{
     fs,
@@ -61,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let byte_range_list = ByteRange::chunk(size.unwrap(), chunk_size);
     let byte_range_len = byte_range_list.len();
 
-    let mut bytes = BytesMut::new();
+    let mut bytes = oss::BytesMut::new();
 
     for (index, byte_range) in byte_range_list.iter().enumerate() {
         match client
