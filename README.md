@@ -13,6 +13,8 @@
 - 实现常用的大部分API.
 - 完整`Examples`演示.
 
+![xtoss-1](https://openai.com/favicon-32x32.png)
+
 ```toml
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}

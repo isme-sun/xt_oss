@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let basedir = env::current_dir()?;
     let mut sampledir = basedir.clone();
-    sampledir.push("examples");
+    sampledir.push("assets");
     sampledir.push("samples");
 
     if !sampledir.is_dir() {

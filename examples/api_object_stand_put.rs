@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let target_file = {
         let mut target_file = env::current_dir()?;
         // ["examples", "samples", "zip", "ZIPFile_10mbmb.zip"]
-        ["examples", "samples", "index.html"]
+        ["assets", "samples", "index.html"]
             .iter()
             .for_each(|e| {
                 target_file.push(e);
