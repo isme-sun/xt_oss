@@ -121,6 +121,40 @@ let client = oss::Client::new(options);
 
 ![xtoss-2](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-2.png)
 
+api方法命名遵循官方文档方法明目方式，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合编辑器
+代码提示将给库的使用带来方便.
+
+- 参数构建分为简单方式，直接在方法内传参数例如`.HeadObject("mp3/Audio_0.4mb.mp3")`
+- with_ 传参数,例如:.  `PutSymlink("tmp/test.txt").with_symlink_target("target.txt")`
+- 参数builder构建 例如:
+
+```rust no_run
+ /// ...
+ let index_document = IndexDocumentBuilder::new()
+        .with_suffix("index.html")
+        .with_support_sub_dir(true)
+        .with_type(0)
+        .build();
+
+    let error_document = ErrorDocumentBuilder::new()
+        .with_http_status(StatusCode::NOT_FOUND)
+        .with_key("error.html")
+        .build();
+
+    let config = WebsiteConfigurationBuilder::new()
+        .with_index_document(index_document)
+        .with_error_document(error_document)
+        // .with_routing_rules(rules)
+        .build();
+
+    let result = client
+        .PutBucketWebsite()
+        .with_config(config)
+        .execute()
+        .await
+    // ...
+```
+
 ## 错误处理
 
 ## 其他
