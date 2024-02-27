@@ -77,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - `region` Bucket所在的区域,默认值为oss-cn-hangzhou
 - `internal`  是否使用阿里云内网访问,默认值为false
 - `cname`  是否支持上传自定义域名,默认值为false
-- `is_request_pay` Bucket是否开启请求者付费模,默认值为false
+- ~~`is_request_pay` Bucket是否开启请求者付费模,默认值为false~~
 - `secure`  设置secure为true,则使用HTTPS;设置secure为false,则使用HTTP
 - `timeout` 超时时间,默认值为60秒
 
