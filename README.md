@@ -18,7 +18,7 @@
 ```toml
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}
-xt-oss = "0.5.2"
+xt-oss = "0.5.3"
 #exampel 可选 dirs = "5.0.1" 
 #exampel 可选 dotenv = "0.15.0"
 #exampel 可选 serde_json = "1.0.114"
@@ -250,7 +250,7 @@ match client
 
 - [★ `PutBucketVersioning`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `GetBucketVersioning`](https://github.com/isme-sun/xt_oss/tree/main/examples)
-- [☆ `ListObjectVersions（GetBucketVersions ）x`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ListObjectVersions(GetBucketVersions)`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 授权策略（Policy）
 
@@ -266,7 +266,7 @@ match client
 
 ### Bucket 静态网站（Website）
 
-- [★ `PutBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)?
+- [★ `PutBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `GetBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `DeleteBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
@@ -303,7 +303,7 @@ match client
 
 - [★ `CreateCnameToken`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `GetCnameToken`](https://github.com/isme-sun/xt_oss/tree/main/examples)
-- [★ `PutCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)?
+- [★ `PutCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `ListCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `DeleteCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
