@@ -18,7 +18,7 @@
 ```toml
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}
-xt-oss = "0.5.1"
+xt-oss = "0.5.2"
 #exampel 可选 dirs = "5.0.1" 
 #exampel 可选 dotenv = "0.15.0"
 #exampel 可选 serde_json = "1.0.114"
