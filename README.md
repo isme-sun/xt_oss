@@ -5,7 +5,7 @@
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 ![Crates.io License (version)](https://img.shields.io/crates/l/xt-oss/0.4.4)
 
-这是一个`Rust`语言编写的阿里云OSS的SDK，依据官网文档并参考了其他语言的实现。
+`Rust`语言编写的阿里云OSS的SDK，依据官方文档并参考了其他语言的实现。
 
 - 基于`tokio-rs`异步运行时与流行的`reqwest`库实现.
 - 尽量完整的OSS数据结构描述（`struct`、`enum`）.
@@ -117,7 +117,9 @@ let client = oss::Client::new(options);
 // ...
 ```
 
-## 参数构建
+## Api方法与参数构建
+
+![xtoss-2](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-2.jpg)
 
 ## 错误处理
 
