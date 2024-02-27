@@ -17,8 +17,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
     let result = client
         .GetBucketStat()
-        .with_region("oss-cn-beijing")
-        .with_bucket("xtoss-t1")
+        .with_region("oss-cn-shanghai")
+        .with_bucket("xtoss-ex10")
         .execute()
         .await
         .unwrap_or_else(|error| {

@@ -61,7 +61,7 @@ pub mod builders {
                     logging_enabled: None,
                 }
             };
-            dbg!(&config);
+            // dbg!(&config);
             quick_xml::se::to_string(&config).unwrap()
         }
 

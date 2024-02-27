@@ -13,10 +13,11 @@ use xt_oss::prelude::*;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
     let options = util::options_from_env();
+    // dbg!(&options);
     let client = oss::Client::new(options);
     let result = client
         .GetBucketInfo()
-        .with_bucket("xtoss-t1")
+        // .with_bucket("xtoss-ex1")
         .execute()
         .await
         .unwrap_or_else(|error| {

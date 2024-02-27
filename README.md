@@ -65,19 +65,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+[跟多例子参见github](https://github.com/isme-sun/xt_oss/tree/main/examples)
+
 ## `Options` 配置
 
 - `access_key_id` 通过阿里云控制台创建的AccessKey ID
 - `access_key_secret` 通过阿里云控制台创建的AccessKey Secret
 - `sts_token` 使用临时授权方式
 - `bucket` 通过控制台或PutBucket创建的Bucket
-- `endpoint` OSS访问域名。
+- `endpoint` OSS访问域名。  
 - `region` Bucket所在的区域,默认值为oss-cn-hangzhou
 - `internal`  是否使用阿里云内网访问,默认值为false
 - `cname`  是否支持上传自定义域名,默认值为false
 - `is_request_pay` Bucket是否开启请求者付费模,默认值为false
 - `secure`  设置secure为true,则使用HTTPS;设置secure为false,则使用HTTP
 - `timeout` 超时时间,默认值为60秒
+
+> 当`cname`为true时,`endpoint`,`bucket`为必填,否则产生panic错误.
+> 当internal为true时，忽略cname与endpoint
+> 无论是否使用cname正确的设置region(location)与bucket
 
 ### 构建方式
 
@@ -87,14 +93,17 @@ use xt_oss::prelude::*;
 let options = oss::Options::new()
     .with_access_key_id("access_key_id")
     .with_access_key_secret("access_key_secret")
-    .with_bucket("xtoss-ex1")
-    .with_cname(true)
-    .with_endpoint("http://cdn-dev.xuetube.com")
-    .with_internal(false)
     .with_region("oss-cn-shanghai")
+    .with_bucket("xtoss-ex")
     .with_secret(true)
-    // .with_sts_token("sts token")
-    .with_timeout(60);
+    .with_internal(false);
+
+let host = "oss-cn-shanghai.aliyuncs.com";
+let root_url = "https://oss-cn-shanghai.aliyuncs.com";
+let base_url = "https://xtoss-ex.oss-cn-shanghai.aliyuncs.com";
+
+assert_eq!(options.root_url(), root_url);
+assert_eq!(options.base_url(), base_url);
 
 let client = oss::Client::new(options);
 ```

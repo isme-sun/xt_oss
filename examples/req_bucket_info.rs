@@ -9,14 +9,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let access_key_secret = env::var("OSS_ACCESS_KEY_SECRET").unwrap();
     // let url = "https://oss-cn-hangzhou.aliyuncs.com";
     // let url = "https://xuetube-dev.oss-cn-hangzhou.aliyuncs.com/?bucketInfo";
-    let url = "https://xtoss-ex6.oss-cn-shanghai.aliyuncs.com/?bucketInfo";
+    let url = "https://xtoss-ex10.oss-cn-shanghai.aliyuncs.com/?bucketInfo";
 
     let resp = oss::Request::new()
         .with_access_key_id(&access_key_id)
         .with_access_key_secret(&access_key_secret)
         .task()
         .with_url(&url)
-        .with_resource("/xtoss-ex6/?bucketInfo")
+        .with_resource("/xtoss-ex10/?bucketInfo")
         .with_method(oss::http::Method::GET)
         .execute_timeout(30)
         .await

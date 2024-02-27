@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         None
     };
-    assert!(size.is_some());
+    assert!(size.is_some(), "Failed to retrieve file size, perhaps the file does not exist.");
     println!(
         " - total file size: {:.2} MB",
         size.unwrap() as f64 / chunk_size as f64

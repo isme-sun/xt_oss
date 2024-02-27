@@ -7,12 +7,12 @@ pub const DEFAULT_TIMEOUT: u64 = 60;
 pub const GMT_DATE_FMT: &str = "%a, %d %b %Y %H:%M:%S GMT";
 pub const XML_CONTENT: &str = r#"<?xml version="1.0" encoding="UTF-8"?>"#;
 
-use std::time::Duration;
 pub use bytes::Bytes;
-pub mod http;
-pub mod entities;
+use std::time::Duration;
 pub mod api;
 pub(super) mod auth;
+pub mod entities;
+pub mod http;
 
 use super::oss::{
     self,
@@ -227,8 +227,13 @@ impl<'a> Options<'a> {
     }
 
     pub fn with_endpoint(mut self, value: &'a str) -> Self {
-        self.endpoint = value;
-        self.cname = true;
+        self.endpoint = if let Some(v) = value.strip_prefix("http://") {
+            v
+        } else if let Some(v) = value.strip_prefix("https://") {
+            v
+        } else {
+            value
+        };
         self
     }
 
@@ -241,6 +246,7 @@ impl<'a> Options<'a> {
         self.cname = value;
         self
     }
+
     // pub fn with_is_request_pay(mut self, value: bool) -> Self {
     //     self.is_request_pay = value;
     //     self
@@ -256,13 +262,29 @@ impl<'a> Options<'a> {
     }
 
     pub fn root_url(&self) -> String {
-        format!("{}://{}", self.schema(), self.host()).to_string()
+        format!(
+            "{}://{}{}.{}",
+            self.schema(),
+            oss::DEFAULT_REGION,
+            if self.internal == true {
+                "-internal"
+            } else {
+                ""
+            },
+            oss::BASE_URL
+        )
     }
 
     pub fn base_url(&self) -> String {
-        match self.cname {
-            true => format!("{}://{}", self.schema(), self.host()),
-            false => format!("{}://{}.{}", self.schema(), self.bucket, self.host()).to_string(),
+        if self.internal == true {
+            format!("{}://{}.{}", self.schema(), self.bucket, self.host())
+        } else if self.cname == true {
+            format!("{}://{}", self.schema(), self.host())
+        } else {
+            if self.bucket.is_empty() {
+                panic!("Bucket parameter must be provided.");
+            }
+            format!("{}://{}.{}", self.schema(), self.bucket, self.host())
         }
     }
 
@@ -277,25 +299,24 @@ impl<'a> Options<'a> {
         }
     }
 
+    // 当`cname`为true时,`endpoint`,`bucket`为必填,否则产生panic错误.
+    // 当internal为true时，忽略cname与endpoint
+    // 无论是否使用cname正确的设置region(location)与bucket
     fn host(&self) -> String {
-        if self.cname {
-            if self.endpoint.is_empty() {
-                panic!("must set endpoint");
-            }
-            let https_prefix = "https://";
-            let http_prefix = "http://";
-            self.endpoint
-                .strip_prefix(https_prefix)
-                .or_else(|| self.endpoint.strip_prefix(http_prefix))
-                .unwrap_or(&self.endpoint)
-                .to_string()
-        } else {
+        if self.internal == true {
             format!(
                 "{}{}.{}",
                 self.region,
                 if self.internal { "-internal" } else { "" },
                 oss::BASE_URL
             )
+        } else if self.cname == true {
+            if self.endpoint.is_empty() {
+                panic!("Endpoint parameter must be provided.");
+            }
+            self.endpoint.to_string()
+        } else {
+            format!("{}.{}", self.region, oss::BASE_URL)
         }
     }
 
@@ -357,18 +378,20 @@ pub mod tests {
         let options = oss::Options::new()
             .with_access_key_id("access_key_id")
             .with_access_key_secret("access_key_secret")
-            .with_region("oss-sn-shanghai1")
-            .with_bucket("xtoss-t1")
+            .with_region("oss-cn-shanghai")
+            .with_endpoint("cdn.xuetube.com")
+            .with_bucket("xuetube")
+            .with_cname(true)
             .with_internal(true)
             .with_secret(true);
-
-        let host = "oss-sn-shanghai1-internal.aliyuncs.com";
-        let root_url = "https://oss-sn-shanghai1-internal.aliyuncs.com";
-        let base_url = "https://xtoss-t1.oss-sn-shanghai1-internal.aliyuncs.com";
-
-        assert_eq!(options.host(), host);
-        assert_eq!(options.root_url(), root_url);
-        assert_eq!(options.base_url(), base_url);
+        assert_eq!(
+            options.root_url(),
+            "https://oss-cn-hangzhou-internal.aliyuncs.com"
+        );
+        assert_eq!(
+            options.base_url(),
+            "https://xuetube.oss-cn-shanghai-internal.aliyuncs.com"
+        );
     }
 
     #[test]
@@ -376,13 +399,14 @@ pub mod tests {
         let options = oss::Options::new()
             .with_access_key_id("access_key_id")
             .with_access_key_secret("access_key_secret")
-            .with_region("oss-sn-shanghai1")
-            .with_bucket("xtoss-t1")
-            .with_secret(false);
+            .with_region("oss-cn-shanghai")
+            .with_bucket("xtoss-ex")
+            .with_secret(true)
+            .with_internal(false);
 
-        let host = "oss-sn-shanghai1.aliyuncs.com";
-        let root_url = "http://oss-sn-shanghai1.aliyuncs.com";
-        let base_url = "http://xtoss-t1.oss-sn-shanghai1.aliyuncs.com";
+        let host = "oss-cn-shanghai.aliyuncs.com";
+        let root_url = "https://oss-cn-hangzhou.aliyuncs.com";
+        let base_url = "https://xtoss-ex.oss-cn-shanghai.aliyuncs.com";
 
         assert_eq!(options.host(), host);
         assert_eq!(options.root_url(), root_url);
@@ -404,7 +428,7 @@ pub mod tests {
             .with_timeout(60);
 
         let host = "cdn.xuetube.com";
-        let root_url = "https://cdn.xuetube.com";
+        let root_url = "https://oss-cn-hangzhou.aliyuncs.com";
         let base_url = "https://cdn.xuetube.com";
 
         assert_eq!(options.host(), host);

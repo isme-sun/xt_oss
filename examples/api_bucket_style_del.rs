@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let options = util::options_from_env();
     let client = oss::Client::new(options);
     let result = client
-        .DeleteStyle("cover")
+        .DeleteStyle("avatar")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {

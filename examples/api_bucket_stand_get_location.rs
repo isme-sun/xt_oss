@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
     let result = client
         .GetBucketLocation()
-        .with_bucket("xtoss-t1")
+        .with_bucket("xtoss-ex11")
         .execute()
         .await
         .unwrap_or_else(|reqwest_error| {

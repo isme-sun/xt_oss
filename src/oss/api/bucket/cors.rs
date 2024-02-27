@@ -160,7 +160,7 @@ pub mod builders {
                 self.request_headers.to_string(),
             );
 
-            dbg!(&headers);
+            // dbg!(&headers);
 
             let resp = self
                 .client
