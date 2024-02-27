@@ -79,8 +79,8 @@ impl<T> ApiData<T> {
     }
 }
 
-pub type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
 
+pub type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
 // api 返回体， 包含请求错误， 和api返回数据
 pub type ApiResult<T = ()> = Result<ApiResponse<T>, reqwest::Error>;
 

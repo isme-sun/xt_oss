@@ -19,16 +19,16 @@ async fn main() {
         // .with_version_id("version_id")
         .execute()
         .await
-        .unwrap_or_else(|error| {
-            println!("reqwest error: {}", error);
+        .unwrap_or_else(|reqwest_error| {
+            println!("reqwest error: {}", reqwest_error);
             process::exit(-1);
         });
     match resp {
         Ok(data) => {
             println!("{:#?}", data.headers())
         }
-        Err(message) => {
-            println!("{:#?}", message.content())
+        Err(error_message) => {
+            println!("{:#?}", error_message.content())
         }
     }
 }

@@ -19,9 +19,12 @@
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}
 xt-oss = "0.5.1"
+#exampel 可选 dirs = "5.0.1" 
+#exampel 可选 dotenv = "0.15.0"
+#exampel 可选 serde_json = "1.0.114"
 ```
 
- ```rust no_run
+ ```rust ignore
 //! `cargo run --example api_region_describe -q`
 //!
 //! 调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息，
@@ -32,8 +35,10 @@ use xt_oss::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 从环境加载配置
     dotenv::dotenv().ok();
     let options = util::options_from_env();
+    // builder 配置
     // let options = oss::Options::new()
     //     .with_access_key_id("-- your access_key_id --")
     //     .with_access_key_secret("-- your access_key_secret --");
@@ -45,15 +50,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // .with_region("oss-us-east-1")
         .execute()
         .await
+        // 处理可能的reqwest错误
         .unwrap_or_else(|reqwest_error| {
             println!("reqweset error: {}", reqwest_error);
             process::exit(-1);
         }) {
+        // 处理正常返回的数据
         Ok(oss_data) => {
+
             oss_data.content().region_info.iter().for_each(|entry| {
                 println!("{:>20} | {}", entry.region, entry.internet_endpoint);
             });
         }
+        // 处理oss错误信息
         Err(error_message) => {
             // let message = error_message.content();
             println!("request id: {}", &error_message.request_id());
@@ -84,9 +93,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 > 当internal为true时，忽略cname与endpoint
 > 无论是否使用cname正确的设置region(location)与bucket
 
-### 构建方式
+### 构建方式生成oss::Options
 
-```rust no_run
+```rust ignore
 use xt_oss::prelude::*;
 // 构建方式
 let options = oss::Options::new()
@@ -106,9 +115,9 @@ assert_eq!(options.base_url(), base_url);
 let client = oss::Client::new(options);
 ```
 
-### 从.env加载,格式参见 .env.example.
+### 一次性从环境变量生成oss::Options,格式参见 [.env.example](https://github.com/isme-sun/xt_oss/blob/main/.env.example)
 
-```rust no_run
+```rust ignore
 use xt_oss::prelude::*;
 // ...
 dotenv::dotenv().ok();
@@ -121,15 +130,15 @@ let client = oss::Client::new(options);
 
 ![xtoss-2](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-2.png)
 
-api方法命名遵循官方文档方法明目方式，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合编辑器
+api方法命名遵循官方文档，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合编辑器
 代码提示将给库的使用带来方便.
 
 - 参数构建分为简单方式，直接在方法内传参数例如`.HeadObject("mp3/Audio_0.4mb.mp3")`
 - with_ 传参数,例如:.  `PutSymlink("tmp/test.txt").with_symlink_target("target.txt")`
 - 参数builder构建 例如:
 
-```rust no_run
- /// ...
+```rust ignore
+ // 构建参数
  let index_document = IndexDocumentBuilder::new()
         .with_suffix("index.html")
         .with_support_sub_dir(true)
@@ -146,7 +155,7 @@ api方法命名遵循官方文档方法明目方式，例如 `ListObjectsV2`,`De
         .with_error_document(error_document)
         // .with_routing_rules(rules)
         .build();
-
+    // 发出请求
     let result = client
         .PutBucketWebsite()
         .with_config(config)
@@ -155,237 +164,221 @@ api方法命名遵循官方文档方法明目方式，例如 `ListObjectsV2`,`De
     // ...
 ```
 
-## 错误处理
+## 返回与错误处理
 
-## 其他
+```rust ignore
+pub type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
+pub type ApiResult<T = ()> = Result<ApiResponse<T>, reqwest::Error>;
+```
+
+```rust ignore
+//...
+match client
+    .GetObjectTagging("excel/Spreadsheet-1000-rows.xls")
+    .execute()
+    .await
+{
+    Ok(Ok(data)) => {
+        // data:ApiData<Tagging>
+        println!("{}", data.request_id());
+        println!("{:#?}", data.headers());
+        println!("{:#?}", data.content());
+    }
+    Ok(Err(message)) => {
+        // message: ApiData<ErrorMessage>
+        println!("{}", message.request_id());
+        println!("{:#?}", message.headers());
+        println!("{:#?}", message.content());
+    }
+    Err(reqwest_error) => println!("{}", reqwest_error),
+}
+//...
+```
+
+## util提供一些工具方法
+
+- fn `utc_to_gmt(datetime:DateTime<Utc>) -> String`
+- fn `local_to_gmt(local_datetime: DateTime<Local>) -> String`
+- fn `options_from_env() -> oss::Options<'static>`
+- fn `oss_file_md5`
+- fn `oss_md5`
+- struct `ByteRange`
 
 ## 实现的Api
 
+下面是计划中要实现的Api,★ 已经实现 ☆ 未实现.
+
 ### 关于Service/Region
 
-- [★ `ListBuckets（GetService）`](oss/struct.Client.html#method.ListBuckets)
-- [★ `DescribeRegions`](https://www.example.com) 
+- [★ `ListBuckets（GetService）`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DescribeRegions`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
 
 ### Bucket - 基础操作
 
-- [★ `PutBucket`](https://www.example.com)
-- [★ `DeleteBucket`](https://www.example.com)
-- [★ `ListObjects`](https://www.example.com)
-- [★ `ListObjectsV2`](https://www.example.com)
-- [★ `GetBucketInfo`](https://www.example.com) 
-- [★ `GetBucketLocation`](https://www.example.com) 
-- [★ `GetBucketStat`](https://www.example.com) 
+- [★ `PutBucket`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucket`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ListObjects`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ListObjectsV2`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketInfo`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
+- [★ `GetBucketLocation`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
+- [★ `GetBucketStat`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
 
 ### 合规保留策略（WORM）
 
-- [★ `InitiateBucketWorm`](https://www.example.com)
-- [★ `AbortBucketWorm`](https://www.example.com)
-- [★ `CompleteBucketWorm`](https://www.example.com)
-- [★ `ExtendBucketWorm`](https://www.example.com)
-- [★ `GetBucketWorm`](https://www.example.com)
+- [★ `InitiateBucketWorm`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `AbortBucketWorm`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `CompleteBucketWorm`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ExtendBucketWorm`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketWorm`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 权限控制（ACL）
 
-- [★ `PutBucketAcl`](https://www.example.com)
-- [★ `GetBucketAcl`](https://www.example.com)
+- [★ `PutBucketAcl`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketAcl`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 生命周期（Lifecycle）
 
-- [★ `PutBucketLifecycle`](https://www.example.com)
-- [★ `GetBucketLifecycle`](https://www.example.com)
-- [★ `DeleteBucketLifecycle`](https://www.example.com)
+- [★ `PutBucketLifecycle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketLifecycle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketLifecycle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 传输加速（TransferAcceleration）
 
-- [★ `PutBucketTransferAcceleration`](https://www.example.com)
-- [★ `GetBucketTransferAcceleration`](https://www.example.com)
+- [★ `PutBucketTransferAcceleration`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketTransferAcceleration`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 版本控制（Versioning）
 
-- [★ `PutBucketVersioning`](https://www.example.com)
-- [★ `GetBucketVersioning`](https://www.example.com)
-- [☆ `ListObjectVersions（GetBucketVersions ）x`](https://www.example.com)
-
-<!-- **Bucket 数据复制（Replication）**
-
-- [ ] `PutBucketReplication`
-- [ ] `PutBucketRTC`
-- [ ] `GetBucketReplication`
-- [ ] `GetBucketReplicationLocation`
-- [ ] `GetBucketReplicationProgress`
-- [ ] `DeleteBucketReplication` -->
+- [★ `PutBucketVersioning`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketVersioning`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `ListObjectVersions（GetBucketVersions ）x`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 授权策略（Policy）
 
-- [★ `PutBucketPolicy`](https://www.example.com)
-- [★ `GetBucketPolicy`](https://www.example.com)
-- [★ `DeleteBucketPolicy`](https://www.example.com)
-
-<!-- ###### Bucket 清单（Inventory）
-
-- [ ] `PutBucketInventory`
-- [ ] `GetBucketInventory`
-- [ ] `ListBucketInventory`
-- [ ] `DeleteBucketInventory` -->
+- [★ `PutBucketPolicy`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketPolicy`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketPolicy`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 日志管理（Logging）
 
-- [★ `PutBucketLogging`](https://www.example.com)
-- [★ `GetBucketLogging`](https://www.example.com)
-- [★ `DeleteBucketLogging`](https://www.example.com)
+- [★ `PutBucketLogging`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketLogging`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketLogging`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 静态网站（Website）
 
-- [★ `PutBucketWebsite`](https://www.example.com)?
-- [★ `GetBucketWebsite`](https://www.example.com)
-- [★ `DeleteBucketWebsite`](https://www.example.com)
+- [★ `PutBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)?
+- [★ `GetBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketWebsite`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 防盗链（Referer）
 
-- [★ `PutBucketReferer`](https://www.example.com)
-- [★ `GetBucketReferer`](https://www.example.com)
+- [★ `PutBucketReferer`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketReferer`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 标签（Tags）
 
-- [★ `PutBucketTags`](https://www.example.com)
-- [★ `GetBucketTags`](https://www.example.com)
-- [★ `DeleteBucketTags`](https://www.example.com)
+- [★ `PutBucketTags`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketTags`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketTags`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 加密（Encryption）
 
-- [★ `PutBucketEncryption`](https://www.example.com)
-- [★ `GetBucketEncryption`](https://www.example.com)
-- [★ `DeleteBucketEncryption`](https://www.example.com)
+- [★ `PutBucketEncryption`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketEncryption`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketEncryption`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
-<!-- ### Bucket 请求者付费（RequestPayment）
+### Bucket 请求者付费（RequestPayment）
 
-- [☆ `PutBucketRequestPayment`](https://www.example.com)
-- [☆ `GetBucketRequestPayment`](https://www.example.com) -->
+- [☆ `PutBucketRequestPayment`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `GetBucketRequestPayment`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 跨域资源共享（CORS）
 
-- [★ `PutBucketCors`](https://www.example.com)
-- [★ `GetBucketCors`](https://www.example.com)
-- [★ `DeleteBucketCors`](https://www.example.com)
-- [★ `Options`](https://www.example.com)
-
-<!-- ##### Bucket 访问跟踪（AccessMonitor）
-
-- [ ] `PutBucketAccessMonitor`
-- [ ] `GetBucketAccessMonitor`
-
-##### Bucket 数据索引（Data Indexing）
-
-- [ ] `OpenMetaQuery`
-- [ ] `GetMetaQueryStatus`
-- [ ] `DoMetaQuery`
-- [ ] `CloseMetaQuery`
-
-##### Bucket 资源组（Resource Group）
-
-- [ ] `PutBucketResourceGroup`
-- [ ] `GetBucketResourceGroup` -->
+- [★ `PutBucketCors`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketCors`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteBucketCors`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `Options`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 自定义域名（CNAME）
 
-- [★ `CreateCnameToken`](https://www.example.com)
-- [★ `GetCnameToken`](https://www.example.com)
-- [★ `PutCname`](https://www.example.com)?
-- [★ `ListCname`](https://www.example.com)
-- [★ `DeleteCname`](https://www.example.com)
+- [★ `CreateCnameToken`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetCnameToken`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `PutCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)?
+- [★ `ListCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteCname`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 图片样式（Style）
 
-- [★ `PutStyle`](https://www.example.com)
-- [★ `GetStyle`](https://www.example.com)
-- [★ `ListStyle`](https://www.example.com)
-- [★ `DeleteStyle`](https://www.example.com)
-
-<!-- ##### Bucket  安全传输层协议（TLS）
-
-- [ ] `PutBucketHttpsConfig`
-- [ ] `GetBucketHttpsConfig`
-
-### Bucket  存储冗余转换（RedundancyTransition）
-
-- [ ] `CreateBucketDataRedundancyTransition`
-- [ ] `GetBucketDataRedundancyTransition`
-- [ ] `DeleteBucketDataRedundancyTransition`
-- [ ] `ListUserDataRedundancyTransition`
-- [ ] `ListBucketDataRedundancyTransition`
-
-##### Bucket  接入点（AccessPoint）
-
-- [ ] `CreateAccessPoint`
-- [ ] `GetAccessPoint`
-- [ ] `DeleteAccessPoint`
-- [ ] `ListAccessPoints`
-- [ ] `PutAccessPointPolicy`
-- [ ] `GetAccessPointPolicy`
-- [ ] `DeleteAccessPointPolicy`
-
-##### Bucket  对象FC接入点（Object FC AccessPoint）
-
-- [ ] `CreateAccessPointForObjectProcess`
-- [ ] `GetAccessPointForObjectProcess`
-- [ ] `DeleteAccessPointForObjectProcess`
-- [ ] `ListAccessPointsForObjectProcess`
-- [ ] `PutAccessPointConfigForObjectProcess`
-- [ ] `GetAccessPointConfigForObjectProcess`
-- [ ] `PutAccessPointPolicyForObjectProcess`
-- [ ] `GetAccessPointPolicyForObjectProcess`
-- [ ] `DeleteAccessPointPolicyForObjectProcess`
-- [ ] `WriteGetObjectResponse` -->
+- [★ `PutStyle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetStyle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ListStyle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteStyle`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Object 基础操作 Stand
 
-- [★ `PutObject`](https://www.example.com)
-- [★ `GetObject`](https://www.example.com)
-- [★ `CopyObject`](https://www.example.com)
-- [★ `AppendObject`](https://www.example.com)
-- [★ `DeleteObject`](https://www.example.com)
-- [★ `DeleteMultipleObjects`](https://www.example.com)
-- [★ `HeadObject`](https://www.example.com)
-- [★ `GetObjectMeta`](https://www.example.com)
-<!-- - [☆ `PostObject`](https://www.example.com) -->
-<!-- - [☆ `Callback`](https://www.example.com) -->
-<!-- - [☆ `RestoreObject`](https://www.example.com) -->
-<!-- - [☆ `SelectObject`](https://www.example.com) -->
+- [★ `PutObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `CopyObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `AppendObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteMultipleObjects`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `HeadObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetObjectMeta`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+<!-- - [☆ `PostObject`](https://github.com/isme-sun/xt_oss/tree/main/examples) -->
+- [☆ `Callback`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `RestoreObject`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+<!-- - [☆ `SelectObject`](https://github.com/isme-sun/xt_oss/tree/main/examples) -->
 
 ### Object 分片上传（MultipartUpload）
 
-- [★ `InitiateMultipartUpload`](https://www.example.com)
-- [★ `UploadPart`](https://www.example.com)
-- [★ `UploadPartCopy`](https://www.example.com)
-- [★ `CompleteMultipartUpload`](https://www.example.com)
-- [★ `AbortMultipartUpload`](https://www.example.com)
-- [★ `ListMultipartUploads`](https://www.example.com)
-- [★ `ListParts`](https://www.example.com)
+- [★ `InitiateMultipartUpload`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `UploadPart`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `UploadPartCopy`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `CompleteMultipartUpload`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `AbortMultipartUpload`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ListMultipartUploads`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `ListParts`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Object 权限控制（ACL)
 
-- [★ `PutObjectACL`](https://www.example.com)
-- [★ `GetObjectACL`](https://www.example.com)
+- [★ `PutObjectACL`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetObjectACL`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Object 软链接（Symlink）
 
-- [★ `PutSymlink`](https://www.example.com)
-- [★ `GetSymlink`](https://www.example.com)
+- [★ `PutSymlink`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetSymlink`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Object 标签（Tagging）
 
-- [★ `PutObjectTagging`](https://www.example.com)
-- [★ `GetObjectTagging`](https://www.example.com)
-- [★ `DeleteObjectTagging`](https://www.example.com)
+- [★ `PutObjectTagging`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetObjectTagging`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `DeleteObjectTagging`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
-<!-- ### 关于LiveChannel的操作
+### 关于LiveChannel的操作
 
-- [☆ `PutLiveChannel`](https://www.example.com)
-- [☆ `ListLiveChannel`](https://www.example.com)
-- [☆ `DeleteLiveChannel`](https://www.example.com)
-- [☆ `PutLiveChannelStatus`](https://www.example.com)
-- [☆ `GetLiveChannelInfo`](https://www.example.com)
-- [☆ `GetLiveChannelStat`](https://www.example.com)
-- [☆ `GetLiveChannelHistory`](https://www.example.com)
-- [☆ `PostVodPlaylist`](https://www.example.com)
-- [☆ `GetVodPlaylist`](https://www.example.com) -->
+- [☆ `PutLiveChannel`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `ListLiveChannel`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `DeleteLiveChannel`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `PutLiveChannelStatus`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `GetLiveChannelInfo`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `GetLiveChannelStat`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `GetLiveChannelHistory`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `PostVodPlaylist`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [☆ `GetVodPlaylist`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+
+## TODO
+
+- 完成剩下的api,修复bug
+- 逐步完善文档
+- 提供一些开箱即用的utils功能
+
+## 欢迎提bug和需求
+
+欢迎大家提出bug报告和功能需求。如果你在使用过程中遇到了任何问题或者有任何改进的建议，都可以在[Issues](https://github.com/isme-sun/xt_oss/issues)中告知。
+
+我们欢迎所有的贡献和反馈！
+
+- 邮箱：isme.sun@icloud.com
+- 微信：ismeSun

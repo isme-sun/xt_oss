@@ -24,15 +24,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // .with_region("oss-us-east-1")
         .execute()
         .await
+        // 处理可能的reqwest错误
         .unwrap_or_else(|reqwest_error| {
             println!("reqweset error: {}", reqwest_error);
             process::exit(-1);
         }) {
+        // 请求正常返回结果
         Ok(oss_data) => {
             oss_data.content().region_info.iter().for_each(|entry| {
                 println!("{:>20} | {}", entry.region, entry.internet_endpoint);
             });
         }
+        // 请求正常，返回oss错误消息
         Err(error_message) => {
             // let message = error_message.content();
             println!("request id: {}", &error_message.request_id());

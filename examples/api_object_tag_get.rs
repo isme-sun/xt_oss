@@ -5,7 +5,6 @@
 //! - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjecttagging)
 //! - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_get.rs)
 use dotenv;
-use std::process;
 use xt_oss::prelude::*;
 
 #[tokio::main]
@@ -18,17 +17,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .GetObjectTagging("excel/Spreadsheet-1000-rows.xls")
         .execute()
         .await
-        .unwrap_or_else(|error| {
-            println!("{}", error);
-            process::exit(-1);
-        }) {
-        Ok(data) => {
-            println!("{}", serde_json::to_string_pretty(&data.content())?);
+    {
+        Ok(Ok(data)) => {
+            // data:ApiData<Tagging>
+            println!("{}", data.request_id());
+            println!("{:#?}", data.headers());
+            println!("{:#?}", data.content());
         }
-        Err(message) => {
-            println!("{:#?}", message.content())
+        Ok(Err(message)) => {
+            // message: ApiData<ErrorMessage>
+            println!("{}", message.request_id());
+            println!("{:#?}", message.headers());
+            println!("{:#?}", message.content());
         }
+        Err(reqwest_error) => println!("{}", reqwest_error),
     }
-
     Ok(())
 }
