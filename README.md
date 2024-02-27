@@ -13,12 +13,12 @@
 - 实现常用的大部分API.
 - 完整`Examples`演示.
 
-![xtoss-1](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-1.png)
+![xtoss-1](https://cdn.xuetube.com/upload/xtoss/xtoss-1.png)
 
 ```toml
 [dependencies]
 tokio = {version = "1.36.0", features = ["full"]}
-xt-oss = "0.5.4"
+xt-oss = "0.5.5"
 #example 可选 dirs = "5.0.1" 
 #example 可选 dotenv = "0.15.0"
 #example 可选 serde_json = "1.0.114"
@@ -42,9 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let options = oss::Options::new()
     //     .with_access_key_id("-- your access_key_id --")
     //     .with_access_key_secret("-- your access_key_secret --");
-
     let client = oss::Client::new(options);
-
     match client
         .DescribeRegions()
         // .with_region("oss-us-east-1")
@@ -57,8 +55,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }) {
         // 处理正常返回的数据
         Ok(oss_data) => {
-            oss_data.content().region_info.iter().for_each(|entry| {
-                println!("{:>20} | {}", entry.region, entry.internet_endpoint);
+            oss_data.content()
+                    .region_info.iter()
+                    .for_each(|entry| {
+                        println!("{:>20} | {}", entry.region, entry.internet_endpoint);
             });
         }
         // 处理oss错误信息
@@ -127,7 +127,7 @@ let client = oss::Client::new(options);
 
 ## Api方法与参数构建
 
-![xtoss-2](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-2.png)
+![xtoss-2](https://cdn.xuetube.com/upload/xtoss/xtoss-2.png)
 
 api方法命名遵循官方文档，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合编辑器
 代码提示将给库的使用带来方便.
@@ -138,29 +138,27 @@ api方法命名遵循官方文档，例如 `ListObjectsV2`,`DescribeRegions`,熟
 
 ```rust ignore
  // 构建参数
- let index_document = IndexDocumentBuilder::new()
-        .with_suffix("index.html")
-        .with_support_sub_dir(true)
-        .with_type(0)
-        .build();
-
-    let error_document = ErrorDocumentBuilder::new()
-        .with_http_status(StatusCode::NOT_FOUND)
-        .with_key("error.html")
-        .build();
-
-    let config = WebsiteConfigurationBuilder::new()
-        .with_index_document(index_document)
-        .with_error_document(error_document)
-        // .with_routing_rules(rules)
-        .build();
-    // 发出请求
-    let result = client
-        .PutBucketWebsite()
-        .with_config(config)
-        .execute()
-        .await
-    // ...
+let index_document = IndexDocumentBuilder::new()
+    .with_suffix("index.html")
+    .with_support_sub_dir(true)
+    .with_type(0)
+    .build();
+let error_document = ErrorDocumentBuilder::new()
+    .with_http_status(StatusCode::NOT_FOUND)
+    .with_key("error.html")
+    .build();
+let config = WebsiteConfigurationBuilder::new()
+    .with_index_document(index_document)
+    .with_error_document(error_document)
+    // .with_routing_rules(rules)
+    .build();
+// 发出请求
+let result = client
+    .PutBucketWebsite()
+    .with_config(config)
+    .execute()
+    .await
+// ...
 ```
 
 ## 返回与错误处理
@@ -196,12 +194,12 @@ match client
 
 ## util提供一些工具方法
 
-- fn `utc_to_gmt(datetime:DateTime<Utc>) -> String`
-- fn `local_to_gmt(local_datetime: DateTime<Local>) -> String`
-- fn `options_from_env() -> oss::Options<'static>`
-- fn `oss_file_md5`
-- fn `oss_md5`
-- struct `ByteRange`
+- `fn utc_to_gmt(datetime:DateTime<Utc>) -> String`
+- `fn local_to_gmt(local_datetime: DateTime<Local>) -> String`
+- `fn options_from_env() -> oss::Options<'static>`
+- `fn oss_file_md5`
+- `fn oss_md5`
+- `struct ByteRange`
 
 ## 实现的Api
 
@@ -377,6 +375,6 @@ match client
 
 欢迎大家提出bug报告和功能需求。如果你在使用过程中遇到了任何问题或者有任何改进的建议，都可以在[Issues](https://github.com/isme-sun/xt_oss/issues)中告知。
 
-- 邮箱：isme.sun@icloud.com
-- 微信：ismeSun
-- github: https://github.com/isme-sun/xt_oss
+- 邮箱：[`isme.sun@icloud.com`](mailto:isme.sun@icloud.com)
+- 微信：`ismeSun`
+- github: [`xt-oss`](https://github.com/isme-sun/xt_oss)
