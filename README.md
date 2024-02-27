@@ -13,7 +13,7 @@
 - 实现常用的大部分API.
 - 完整`Examples`演示.
 
-![xtoss-1](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-1.jpg)
+![xtoss-1](https://raw.githubusercontent.com/isme-sun/xt_oss/main/assets/xtoss-1.png)
 
 ```toml
 [dependencies]
