@@ -1,12 +1,9 @@
 # XT - Aliyun OSS SDK
 
-
 ![Crates.io MSRV](https://img.shields.io/crates/msrv/xt-oss)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/xt-oss)
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 ![Crates.io License (version)](https://img.shields.io/crates/l/xt-oss/0.4.4)
-
-
 
 这是一个`Rust`语言编写的阿里云OSS的SDK，依据官网文档并参考了其他语言的实现。
 
