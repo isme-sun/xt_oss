@@ -12,6 +12,7 @@ keywords = ["oss", "aliyun"]
 categories = ["filesystem"]
 # publish = false
 exclude = ["assets", ".vscode"]
+readme = "README.md"
 
 [badges]
 maintenance = { status = "actively-developed" }
