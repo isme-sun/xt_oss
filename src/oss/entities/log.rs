@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct LoggingEnabled {
     #[serde(rename = "TargetBucket", skip_serializing_if = "Option::is_none")]
     pub target_bucket: Option<String>,
@@ -8,7 +8,7 @@ pub struct LoggingEnabled {
     pub target_prefix: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default,Clone)]
 pub struct BucketLoggingStatus {
     #[serde(rename = "LoggingEnabled", skip_serializing_if = "Option::is_none")]
     pub logging_enabled: Option<LoggingEnabled>,

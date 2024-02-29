@@ -6,7 +6,7 @@ pub mod builder {
 
     use super::*;
 
-    #[derive(Debug, Default)]
+    #[derive(Debug, Clone, Default)]
     pub struct MirrorHeadersBuilder<'a> {
         pass_all: bool,
         pass: Vec<&'a str>,
@@ -69,7 +69,7 @@ pub mod builder {
         }
     }
 
-    #[derive(Debug, Default)]
+    #[derive(Debug, Default, Clone)]
     pub struct RedirectBuilder<'a> {
         redirect_type: RedirectType,
         protocol: Option<&'a str>,

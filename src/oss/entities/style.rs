@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone,Serialize, Deserialize, Default)]
 pub struct Style {
     #[serde(rename = "Name")]
     pub name: String,
@@ -20,7 +20,7 @@ pub struct Style {
     pub last_modify_time: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StyleList {
     #[serde(rename = "Style")]
     pub style: Option<Vec<Style>>,

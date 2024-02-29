@@ -4,7 +4,7 @@ pub mod builders {
 
     use super::BucketCnameConfiguration;
 
-    #[derive(Debug, Default)]
+    #[derive(Debug, Default, Clone)]
     pub struct BucketCnameConfigurationBuilder {
         pub bucket_cname_configuration: BucketCnameConfiguration,
     }

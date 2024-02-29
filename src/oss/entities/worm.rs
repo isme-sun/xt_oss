@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug,Clone, Serialize, Deserialize)]
 pub struct InitiateWormConfiguration {
     #[serde(rename = "RetentionPeriodInDays")]
     pub retention_period_in_days: i32,
@@ -14,7 +14,7 @@ impl Default for InitiateWormConfiguration {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExtendWormConfiguration {
     #[serde(rename = "RetentionPeriodInDays")]
     pub retention_period_in_days: u32,
@@ -28,7 +28,7 @@ impl Default for ExtendWormConfiguration {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug,Clone, Serialize, Deserialize)]
 pub struct WormConfiguration {
     #[serde(rename = "WormId")]
     pub worm_id: String,

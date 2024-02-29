@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 /// OSS 区域信息
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RegionInfo {
     #[serde(rename = "AccelerateEndpoint")]
     pub accelerate_endpoint: String,
@@ -13,7 +13,7 @@ pub struct RegionInfo {
     pub region: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegionInfoList {
     #[serde(rename = "RegionInfo")]
     pub region_info: Vec<RegionInfo>,

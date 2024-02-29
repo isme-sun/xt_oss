@@ -6,7 +6,7 @@ use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ErrorMessage {
     #[serde(rename(deserialize = "Code"))]
     pub code: String,
@@ -36,7 +36,7 @@ impl fmt::Display for ErrorMessage {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 // api 返回数据， 可能正确也可能错误
 pub struct ApiData<T> {
     pub(crate) url: Url,

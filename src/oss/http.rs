@@ -11,9 +11,9 @@ pub enum ContentEncoding {
     /// 表示Object未经过压缩或编码
     #[default]
     IDENTITY,
-    /// 表示Object采用Lempel-Ziv（LZ77）压缩算法以及32位CRC校验的编码方式。
+    /// 表示Object采用Lempel-Ziv`LZ77`压缩算法以及32位CRC校验的编码方式。
     GZIP,
-    /// 表示Object采用Lempel-Ziv-Welch（LZW）压缩算法的编码方式。
+    /// 表示Object采用Lempel-Ziv-Welch`LZW`压缩算法的编码方式。
     COMPRESS,
     /// 表示Object采用zlib结构和deflate压缩算法的编码方式。
     DEFLATE,
@@ -70,7 +70,7 @@ pub enum CacheControl {
     PUBLIC,
     /// 所有内容只在客户端缓存。
     PRIVATE,
-    /// 缓存内容的相对过期时间，单位为秒。此选项仅在HTTP 1.1中可用。
+    /// 缓存内容的相对过期时间,单位为秒。此选项仅在HTTP 1.1中可用。
     MaxAge(u32),
 }
 

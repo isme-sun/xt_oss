@@ -9,7 +9,7 @@ pub mod builder {
         NoncurrentVersionExpiration, Rule, Transition,
     };
 
-    #[derive(Default)]
+    #[derive(Default, Clone, Debug)]
     pub struct FilterBuilder {}
 
     impl FilterBuilder {
@@ -22,7 +22,7 @@ pub mod builder {
         }
     }
 
-    #[derive(Default)]
+    #[derive(Default, Clone, Debug)]
     pub struct ExpirationBuilder {
         days: Option<i32>,
         created_before_date: Option<String>,
@@ -308,7 +308,7 @@ pub struct Rule {
     pub abort_multipart_upload: Option<AbortMultipartUpload>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct LifecycleConfiguration {
     #[serde(rename = "Rule")]
     pub rule: Vec<Rule>,

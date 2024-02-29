@@ -1,6 +1,6 @@
+use std::fmt;
 use crate::oss;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 
 pub mod acceleration;
 pub mod acl;
@@ -161,4 +161,20 @@ impl fmt::Display for ServerSideEncryption {
             }
         )
     }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub enum CallbackBodyType {
+    FormUrlEncoded,
+    #[default]
+    JSON
+}
+
+#[allow(dead_code)]
+pub struct Callback {
+    callback_url: String,
+    callback_host: Option<String>,
+    callback_body: String,
+    callback_sni: Option<String>,
+    callback_body_type:Option<CallbackBodyType>
 }

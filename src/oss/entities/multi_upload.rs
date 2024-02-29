@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize,Clone, Deserialize, Debug, Default)]
 pub struct InitiateMultipartUploadResult {
     #[serde(rename = "Bucket")]
     pub bucket: String,
@@ -12,7 +12,7 @@ pub struct InitiateMultipartUploadResult {
     pub encoding_type: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Clone, Deserialize, Debug, Default)]
 pub struct Part {
     #[serde(rename = "PartNumber")]
     pub part_number: u64,
@@ -24,7 +24,7 @@ pub struct Part {
     pub size: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Clone, Deserialize, Debug, Default)]
 pub struct ListPartsResult {
     #[serde(rename = "Bucket")]
     pub bucket: String,
@@ -42,7 +42,7 @@ pub struct ListPartsResult {
     pub parts: Option<Vec<Part>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Clone, Deserialize, Debug, Default)]
 pub struct ListMultipartUploadsResult {
     #[serde(rename = "Bucket")]
     pub bucket: String,
@@ -66,7 +66,7 @@ pub struct ListMultipartUploadsResult {
     pub uploads: Option<Vec<Upload>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Debug, Serialize,Clone, Deserialize, Default)]
 pub struct Upload {
     #[serde(rename = "Key")]
     pub key: String,
@@ -76,13 +76,13 @@ pub struct Upload {
     pub initiated: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CompleteMultipartUpload {
     #[serde(rename = "Part")]
     pub parts: Vec<Part>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CopyPartResult {
     #[serde(rename = "LastModified")]
     pub last_modified: String,
@@ -90,7 +90,7 @@ pub struct CopyPartResult {
     pub etag: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CompleteMultipartUploadResult {
     #[serde(rename = "EncodingType", skip_serializing_if = "Option::is_none")]
     pub encoding_type: Option<String>,

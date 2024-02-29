@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 pub mod builder {
     use super::{RefererBlacklist, RefererConfiguration, RefererList};
 
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct RefererConfigurationBuilder<'a> {
         allow_empty_referer: bool,
         allow_truncate_query_string: bool,

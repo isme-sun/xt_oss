@@ -20,7 +20,7 @@ impl fmt::Display for SSEAlgorithm {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ApplyServerSideEncryptionByDefault {
     #[serde(rename = "SSEAlgorithm")]
     pub sse_algorithm: SSEAlgorithm,
@@ -30,7 +30,7 @@ pub struct ApplyServerSideEncryptionByDefault {
     pub kms_master_key_id: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ServerSideEncryptionRule {
     #[serde(rename = "ApplyServerSideEncryptionByDefault")]
     pub(crate) apply_server_side_encryption_by_default: ApplyServerSideEncryptionByDefault,

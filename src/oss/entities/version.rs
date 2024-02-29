@@ -2,14 +2,14 @@ use super::{bucket::Owner, StorageClass};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommonPrefixes {
     #[serde(rename = "Prefix")]
     pub prefix: String,
 }
 
 /// 保存版本控制状态的容器
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug,Clone, Serialize, Deserialize)]
 pub enum VersioningStatus {
     /// 开启版本控制状态
     Enabled,
@@ -30,13 +30,13 @@ impl fmt::Display for VersioningStatus {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug,Clone, Serialize, Deserialize, Default)]
 pub struct VersioningConfiguration {
     #[serde(rename = "Status", skip_serializing_if = "Option::is_none")]
     pub status: Option<VersioningStatus>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug,Clone, Serialize, Deserialize, Default)]
 pub struct DeleteMarker {
     #[serde(rename = "Key")]
     pub key: String,
@@ -65,7 +65,7 @@ pub struct DeleteMarker {
   </DeleteMarker>
 */
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Version {
     #[serde(rename = "Key")]
     pub key: String,
@@ -89,13 +89,13 @@ pub struct Version {
     pub restore_info: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug,Clone, Serialize, Deserialize)]
 pub enum Item {
     Version(Version),
     DeleteMarker(DeleteMarker),
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug,Clone, Serialize, Deserialize, Default)]
 pub struct ListVersionsResult {
     #[serde(rename = "CommonPrefixes")]
     pub common_prefixes: Option<Vec<CommonPrefixes>>,

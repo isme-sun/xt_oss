@@ -12,7 +12,7 @@ pub struct CreateBucketConfiguration {
     pub data_redundancy_type: Option<DataRedundancyType>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Owner {
     #[serde(rename = "ID")]
     pub id: String,
@@ -21,11 +21,11 @@ pub struct Owner {
 }
 
 /// Bucket所在的地域
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename = "$value")]
 pub struct LocationConstraint(pub String);
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BucketPolicy {
     #[serde(rename(deserialize = "LogBucket"))]
     pub log_bucket: String,
@@ -33,7 +33,7 @@ pub struct BucketPolicy {
     pub log_prefix: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Bucket {
     #[serde(rename = "AccessMonitor")]
     pub access_monitor: Option<String>,
@@ -65,19 +65,19 @@ pub struct Bucket {
     pub bucket_policy: Option<BucketPolicy>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BucketInfo {
     #[serde(rename(deserialize = "Bucket"))]
     pub bucket: Bucket,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Buckets {
     #[serde(rename(deserialize = "Bucket"))]
     pub bucket: Option<Vec<Bucket>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct ListAllMyBucketsResult {
     #[serde(rename(deserialize = "Owner"))]
     pub owner: Owner,
@@ -92,9 +92,9 @@ impl From<oss::Bytes> for ListAllMyBucketsResult {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct BucketStat {
-    /// Bucket的总存储量，单位字节。
+    /// Bucket的总存储量,单位字节。
     #[serde(rename(deserialize = "Storage"))]
     pub storage: u64,
     /// Bucket中总的Object数量
@@ -130,7 +130,7 @@ pub struct BucketStat {
     pub cold_archive_object_count: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ListBucketResult2 {
     #[serde(rename = "Name")]
     pub name: String,
@@ -152,13 +152,13 @@ pub struct ListBucketResult2 {
     pub common_prefixes: Option<Vec<CommonPrefixes>>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CommonPrefixes {
     #[serde(rename = "Prefix")]
     pub prefix: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Contents {
     #[serde(rename = "Key")]
     pub key: String,
@@ -176,7 +176,7 @@ pub struct Contents {
     pub owner: Option<Owner>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ListBucketResult {
     #[serde(rename = "Name")]
     pub name: String,

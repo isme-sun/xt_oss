@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Tag {
     #[serde(rename = "Key")]
     pub key: String,
@@ -10,13 +10,13 @@ pub struct Tag {
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug,Clone, Serialize, Deserialize, Default)]
 pub struct TagSet {
     #[serde(rename = "Tag")]
     pub(crate) tag: Option<Vec<Tag>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug,Clone, Serialize, Deserialize, Default)]
 pub struct Tagging {
     #[serde(rename = "TagSet")]
     pub tag_set: TagSet,

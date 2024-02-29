@@ -7,7 +7,7 @@ pub mod builder {
         util::{AllowedHeaderItem, AllowedMethodItem, AllowedOriginItem},
     };
 
-    #[derive(Default, Debug)]
+    #[derive(Default, Debug, Clone)]
     pub struct CORSRuleBuilder {
         pub rule: CORSRule,
     }
@@ -79,7 +79,7 @@ pub mod builder {
         }
     }
 
-    #[derive(Default, Debug)]
+    #[derive(Default, Debug, Clone)]
     pub struct CORSConfigurationBuilder {
         pub cors_configuration: CORSConfiguration,
     }
@@ -105,7 +105,7 @@ pub mod builder {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct CORSRule {
     #[serde(rename = "AllowedOrigin")]
     pub allowed_origin: Vec<String>,
@@ -119,7 +119,7 @@ pub struct CORSRule {
     pub max_age_seconds: Option<u32>,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct CORSConfiguration {
     #[serde(rename = "CORSRule")]
     pub cors_rule: Vec<CORSRule>,

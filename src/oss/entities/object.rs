@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub mod delete_multiple {
     use serde::{Deserialize, Serialize};
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     pub struct Delete {
         #[serde(rename = "Quiet")]
         pub quiet: Option<bool>,
@@ -13,7 +13,7 @@ pub mod delete_multiple {
         pub object: Vec<Object>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     pub struct Object {
         #[serde(rename = "Key")]
         pub key: String,
@@ -21,7 +21,7 @@ pub mod delete_multiple {
         pub version_id: Option<String>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     pub struct DeleteResult {
         #[serde(rename = "Deleted")]
         pub deleted: Vec<Deleted>,
@@ -29,7 +29,7 @@ pub mod delete_multiple {
         pub encoding_type: Option<String>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     pub struct Deleted {
         #[serde(rename = "Key")]
         pub key: String,
@@ -42,7 +42,7 @@ pub mod delete_multiple {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug,Clone, Default, Serialize, Deserialize)]
 pub struct Object {
     #[serde(rename = "Key")]
     pub key: String,
@@ -75,7 +75,7 @@ impl fmt::Display for Tier {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CopyObjectResult {
     #[serde(rename = "etag")]
     pub etag: Option<String>,
@@ -83,13 +83,13 @@ pub struct CopyObjectResult {
     pub last_modified: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct JobParameters {
     #[serde(rename = "Tier")]
     pub tier: Tier,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RestoreRequest {
     #[serde(rename(deserialize = "Days"))]
     pub days: u8,
@@ -114,7 +114,7 @@ impl fmt::Display for MetadataDirective {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Clone,Serialize, Deserialize, Default)]
 pub enum TaggingDirective {
     #[default]
     COPY,

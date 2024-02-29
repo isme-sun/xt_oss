@@ -10,7 +10,6 @@ documentation = "https://docs.rs/xt-oss"
 repository = "https://github.com/isme-sun/xt_oss"
 keywords = ["oss", "aliyun"]
 categories = ["filesystem"]
-# publish = false
 exclude = ["assets", ".vscode"]
 readme = "README.md"
 

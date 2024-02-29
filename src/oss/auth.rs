@@ -2,6 +2,7 @@ use super::http;
 use super::http::header::CONTENT_TYPE;
 use super::DEFAULT_CONTENT_TYPE;
 use base64::{engine::general_purpose, Engine as _};
+#[derive(Debug, Clone)]
 pub(super) struct SingerV1<'a> {
     pub(super) access_key_id: &'a str,
     pub(super) access_key_secret: &'a str,
@@ -12,6 +13,7 @@ pub(super) struct SingerV1<'a> {
     pub(super) date: &'a String,
     pub(super) resourse: Option<&'a str>,
 }
+
 impl<'a> SingerV1<'a> {
     pub(super) fn complute(&self) -> String {
         format!("OSS {}:{}", self.access_key_id, self.signature())
