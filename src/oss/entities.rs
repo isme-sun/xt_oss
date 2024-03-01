@@ -1,10 +1,11 @@
-use std::fmt;
 use crate::oss;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 pub mod acceleration;
 pub mod acl;
 pub mod bucket;
+pub mod callback;
 pub mod cname;
 pub mod cors;
 pub mod encryption;
@@ -19,6 +20,7 @@ pub mod tag;
 pub mod version;
 pub mod website;
 pub mod worm;
+pub mod payment;
 
 pub enum Directive {
     COPY,
@@ -161,20 +163,4 @@ impl fmt::Display for ServerSideEncryption {
             }
         )
     }
-}
-
-#[derive(Debug, Clone, Copy, Default)]
-pub enum CallbackBodyType {
-    FormUrlEncoded,
-    #[default]
-    JSON
-}
-
-#[allow(dead_code)]
-pub struct Callback {
-    callback_url: String,
-    callback_host: Option<String>,
-    callback_body: String,
-    callback_sni: Option<String>,
-    callback_body_type:Option<CallbackBodyType>
 }
