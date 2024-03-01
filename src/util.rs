@@ -255,6 +255,7 @@ pub mod tests {
         assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");
         assert_eq!(ByteRange::new().with_amount(-500).to_string(), "bytes=-500");
         assert_eq!(ByteRange::new().with_start(100).to_string(), "bytes=100-");
+        // 通过元组生成
         assert_eq!(ByteRange::from((100, 500)).to_string(), "bytes=100-599");
         assert_eq!(ByteRange::from((100, -500)).to_string(), "bytes=0-99");
         assert_eq!(ByteRange::from((100, -50)).to_string(), "bytes=50-99");

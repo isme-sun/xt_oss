@@ -24,57 +24,67 @@ xt-oss = "0.5.5"
 #example 可选 serde_json = "1.0.114"
 ```
 
- ```rust ignore
+```rust ignore
 //! `cargo run --example api_region_describe -q`
-//!
 //! 调用DescribeRegions接口查询所有支持地域或者指定地域对应的Endpoint信息，
-//! 包括外网Endpoint、内网Endpoint和传输加速Endpoint。
 use dotenv;
 use std::process;
-use xt_oss::prelude::*;
+use xt_oss::{
+    oss::entities::region::RegionInfo,
+    prelude::*,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 从环境加载配置
-    dotenv::dotenv().ok();
-    let options = util::options_from_env();
-    // builder 配置
-    // let options = oss::Options::new()
-    //     .with_access_key_id("-- your access_key_id --")
-    //     .with_access_key_secret("-- your access_key_secret --");
-    let client = oss::Client::new(options);
-    match client
-        .DescribeRegions()
-        // .with_region("oss-us-east-1")
-        .execute()
-        .await
-        // 处理可能的reqwest错误
-        .unwrap_or_else(|reqwest_error| {
-            println!("reqweset error: {}", reqwest_error);
-            process::exit(-1);
-        }) {
-        // 处理正常返回的数据
-        Ok(oss_data) => {
-            oss_data.content()
-                    .region_info.iter()
-                    .for_each(|entry| {
-                        println!("{:>20} | {}", entry.region, entry.internet_endpoint);
-            });
-        }
-        // 处理oss错误信息
-        Err(error_message) => {
-            // let message = error_message.content();
-            println!("request id: {}", &error_message.request_id());
-            println!("oss error: {}", &error_message.content());
+  dotenv::dotenv().ok();
+  // 从环境生成 oss::Options;
+  let options = util::options_from_env();
+  // builder oss::Options
+  // let options = oss::Options::new()
+  //     .with_access_key_id("-- your access_key_id --")
+  //     .with_access_key_secret("-- your access_key_secret --");
+  // 创建oss::Client
+  let client = oss::Client::new(options);
+
+  match client
+    .DescribeRegions()
+    // 可选参数
+    // .with_region("oss-us-east-1")
+    .execute()
+    .await
+    // 处理可能的reqwest错误
+    .unwrap_or_else(|reqwest_error| {
+        println!("reqweset error: {}", reqwest_error);
+        process::exit(-1);
+    }) {
+    // 请求正常返回结果
+    Ok(oss_data) => {
+        let regions: Vec<RegionInfo> = oss_data.content().region_info;
+        for e in regions {
+            println!("{:>20} | {}", e.region, e.internet_endpoint);
         }
     }
-    Ok(())
+    // 请求正常，返回oss错误消息
+    Err(error_message) => {
+        // let message = error_message.content();
+        println!("request id: {}", &error_message.request_id());
+        println!("oss error: {}", &error_message.content());
+    }
+  }
+  Ok(())
 }
 ```
 
-[更多例子](https://github.com/isme-sun/xt_oss/tree/main/examples)
+## 一、 Example
 
-## `Options` 配置
+- [批量创建oss buckets](https://github.com/isme-sun/xt_oss/tree/main/examples/aa_create_buckets.rs)
+- [大文件分段下载](https://github.com/isme-sun/xt_oss/tree/main/examples/aa_get_big_object.rs)
+- [Loop列出所有object](https://github.com/isme-sun/xt_oss/tree/main/examples/aa_list_object_v2_all.rs)
+- [上传本地目录到bucket](https://github.com/isme-sun/xt_oss/tree/main/examples/aa_sync_sample_up.rs)
+- [下载bucket内所有文件到本地](https://github.com/isme-sun/xt_oss/tree/main/examples/aa_sync_smaple_down.rs)
+- [更多...](https://github.com/isme-sun/xt_oss/tree/main/examples)
+
+## 二、 `Options` 配置
 
 - `access_key_id` 通过阿里云控制台创建的AccessKey ID
 - `access_key_secret` 通过阿里云控制台创建的AccessKey Secret
@@ -114,7 +124,7 @@ assert_eq!(options.base_url(), base_url);
 let client = oss::Client::new(options);
 ```
 
-### 一次性从环境变量生成oss::Options,格式参见 [.env.example](https://github.com/isme-sun/xt_oss/blob/main/.env.example)
+### 环境变量生成oss::Options,格式参见 [.env.example](https://github.com/isme-sun/xt_oss/blob/main/.env.example)
 
 ```rust ignore
 use xt_oss::prelude::*;
@@ -125,11 +135,11 @@ let client = oss::Client::new(options);
 // ...
 ```
 
-## Api方法与参数构建
+## 三、 Api方法与参数构建
 
 ![xtoss-2](https://cdn.xuetube.com/upload/xtoss/xtoss-2.png)
 
-api方法命名遵循官方文档，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合编辑器
+api方法命名遵循官方文档，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合
 代码提示将给库的使用带来方便.
 
 - 参数构建分为简单方式，直接在方法内传参数例如`.HeadObject("mp3/Audio_0.4mb.mp3")`
@@ -161,7 +171,7 @@ let result = client
 // ...
 ```
 
-## 返回与错误处理
+## 四、 返回与错误处理
 
 ```rust ignore
 pub type ApiResponse<T> = Result<ApiData<T>, ApiData<ErrorMessage>>;
@@ -192,7 +202,7 @@ match client
 //...
 ```
 
-## util提供一些工具方法
+## 五、util提供一些工具方法
 
 - `fn utc_to_gmt(datetime:DateTime<Utc>) -> String`
 - `fn local_to_gmt(local_datetime: DateTime<Local>) -> String`
@@ -201,14 +211,46 @@ match client
 - `fn oss_md5`
 - `struct ByteRange`
 
-## 实现的Api
+### 关于ByteRange 
+
+提供了HTTP Range构造方法
+
+```rust ignore
+assert_eq!(ByteRange::new().to_string(), "bytes=0-");
+assert_eq!(ByteRange::new().with_amount(500).to_string(), "bytes=0-499");
+assert_eq!(ByteRange::new().with_amount(-500).to_string(), "bytes=-500");
+assert_eq!(ByteRange::new().with_start(100).to_string(), "bytes=100-");
+// 通过元组生成
+assert_eq!(ByteRange::from((100, 500)).to_string(), "bytes=100-599");
+assert_eq!(ByteRange::from((100, -500)).to_string(), "bytes=0-99");
+assert_eq!(ByteRange::from((100, -50)).to_string(), "bytes=50-99");
+```
+
+
+## 六、 TODO
+
+- 完成剩下的api,修复bug
+- 逐步完善文档
+- 提供一些开箱即用的utils功能
+
+## 七、 欢迎提bug和需求
+
+欢迎大家提出bug报告和功能需求。如果你在使用过程中遇到了任何问题或者有任何改进的建议，都可以在[Issues](https://github.com/isme-sun/xt_oss/issues)中告知。
+
+- 邮箱：[`isme.sun@icloud.com`](mailto:isme.sun@icloud.com)
+- 微信：`ismeSun`
+- github: [`xt-oss`](https://github.com/isme-sun/xt_oss)
+
+-----------------------------------------------------------------------------------
+
+## 附录:实现的Api
 
 下面是计划中要实现的Api,★ 已经实现 ☆ 未实现.
 
 ### 关于Service/Region
 
 - [★ `ListBuckets（GetService）`](https://github.com/isme-sun/xt_oss/tree/main/examples)
-- [★ `DescribeRegions`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
+- [★ `DescribeRegions`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket - 基础操作
 
@@ -216,9 +258,9 @@ match client
 - [★ `DeleteBucket`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `ListObjects`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [★ `ListObjectsV2`](https://github.com/isme-sun/xt_oss/tree/main/examples)
-- [★ `GetBucketInfo`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
-- [★ `GetBucketLocation`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
-- [★ `GetBucketStat`](https://github.com/isme-sun/xt_oss/tree/main/examples) 
+- [★ `GetBucketInfo`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketLocation`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketStat`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### 合规保留策略（WORM）
 
@@ -287,8 +329,8 @@ match client
 
 ### Bucket 请求者付费（RequestPayment）
 
-- [☆ `PutBucketRequestPayment`](https://github.com/isme-sun/xt_oss/tree/main/examples)
-- [☆ `GetBucketRequestPayment`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `PutBucketRequestPayment`](https://github.com/isme-sun/xt_oss/tree/main/examples)
+- [★ `GetBucketRequestPayment`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 
 ### Bucket 跨域资源共享（CORS）
 
@@ -364,17 +406,3 @@ match client
 - [☆ `GetLiveChannelHistory`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [☆ `PostVodPlaylist`](https://github.com/isme-sun/xt_oss/tree/main/examples)
 - [☆ `GetVodPlaylist`](https://github.com/isme-sun/xt_oss/tree/main/examples)
-
-## TODO
-
-- 完成剩下的api,修复bug
-- 逐步完善文档
-- 提供一些开箱即用的utils功能
-
-## 欢迎提bug和需求
-
-欢迎大家提出bug报告和功能需求。如果你在使用过程中遇到了任何问题或者有任何改进的建议，都可以在[Issues](https://github.com/isme-sun/xt_oss/issues)中告知。
-
-- 邮箱：[`isme.sun@icloud.com`](mailto:isme.sun@icloud.com)
-- 微信：`ismeSun`
-- github: [`xt-oss`](https://github.com/isme-sun/xt_oss)
