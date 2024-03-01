@@ -23,7 +23,7 @@ pub mod builders {
             quick_xml::se::to_string(&self.config).unwrap()
         }
 
-        pub async fn exectue(&self) -> api::ApiResult {
+        pub async fn execute(&self) -> api::ApiResult {
             let res = format!("/{}/?requestPayment", self.client.bucket());
             let url = format!("{}?requestPayment", self.client.base_url());
             let content = oss::Bytes::from(self.config());
@@ -51,7 +51,7 @@ pub mod builders {
             Self { client }
         }
 
-        pub async fn exectue(&self) -> api::ApiResult<RequestPaymentConfiguration> {
+        pub async fn execute(&self) -> api::ApiResult<RequestPaymentConfiguration> {
             let res = format!("/{}/?requestPayment", self.client.bucket());
             let url = format!("{}/?requestPayment", self.client.base_url());
 

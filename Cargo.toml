@@ -1,6 +1,6 @@
 [package]
 name = "xt-oss"
-version = "0.5.6"
+version = "0.5.7"
 edition = "2021"
 rust-version = "1.73"
 authors = ["isme.sun <isme.sun@icloud.com>"]

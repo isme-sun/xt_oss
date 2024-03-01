@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = oss::Client::new(options);
     let result = client
         .PutBucketRequestPayment(Payer::BucketOwner)
-        .exectue()
+        .execute()
         .await
         .unwrap_or_else(|reqwest_error| {
             println!("reqwest error: {}", reqwest_error);
