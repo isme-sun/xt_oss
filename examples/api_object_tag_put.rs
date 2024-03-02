@@ -18,9 +18,9 @@ async fn main() {
     match client
         .PutObjectTagging("excel/Spreadsheet-1000-rows.xls")
         .with_tags(vec![
-            ("key1", "value1"),
-            ("key2", "value2"),
-            ("key3", "value3"),
+            ("姓名", "张一人"),
+            ("任务", "编码、测试"),
+            ("昵称", "边城 浪子"),
         ])
         .execute()
         .await

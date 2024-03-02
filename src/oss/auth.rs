@@ -2,6 +2,8 @@ use super::http;
 use super::http::header::CONTENT_TYPE;
 use super::DEFAULT_CONTENT_TYPE;
 use base64::{engine::general_purpose, Engine as _};
+use percent_encoding::utf8_percent_encode;
+
 #[derive(Debug, Clone)]
 pub(super) struct SingerV1<'a> {
     pub(super) access_key_id: &'a str,
@@ -55,12 +57,12 @@ impl<'a> SingerV1<'a> {
             Some(content_type) => content_type.to_str().unwrap().to_string(),
             None => "".to_string(),
         };
-
-        // !! ? :(
-        let resource = urlencoding::decode(self.resourse.unwrap_or("/"))
-            .unwrap()
-            .replace("+", " ");
-
+        let resource =
+            utf8_percent_encode(self.resourse.unwrap_or("/"), percent_encoding::CONTROLS)
+                .to_string();
+        // let resource = urlencoding::decode(self.resourse.unwrap_or("/"))
+        //     .unwrap()
+        //     .replace("+", " ");
         let value = format!(
             "{VERB}\n{ContentMD5}\n{ContentType}\n{Date}\n{Header}{Resource}",
             VERB = self.method,
