@@ -7,7 +7,12 @@ pub mod builder {
 
     #[derive(Debug, Default, Clone)]
     pub struct CallbackBuilder<'a> {
-        callback: Callback<'a>,
+        // callback: Callback<'a>,
+        url: String,
+        host: Option<String>,
+        body: CallbackBody<'a>,
+        sni: Option<bool>,
+        body_type: Option<CallbackBodyType>,
     }
 
     impl<'a> CallbackBuilder<'a> {
@@ -16,32 +21,38 @@ pub mod builder {
         }
 
         pub fn with_url(mut self, value: Vec<&'a str>) -> Self {
-            self.callback.callback_url = value.join(",");
+            self.url = value.join(",");
             self
         }
 
         pub fn with_host(mut self, value: &'a str) -> Self {
-            self.callback.callback_host = Some(value.to_string());
+            self.host = Some(value.to_string());
             self
         }
 
         pub fn with_body(mut self, value: CallbackBody<'a>) -> Self {
-            self.callback.callback_body = value;
+            self.body = value;
             self
         }
 
         pub fn with_sni(mut self, value: bool) -> Self {
-            self.callback.callback_sni = Some(value);
+            self.sni = Some(value);
             self
         }
 
         pub fn with_body_type(mut self, value: CallbackBodyType) -> Self {
-            self.callback.callback_body_type = Some(value);
+            self.body_type = Some(value);
             self
         }
 
-        pub fn build(&self) -> &'a Callback {
-            &self.callback
+        pub fn build(self) -> Callback<'a> {
+            Callback {
+                callback_url: self.url,
+                callback_host: self.host,
+                callback_body: self.body,
+                callback_sni: self.sni,
+                callback_body_type: self.body_type,
+            }
         }
     }
 }
@@ -80,17 +91,17 @@ pub enum CallbackBodyItem {
     // 图片格式,例如JPG、PNG等。该变量仅适用于图片格式,对于非图片格式,该变量的值为空。
     ImageInfoFormat,
     // 与上传文件后返回的x-oss-hash-crc64ecma头内容一致。
-    // Crc64,
+    Crc64,
     // 与上传文件后返回的Content-MD5头内容一致。 仅在调用PutObject和PostObject接口上传文件时,该变量的值不为空。
-    // ContentMD5,
+    ContentMD5,
     // 发起请求的客户端所在的VpcId。如果不是通过VPC发起请求,则该变量的值为空。
-    // VpcId,
+    VpcId,
     // 发起请求的客户端IP地址。
-    // ClientIp,
+    ClientIp,
     // 发起请求的RequestId。
-    // ReqId,
+    ReqId,
     // 发起请求的接口名称,例如PutObject、PostObject等。
-    // Operation,
+    Operation,
 }
 
 impl fmt::Display for CallbackBodyItem {
@@ -110,14 +121,20 @@ impl fmt::Display for CallbackBodyItem {
             CallbackBodyItem::ImageInfoFormat => {
                 write!(f, "{}", "imageInfo.format=${imageInfo.format}")
             }
+            CallbackBodyItem::Crc64 => write!(f, "{}", "crc64=${crc64}"),
+            CallbackBodyItem::ContentMD5 => write!(f, "{}", "contentMd5=${contentMd5}"),
+            CallbackBodyItem::VpcId => write!(f, "{}", "vpcId=${vpcId}"),
+            CallbackBodyItem::ClientIp => write!(f, "{}", "clientIp=${clientIp}"),
+            CallbackBodyItem::ReqId => write!(f, "{}", "reqId=${reqId}"),
+            CallbackBodyItem::Operation => write!(f, "{}", "operation=${operation}"),
         }
     }
 }
 
 #[derive(Debug, Default, Clone)]
 pub struct CallbackBody<'a> {
-    items: Vec<CallbackBodyItem>,
-    custom_items: Vec<(&'a str, &'a str)>,
+    pub items: Vec<CallbackBodyItem>,
+    pub custom_items: Vec<(&'a str, &'a str)>,
 }
 
 impl<'a> CallbackBody<'a> {
@@ -149,12 +166,11 @@ impl<'a> CallbackBody<'a> {
     }
 
     pub fn to_form_url_encoded(&self) -> String {
-        (&self.items)
-            .into_iter()
-            .map(|e| e.to_string())
-            .collect::<Vec<String>>()
-            .join("&")
+        let sec1 = self.items.iter().map(|e| e.to_string());
+        let sec2 = self.custom_items.iter().map(|e| format!("x:{}=x:{}", e.0, e.1));
+        sec1.chain(sec2).collect::<Vec<String>>().join("&")
     }
+    
 }
 
 #[derive(Debug, Default, Clone)]
@@ -187,7 +203,7 @@ impl<'a> Callback<'a> {
                 CallbackBodyType::JSON => self.callback_body.to_json(),
             },
         );
-        serde_json::to_string_pretty(&data).unwrap()
+        serde_json::to_string(&data).unwrap()
     }
 }
 

@@ -11,6 +11,7 @@ pub mod builders {
 
     use std::collections::HashMap;
 
+    use base64::{engine::general_purpose, Engine as _};
     use chrono::{DateTime, Utc};
     use oss::http::{
         header::{
@@ -23,7 +24,7 @@ pub mod builders {
     use reqwest::Response;
     use serde::{Deserialize, Serialize};
 
-    use crate::{oss::entities::object::delete_multiple::DeleteResult, util::ByteRange};
+    use crate::{oss::entities::{callback::Callback, object::delete_multiple::DeleteResult}, util::ByteRange};
     use crate::{
         oss::{
             self,
@@ -61,6 +62,7 @@ pub mod builders {
         oss_tagging: Option<Vec<(&'a str, &'a str)>>,
         // oss_meta:  HashMap<String, String>,
         oss_meta: Option<Vec<(&'a str, &'a str)>>,
+        // callback
     }
 
     pub struct PutObjectBuilder<'a> {
@@ -69,6 +71,7 @@ pub mod builders {
         content: oss::Bytes,
         headers: PutObjectBuilderHeaders<'a>,
         timeout: Option<u64>,
+        callback: Option<Callback<'a>>
     }
 
     impl<'a> PutObjectBuilder<'a> {
@@ -79,6 +82,7 @@ pub mod builders {
                 content: oss::Bytes::new(),
                 headers: PutObjectBuilderHeaders::default(),
                 timeout: None,
+                callback: None
             }
         }
 
@@ -177,6 +181,11 @@ pub mod builders {
             self
         }
 
+        pub fn with_callback(mut self, callback: Callback<'a>) -> Self {
+            self.callback = Some(callback);
+            self
+        }
+
         fn headers(&self) -> http::HeaderMap {
             let mut headers = http::HeaderMap::new();
 
@@ -261,10 +270,17 @@ pub mod builders {
                     insert_custom_header(&mut headers, &format!("x-oss-meta-{}", key), value);
                 }
             }
+
+            if let Some(callback) = &self.callback {
+                let value = callback.to_json();
+                let encoded = general_purpose::STANDARD.encode(value.as_bytes());
+                // dbg!(&encoded);
+                insert_custom_header(&mut headers, "x-oss-callback", encoded);
+            }
             headers
         }
 
-        pub async fn execute(&self) -> api::ApiResult<()> {
+        pub async fn execute(&self) -> api::ApiResult<Bytes> {
             let res = format!("/{}/{}", self.client.bucket(), self.object);
             let url = self.client.object_url(self.object);
             let headers = self.headers();
@@ -280,7 +296,7 @@ pub mod builders {
                 .with_resource(&res)
                 .execute_timeout(self.timeout.unwrap_or(self.client.timeout()))
                 .await?;
-            Ok(ApiResponseFrom(resp).to_empty().await)
+            Ok(ApiResponseFrom(resp).to_bytes().await)
         }
     }
 
