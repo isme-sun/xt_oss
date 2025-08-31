@@ -136,7 +136,6 @@ let client = oss::Client::new(options);
 
 ## 三、 Api方法与参数构建
 
-![xtoss-2](https://cdn.xuetube.com/upload/xtoss/xtoss-2.png)
 
 api方法命名遵循官方文档，例如 `ListObjectsV2`,`DescribeRegions`,熟悉官方文档并结合
 代码提示将给库的使用带来方便.
