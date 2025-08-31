@@ -13,7 +13,6 @@
 - 实现常用的大部分API.
 - 完整`Examples`演示.
 
-![xtoss-1](https://cdn.xuetube.com/upload/xtoss/xtoss-1.png)
 
 ```toml
 [dependencies]
